@@ -1,0 +1,5120 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Мій словник</title>
+  <!-- Мета-теги для адаптивності та заборона масштабування -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <!-- Підключення шрифтів Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Стилизування додатку -->
+  <style>
+    /* Загальні стилі */
+    body {
+      font-family: 'Montserrat', sans-serif;
+      margin: 0;
+      background-color: #fafafa;
+      color: #333;
+      overflow-x: hidden;
+      background: linear-gradient(90deg, rgba(139, 198, 236, 1), rgba(139, 198, 236, 1));
+    }
+
+    /* Адаптивный попап на весь экран */
+    #progressPopup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .training-title-desc {
+      font-weight: 600;
+      margin-bottom: 10px;
+      margin-top: 0;
+    }
+
+    .training-title-desc + .description {
+      text-align: left;
+      margin-top: 0;
+      margin-bottom: 30px;
+      line-height: 130%;
+    }
+
+    .tile-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .tile {
+      background: #f1f1f1;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      position: relative;
+      text-align: center;
+    }
+
+    .tile span {
+      display: block;
+      font-size: 24px;
+      font-weight: bold;
+      color: black;
+      margin-top: 5px;
+    }
+
+    .info-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: black;
+      color: #fff;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    #closeBtn {
+      background: black;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin-top: 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .algorithm-block ol {
+      line-height: 130%;
+      text-align: left;
+      margin-bottom: 0;
+    }
+
+    .algorithm-block ol li {
+      margin-bottom: 6px;
+    }
+
+    .fas.fa-info-circle {
+      font-size: 34px;
+    }
+
+    .algorithm-block {
+      background-color: #E0F7FA;
+      border-left: 6px solid #37474F;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 0;
+      margin-bottom: 30px;
+    }
+
+    .algorithm-block p {
+      margin-bottom: 10px;
+      font-size: 16px;
+      margin-top: 0;
+      font-weight: bold;
+    }
+
+    /* Стилі для попапу з поділеними словами */
+    #sharedWordsPopup .popup-content {
+      max-width: 500px;
+      width: 90%;
+      margin: 0 auto;
+    }
+
+    #sharedWordsPopup h3 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    #shared-words-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .shared-word-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .shared-word-item strong {
+      font-size: 1rem;
+    }
+
+    .shared-word-item button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .shared-word-item button:hover {
+      background-color: #218838;
+    }
+
+    .popup-buttons {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .popup-buttons button {
+      flex: 1;
+      margin: 0 5px;
+    }
+
+    .popup-buttons .close-button {
+      background-color: #dc3545;
+    }
+
+    .popup-buttons .close-button:hover {
+      background-color: #c82333;
+    }
+
+
+    .option-menu {
+      position: absolute;
+      top: 0;
+      right: -100%;
+      width: 100%;
+      height: 100%;
+      background-color: #fff;
+      overflow-y: auto;
+      transition: right 0.3s ease;
+      z-index: 1000;
+    }
+
+    .option-menu.show {
+      right: 0;
+    }
+
+    .option-menu-content {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .option-menu .close-button {
+      font-size: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      background: gainsboro;
+    }
+
+    .option-menu-list li {
+      list-style: none;
+      margin-bottom: 10px;
+    }
+
+    #option-menu-list {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .option-menu-list button {
+      width: 100%;
+      padding: 10px;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+
+    #quiz-emoji.fa-grin-stars {
+      color: #FFC107;
+    }
+
+    .check-word {
+      position: relative;
+      font-weight: bold;
+      background-color: #D7E9F7;
+      border-radius: 12px;
+      font-size: 24px;
+      color: #324855;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #ukr-to-eng-button,
+    #eng-to-ukr-button,
+    .generate {
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #37474F;
+      /* Тёмно-серый текст для хорошей читаемости */
+      background-color: #E0F7FA;
+      /* Светло-голубой фон */
+      border: 2px solid #B2EBF2;
+      /* Голубая рамка */
+      border-radius: 12px;
+      /* Закруглённые углы для мягкости */
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s ease-in-out, box-shadow 0.2s;
+      margin: 10px 0;
+      /* Пространство между кнопками */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      /* Лёгкая тень для объёма */
+    }
+
+    #ukr-to-eng-button:hover,
+    #eng-to-ukr-button:hover,
+    .generate:hover {
+      background-color: #B2EBF2;
+      /* Насыщенный голубой при наведении */
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+      /* Увеличенная тень */
+      transform: scale(1.02);
+      /* Лёгкое увеличение */
+    }
+
+    /* Состояние при нажатии */
+    #ukr-to-eng-button:active,
+    #eng-to-ukr-button:active {
+      background-color: #80DEEA;
+      /* Более насыщенный голубой при нажатии */
+      transform: scale(0.98);
+      /* Лёгкое сжатие */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      /* Снижение тени */
+    }
+
+    .check-button {
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #37474F;
+      /* Тёмный текст */
+      background-color: #FFFFFF;
+      /* Белый фон */
+      border: 2px solid #B0BEC5;
+      /* Светлая рамка */
+      border-radius: 12px;
+      /* Закруглённые углы */
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s ease-in-out, box-shadow 0.2s;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      /* Лёгкая тень для объёма */
+      margin: 10px auto;
+      /* Центрируем */
+    }
+
+    /* Состояние при наведении */
+    .check-button:hover {
+      background-color: #F0F4C3;
+      /* Нежный светло-зелёный при наведении */
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+      /* Увеличенная тень */
+    }
+
+    /* Состояние при нажатии */
+    .check-button:active {
+      background-color: #DCE775;
+      /* Более насыщенный зелёный при нажатии */
+      transform: scale(0.98);
+      /* Лёгкое уменьшение */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      /* Снижение тени */
+    }
+
+    .tal {
+      text-align: left;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.05);
+        /* Лёгкое увеличение */
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    #constructor-feedback.correct-label,
+    #constructor-feedback.not-correct-label {
+      font-size: 16px;
+      /* Читаемый размер текста */
+      font-weight: bold;
+      /* Мягкий зелёный цвет для позитивной обратной связи */
+      text-align: center;
+      animation: fadeIn 0.5s ease-in-out, pulse 1s infinite ease-in-out;
+      animation: none;
+    }
+
+    #constructor-feedback.not-correct-label {
+      color: #FF6B6B;
+    }
+
+    #constructor-feedback.correct-label {
+      color: #4CAF50;
+    }
+
+    /* Стиль для виділення слів */
+    .highlight {
+      font-weight: bold;
+      border-bottom: 1px solid;
+    }
+
+    #constructor-answer {
+      width: 90%;
+      margin: 0;
+      padding: 18px 0 18px 18px;
+      font-size: 18px;
+      color: #37474F;
+      /* Тёмный серый текст */
+      background-color: #F9F9F9;
+      /* Лёгкий фон */
+      border: 2px solid #B0BEC5;
+      /* Светлая рамка */
+      border-top-right-radius: 0px;
+      border-bottom-right-radius: 0px;
+      border-top-left-radius: 10px;
+      border-bottom-left-radius: 10px;
+      outline: none;
+      transition: all 0.3s ease-in-out;
+      border-right: none;
+    }
+
+    .add-icon {
+      background-image: url('https://img.icons8.com/ios-glyphs/30/ffffff/plus.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      width: 24px;
+      height: 24px;
+      margin-left: auto;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+
+    .add-icon:hover {
+      opacity: 0.7;
+    }
+
+    .added-word {
+      animation: addedWordAnimation 0.5s forwards;
+    }
+
+    @keyframes addedWordAnimation {
+      0% {
+        background-color: #fff;
+      }
+
+      50% {
+        background-color: #2ecc71;
+      }
+
+      100% {
+        background-color: #fff;
+      }
+    }
+
+    /* Стиль для таймера */
+    #speed-training-timer {
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Стиль для вопроса и вариантов ответа */
+    #speed-training-question button {
+      position: relative;
+      font-weight: bold;
+      background-color: #D7E9F7;
+      border-radius: 12px;
+      font-size: 24px;
+      color: #324855;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #speed-training-question h3 {
+      font-size: 26px;
+    }
+
+    /* Стили для кнопки озвучивания */
+    #speed-training-question .fa-volume-up {
+      font-size: 24px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    /* Стиль для результатов тренировки */
+    #speed-training-result {
+      text-align: center;
+    }
+
+    #speed-training-result img {
+      width: 100px;
+      height: 100px;
+    }
+
+    #speed-training-result p {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    /* Стили для кнопок, у которых data-count не равно 1 */
+    /* Применяем стили только для data-count больше 1 */
+    .unique-letter-button[data-count]:not([data-count="1"]):not([data-count="0"])::after {
+      content: attr(data-count);
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: #324855;
+      /* Пастельный зелёный */
+      color: #fffdfd;
+      /* Тёмно-зелёный текст */
+      font-size: 14px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      /* Круглый элемент */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      /* Лёгкая тень */
+    }
+
+    .overlay {
+      width: 100vw;
+      height: 100vh;
+      background: #00000096;
+      position: absolute;
+      z-index: 2;
+      backdrop-filter: blur(5px);
+    }
+
+    .unique-letter-button {
+      position: relative;
+      font-weight: bold;
+      width: 44px;
+      height: 44px;
+      background-color: #D7E9F7;
+      /* Пастельный голубой */
+      border-radius: 12px;
+      /* Единые скруглённые углы */
+      font-size: 24px;
+      color: #324855;
+      /* Спокойный зелёный текст */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 5px;
+      /* Пространство между кнопками */
+    }
+
+    .unique-letter-button:hover {
+      background-color: #B0D6E5;
+      /* Тонкий эффект затемнения */
+      transform: scale(1.05);
+      /* Лёгкое увеличение */
+    }
+
+    .unique-letter-button:active {
+      /* Цвет при нажатии */
+      transform: scale(0.95);
+      /* Эффект нажатия */
+      box-shadow: 0 2px 6px rgba(255, 180, 162, 0.4);
+      /* Уменьшенная тень */
+    }
+
+    /* Стили для disabled состояния */
+    .unique-letter-button:disabled {
+      opacity: 0.4;
+    }
+
+    #word-list #words i {
+      margin-right: 10px;
+    }
+
+    #listening-quiz-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #quiz-container h3 {
+      font-size: 30px;
+      margin-top: 30px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      position: relative;
+      padding-top: 40px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    button {
+      background-color: #fffdfd;
+      color: #000000;
+      padding: 14px 10px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 24px;
+      cursor: pointer;
+      border-radius: 14px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      font-family: 'Montserrat';
+      border: none;
+      width: 100%;
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      padding: 12px;
+      margin: 5px 0 15px 0;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      border-color: #3498db;
+      box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+      outline: none;
+    }
+
+    .link-button {
+      background: none;
+      border: none;
+      color: #3498db;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+      margin-top: 10px;
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+
+    .link-button.register-link {
+      font-size: 16px;
+      display: block;
+      box-shadow: none;
+    }
+
+    .link-button:hover {
+      color: #2980b9;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      font-size: 14px;
+      margin-top: -10px;
+      margin-bottom: 10px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Стилі для основного екрану облікового запису */
+    .menu {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .menu button {
+      margin: 5px 0;
+      width: 80%;
+      max-width: 300px;
+      color: #324855;
+    }
+
+    @media only screen and (max-width: 768px) {
+      .menu button {
+        width: 100%;
+        max-width: none;
+      }
+    }
+
+    /* Стилі для списку слів */
+    #word-list ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    #word-list li {
+      background-color: #fff;
+      padding: 15px 22px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, opacity 0.3s;
+      position: relative;
+    }
+
+    #word-list .fa-trash {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      color: coral;
+      transform: translate(0, -50%);
+    }
+
+    #word-list li.removed {
+      opacity: 0;
+      transform: scale(0);
+      height: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    #word-list li button {
+      width: auto;
+      margin-left: auto;
+      padding: 5px 10px;
+      font-size: 14px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+
+    #word-list li button:hover {
+      opacity: 0.7;
+    }
+
+    /* Іконки */
+    .delete-icon {
+      background-image: url('https://img.icons8.com/ios-glyphs/30/ffffff/trash--v1.png');
+      /* Білий колір */
+      background-size: contain;
+      background-repeat: no-repeat;
+      width: 24px;
+      height: 24px;
+    }
+
+    .sound-icon {
+      background-image: url('https://img.icons8.com/ios-glyphs/30/ffffff/speaker.png');
+      /* Білий колір */
+      background-size: contain;
+      background-repeat: no-repeat;
+      width: 24px;
+      height: 24px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    /* Кнопка "Назад" */
+    .back-button {
+      background-color: transparent;
+      box-shadow: none;
+      padding: 0;
+      margin: 0;
+      width: auto;
+    }
+
+    .back-button h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: normal;
+    }
+
+    .buttons-right-corner {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      display: flex;
+      width: 20%;
+      gap: 10px;
+      transform: translate(0, -50%);
+    }
+
+    .buttons-right-corner .fa-star:before {
+      color: #FFC107;
+    }
+
+    .buttons-right-corner button {
+      margin: 0;
+      padding: 12px;
+    }
+
+    /* Стилі для поля введення на мобільних пристроях */
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+        padding-top: 40px;
+      }
+
+      button {
+        font-size: 20px;
+      }
+
+      input[type="text"],
+      input[type="email"],
+      input[type="password"] {
+        padding: 15px;
+        font-size: 18px;
+      }
+    }
+
+    @keyframes fadeOut {
+      to {
+        opacity: 0;
+        transform: scale(0);
+        height: 0;
+        margin: 0;
+        padding: 0;
+      }
+    }
+
+    /* Стиль для сумного котика */
+    .add-word-from-my-vocabulary {
+      max-width: 100%;
+      display: block;
+      margin: 20px auto;
+      border-radius: 8px;
+    }
+
+    .long-button {
+      padding: 15px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #37474F;
+      background-color: #FFFFFF;
+      border: 2px solid #B0BEC5;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s ease-in-out, box-shadow 0.2s;
+      margin: 10px auto;
+      width: 100%;
+    }
+
+    .user-email:hover {
+      color: #2980b9;
+    }
+
+    /* Стиль для лічильника слів */
+    #word-count {
+      text-align: left;
+      margin-top: 10px;
+      color: #2c3e50;
+    }
+
+    /* Стиль для повідомлення про підписку */
+    .subscription-info {
+      text-align: center;
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    /* Кнопка "Оплатити" */
+    .pay-button {
+      padding: 12px 20px;
+      margin-top: 10px;
+      width: 100%;
+      background-color: #27ae60;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .pay-button:hover {
+      background-color: #1e8449;
+      transform: translateY(-2px);
+    }
+
+    .pay-button:active {
+      transform: translateY(0);
+    }
+
+    /* Стиль для кнопки купити преміум */
+    .premium-button {
+      background-color: #FF9800;
+      color: #000000;
+      padding: 14px 10px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 24px;
+      cursor: pointer;
+      border-radius: 14px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      font-family: 'Montserrat';
+      border: none;
+      width: 100%;
+    }
+
+    .premium-button:active {
+      transform: translateY(0);
+    }
+
+    /* Стилі для сторінки тарифів */
+    #tariffs-section {
+      text-align: center;
+    }
+
+    .tariff {
+      background-color: #fff;
+      padding: 20px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .tariff h3 {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+
+    .tariff p {
+      font-size: 14px;
+      color: #7f8c8d;
+    }
+
+    .tariff-price {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 10px 0;
+      color: black;
+    }
+
+    .tariff button {
+      background-color: #3498db;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .finishSpeedButton {
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #37474F;
+      background-color: #E0F7FA;
+      border: 2px solid #B2EBF2;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s ease-in-out, box-shadow 0.2s;
+      margin: 10px 0;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .tariff button:hover {
+      background-color: #2980b9;
+      transform: translateY(-2px);
+    }
+
+    #speed-training-section,
+    #listening-training-section {
+      background: #fffdfd;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .tariff button:active {
+      transform: translateY(0);
+    }
+
+    /* Стилі для карток слів */
+    .word-card {
+      background-color: #fff;
+      padding: 15px 22px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s;
+    }
+
+    .word-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .word-card .add-icon {
+      background-image: url('https://img.icons8.com/ios-glyphs/30/ffffff/plus.png');
+      /* Білий колір */
+      background-size: contain;
+      background-repeat: no-repeat;
+      width: 24px;
+      height: 24px;
+      margin-left: auto;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+
+    .word-card .add-icon:hover {
+      opacity: 0.7;
+    }
+
+    /* Стилі для кнопок букв у конструкторі слова */
+    .letter-button {
+      padding: 10px 15px;
+      margin: 5px;
+      background-color: #bdc3c7;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    #quiz-emoji {
+      font-size: 60px;
+      color: #32708f;
+    }
+
+    .letter-button:hover {
+      background-color: #95a5a6;
+      transform: translateY(-2px);
+    }
+
+    .letter-button:disabled {
+      background-color: #7f8c8d;
+      cursor: not-allowed;
+    }
+
+    /* Стиль для повідомлення про успішне додавання */
+    .success-message {
+      color: #27ae60;
+      font-size: 16px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .small-button {
+      padding: 8px 12px;
+      font-size: 14px;
+      width: auto;
+      margin-bottom: 10px;
+    }
+
+    /* Оверлей завантаження */
+    #loading-overlay {
+      display: none !important;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.8);
+      /* Полупрозрачный белый фон */
+      z-index: 10000;
+      /* Высокий z-index, чтобы перекрыть весь контент */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .spinner {
+      border: 4px solid #000000;
+    border-top: 4px solid white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Стилі для рекомендацій перекладу */
+    #translation-suggestions {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .suggestion {
+      background-color: #ecf0f1;
+      padding: 8px 12px;
+      margin: 5px;
+      cursor: pointer;
+      border-radius: 4px;
+      flex: 1 1 calc(33% - 20px);
+      text-align: center;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .suggestion:hover {
+      background-color: #bdc3c7;
+      transform: translateY(-2px);
+    }
+
+    /* Секції тренувань */
+    #listening-training-section,
+    #word-constructor-training-section,
+    #quiz-section,
+    #add-word-section,
+    #word-base-section,
+    #my-words-section,
+    #account-screen,
+    #payment-section,
+    #tariffs-section {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    #quiz-section {
+      background: #fffdfd;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    #quiz-section p,
+    #quiz-section ul {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Центрування іконки всередині кнопки */
+    .button-with-icon {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      color: #324855;
+      text-align: left;
+      box-shadow: none;
+      margin-bottom: 0;
+    }
+
+    .button-with-icon i {
+      font-size: 18px;
+    }
+
+    .button-with-icon .icon {
+      margin-right: 8px;
+      /* Відступ між іконкою та текстом, якщо є */
+    }
+
+    /* Стиль для email користувача всередині заголовка */
+    .user-email {
+      font-weight: bold;
+      color: #2c3e50;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    .user-email:hover {
+      color: #2980b9;
+    }
+
+    .correct {
+      background-color: #8bc34a;
+      /* Приглушенный зеленый */
+      color: #fff;
+    }
+
+    .add-word-from-my-vocabulary.hidden {
+      display: none;
+    }
+
+    .incorrect {
+      background-color: #e57373;
+      /* Приглушенный красный */
+      color: #fff;
+    }
+
+    #quiz-question-number {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #000;
+      font-weight: bold;
+      line-height: 22px;
+      /* Высота должна совпадать с высотой прогресс-бара */
+    }
+
+    /* 9) Стилі для емодзі результатів */
+    .quiz-result {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .quiz-result img {
+      width: 100px;
+      height: 100px;
+    }
+
+    .quiz-result p {
+      font-size: 18px;
+    }
+
+    .skip-button {
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #fffdfd;
+      /* Белый текст для контраста */
+      background-color: #90A4AE;
+      /* Спокойный серо-голубой оттенок */
+      border: none;
+      border-radius: 12px;
+      /* Закруглённые углы */
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s ease-in-out;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      /* Лёгкая тень для объёма */
+    }
+
+    /* Состояние при наведении */
+    .skip-button:hover {
+      background-color: #78909C;
+      /* Немного темнее при наведении */
+      transform: scale(1.02);
+      /* Лёгкое увеличение */
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      /* Увеличенная тень */
+    }
+
+    /* Состояние при нажатии */
+    .skip-button:active {
+      background-color: #607D8B;
+      /* Ещё темнее при нажатии */
+      transform: scale(0.98);
+      /* Лёгкое уменьшение */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      /* Снижение тени */
+    }
+
+    /* Styles for the topics grid and tiles */
+    .topics-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .topic-tile {
+      background-color: #fff;
+      width: 48%;
+      max-width: none;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36%;
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 18px;
+      text-align: center;
+      font-weight: bold;
+      color: #37474F;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: background-color 0.3s, box-shadow 0.3s, transform 0.2s ease-in-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translate(-50%, 100%);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      to {
+        opacity: 0;
+        transform: translate(-50%, 100%);
+      }
+    }
+
+    #topic-words-list {
+      padding: 0;
+    }
+
+    .topic-tile:hover {
+      transform: translateY(-5px);
+    }
+
+    /* Adjustments for larger screens */
+    @media (min-width: 600px) {
+      .topic-tile {
+        width: 20%;
+      }
+    }
+
+    /* 12) Стилі для зворотного зв'язку після слухання */
+    .listening-feedback {
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .word-constructor-quiz-container .letter-button {
+      flex: 1 0 auto;
+      max-width: 45px;
+      text-align: center;
+      margin: 5px;
+    }
+
+    #constructor-progress,
+    #quiz-progress {
+      width: 100%;
+      /* Занимает почти всю ширину */
+      height: 12px;
+      /* Высота прогресс-бара */
+      background-color: #E0E0E0;
+      /* Светлый серый фон */
+      border-radius: 6px;
+      /* Закруглённые углы */
+      overflow: hidden;
+      /* Скрываем содержимое, выходящее за границы */
+      margin: 10px auto;
+      /* Центрируем по горизонтали */
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+      /* Внутренняя тень для объёма */
+    }
+
+    #constructor-progress-bar,
+    #quiz-progress-bar {
+      height: 100%;
+      width: 0%;
+      /* Начальное значение прогресса */
+      background-color: #4FC3F7;
+      /* Голубой цвет заполнения */
+      border-radius: 6px;
+      /* Закругляем углы */
+      transition: width 0.5s ease-in-out;
+      /* Плавный переход при изменении ширины */
+      height: 12px;
+    }
+
+    .finish-button {
+      /* Кнопка почти на всю ширину */
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #37474F;
+      /* Тёмно-серый текст */
+      background-color: #E0F7FA;
+      /* Светло-голубой пастельный фон */
+      border: 2px solid #B2EBF2;
+      /* Голубая рамка */
+      border-radius: 12px;
+      /* Закруглённые углы */
+      cursor: pointer;
+      transition: background-color 0.3s, box-shadow 0.2s ease-in-out;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      /* Лёгкая тень для объёма */
+      margin-top: 15px;
+    }
+
+    /* Ховер эффект */
+    .finish-button:hover {
+      background-color: #B2EBF2;
+      /* Насыщенный голубой при наведении */
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+      /* Увеличение тени */
+    }
+
+    /* Эффект при нажатии */
+    .finish-button:active {
+      background-color: #80DEEA;
+      /* Ещё более насыщенный голубой */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      /* Снижение тени */
+      transform: scale(0.98);
+      /* Лёгкое уменьшение */
+    }
+
+    .title-wrapper {
+      display: flex;
+      align-items: left;
+      justify-content: left;
+      gap: 10px;
+    }
+
+    /* Стилі для кнопки "Стерти" */
+    /* Стилі для прогрес бару у конструкторі слова */
+    #constructor-progress {
+      width: 100%;
+      background-color: #ddd;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    /* Стилі для результатів тренування конструктору слова */
+    .constructor-quiz-result {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .constructor-quiz-result img {
+      width: 100px;
+      height: 100px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    .notification.warning {
+      background-color: #FFC107;
+      /* Желтый фон */
+      color: #000;
+      /* Черный текст для лучшей читаемости */
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .constructor-quiz-result p {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    .fade-out {
+      animation: fadeOut 0.5s ease-in-out;
+    }
+
+    .popup {
+      background-color: #fffdfd;
+      padding: 20px;
+      width: 80%;
+      max-width: 400px;
+      border-radius: 8px;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 1000;
+      transform: translate(-50%, -50%);
+    }
+
+    .popup h3 {
+      margin-top: 0;
+    }
+
+    .popup button {
+      background-color: #000;
+      /* Черный фон */
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .topic-tile:hover {
+      transform: translateY(-5px);
+    }
+
+    #popupMessage {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    /* Адаптация для больших экранов */
+    @media (min-width: 600px) {
+      .topic-tile {
+        width: 20%;
+        /* Больше плиток в ряд на десктопах */
+      }
+    }
+
+    /* Стили для всплывающего уведомления */
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #2ecc71;
+      /* Зеленый фон */
+      color: #fffdfd;
+      padding: 10px 20px;
+      border-radius: 4px;
+      z-index: 1001;
+      animation: slideUp 0.5s, slideDown 0.5s 2.5s;
+      text-align: center;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translate(-50%, 100%);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      to {
+        opacity: 0;
+        transform: translate(-50%, 100%);
+      }
+    }
+
+    /* Анимации появления и исчезновения */
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .fade-out {
+      animation: fadeOut 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #word-constructor-training-section {
+      background: #fffdfd;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .constructor-letter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 20px;
+      gap: 10px;
+    }
+
+    /* Центрирование иконки звука */
+    .sound-icon-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    /* Стили для всплывающего окна информации */
+    #popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    /* Стиль для уведомления об успешном добавлении слова */
+    .add-word-notification {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #2ecc71;
+      /* Зеленый фон */
+      color: #fffdfd;
+      padding: 10px 20px;
+      border-radius: 4px;
+      z-index: 1001;
+      animation: slideUp 0.5s, slideDown 0.5s 2.5s;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translate(-50%, 100%);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      to {
+        opacity: 0;
+        transform: translate(-50%, 100%);
+      }
+    }
+
+    /* Позиционирование иконки плюса в словах темы */
+    .word-card {
+      position: relative;
+    }
+
+    .word-card .fa-plus {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    #quiz-container .check-word:last-child {
+      margin-bottom: 40px;
+    }
+
+    .popup h3 {
+      margin-top: 0;
+    }
+
+    .popup button:hover {
+      background-color: #333;
+    }
+
+    #search-input {
+      margin-top: 15px;
+    }
+
+    /* Стилі для кнопки "Прокрутити вверх" */
+    #scroll-to-top {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.5s, transform 0.3s;
+    }
+
+    .title-and-btn {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .title-and-btn h2 {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+      font-size: 16px;
+      color: #324855;
+      font-weight: 300;
+    }
+
+    #scroll-to-top.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #scroll-to-top:hover {
+      background-color: #2980b9;
+      transform: translateY(-2px);
+    }
+
+    #scroll-to-top:active {
+      transform: translateY(0);
+    }
+
+    /* Іконка всередині кнопки */
+    #scroll-to-top::before {
+      content: '\2191';
+      /* Unicode символ стрілки вгору */
+      font-size: 24px;
+    }
+
+    /* Меню плитки */
+    .menu-tiles {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .menu-tiles button {
+      flex: 0 0 calc(50% - 5px);
+      /* Две плитки в ряд */
+      height: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .menu-tiles button i {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    /* Настройка иконок звука в карточках слов */
+    .word-card .fa-volume-up,
+    .word-card .fa-plus {
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    .fas.fa-backspace {
+      color: #e74c3c;
+    }
+
+    /* Стили для прогресс-бара в тренировке на слух */
+    #listening-quiz-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .listening-sound-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      cursor: pointer;
+      background: #324855;
+      margin: 0;
+    }
+
+    .listening-sound-icon i {
+      color: #fffdfd;
+    }
+
+    #generated-story {
+      position: relative;
+      padding-top: 60px;
+      /* Added padding to accommodate controls */
+      background-color: #fffdfd;
+      padding: 20px;
+      line-height: 1.6;
+      /* Відступ між рядками для зручності читання */
+      margin-bottom: 20px;
+      border-radius: 10px;
+      position: relative;
+      /* Для позиціонування іконки озвучення */
+      margin: 20px -20px -20px;
+    }
+
+    /* Стили для обратной связи в тренировке на слух */
+    .listening-feedback {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-5px);
+      }
+
+      75% {
+        transform: translateX(5px);
+      }
+    }
+
+    .skip-button:hover {
+      background-color: #7f8c8d;
+    }
+
+    /* Настройка кнопки удаления в конструкторе слова */
+    .delete-constructor-button {
+      width: 10%;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #FFCDD2;
+      /* Лёгкий розовый фон */
+      color: #37474F;
+      /* Тёмный текст */
+      border: 1px solid #FF8A80;
+      /* Красноватая рамка */
+      border-radius: 0 10px 10px 0;
+      /* Скруглённые правые углы */
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none;
+    }
+
+    .delete-constructor-button:hover {
+      background-color: #ffc0c7;
+    }
+
+    .title-main {
+      display: flex;
+      text-align: center;
+      position: relative;
+      justify-content: center;
+    }
+
+    .title-main h1 {
+      font-size: 26px;
+      margin: 0;
+    }
+
+    /* Styles for the dropdowns in the generative text section */
+    #generative-text-section .title-wrapper {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    #generative-text-section>.title-wrapper {
+      width: 100%;
+    }
+
+    #generative-text-section,
+    #repetition-training-section {
+      background: #fffdfd;
+      padding: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #generative-text-section .dropdown-row {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    #generative-text-section select {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      color: #37474F;
+      background-color: #F9F9F9;
+      border: 2px solid #B0BEC5;
+    }
+
+    #generative-text-section select:focus {
+      border-color: #3498db;
+      box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+      outline: none;
+    }
+
+    /* Styles for the controls container */
+    #generated-story .controls-container {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Styles for the playback and translate buttons */
+    .playback-button,
+    .translate-button {
+      background-color: #000;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .playback-button i,
+    .translate-button i {
+      color: #fff;
+      font-size: 18px;
+    }
+
+    @keyframes rotate {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Adjust margins */
+    #generated-story h4 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: left;
+      margin-top: 0;
+      margin-bottom: 20px;
+      text-align: left;
+      /* Increased margin to content */
+    }
+
+    #generative-loading {
+      display: flex;
+      justify-self: center;
+      align-items: center;
+    }
+
+    #generated-story p {
+      margin-top: 0;
+      line-height: 1.6;
+    }
+
+    /* Adjust spacing in the generative text section */
+    #generative-text-section p {
+      margin-bottom: 15px;
+    }
+
+    /* Предотвращение выделения текста на всех кнопках */
+    button {
+      user-select: none;
+      /* Основное свойство */
+      -webkit-user-select: none;
+      /* Для Safari */
+      -moz-user-select: none;
+      /* Для Firefox */
+      -ms-user-select: none;
+      /* Для Internet Explorer и Edge */
+      cursor: pointer;
+      /* Указатель курсора при наведении */
+    }
+
+    /* Удаление стандартного фокусного контура */
+    button:focus {
+      outline: none;
+    }
+
+    /* Альтернативный фокусный стиль для доступности (рекомендуется) */
+    button:focus-visible {
+      outline: none;
+      /* Кастомный контур при фокусе */
+      outline-offset: 2px;
+    }
+
+    /* Popup Styles */
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background-color: #fff;
+      padding: 20px;
+      width: 80%;
+      max-width: 500px;
+      max-height: 80%;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      border-radius: 8px;
+      z-index: 1001;
+    }
+
+    .popup.popup-animate {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .popup-content-analitic {
+      background: linear-gradient(90deg, rgba(139, 198, 236, 1), rgba(139, 198, 236, 1));
+      padding: 0;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+
+    .popup-content-wrapper {
+      width: 60%;
+      margin: 0 auto;
+    }
+
+    @media only screen and (max-width: 768px) {
+        .popup-content {
+        width: 100%;
+      }
+    }
+
+    .popup-content h3 {
+      margin-top: 0;
+      font-size: 1.5em;
+      /* Increased title size */
+    }
+
+    .popup-message {
+      margin-top: 10px;
+      margin-bottom: 10px;
+      color: #2ecc71;
+      /* Green color */
+      text-align: center;
+      font-size: 1.1em;
+    }
+
+    .popup-message.warning {
+      color: #e74c3c;
+      /* Red color */
+    }
+
+    .words-container {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+
+    .word-card {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      /* Increased padding */
+      border-bottom: 1px solid #ccc;
+      font-size: 1.1em;
+      /* Increased text size */
+    }
+
+    .word-card:last-child {
+      border-bottom: none;
+    }
+
+    .word-card i {
+      cursor: pointer;
+      margin-right: 15px;
+      font-size: 1.2em;
+      color: #324855;
+      /* Icon color */
+    }
+
+    .word-card .fa-volume-up {
+      /* Icon color already set above */
+    }
+
+    .word-card .fa-plus {
+      margin-left: auto;
+      /* Icon color already set above */
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .button-container button {
+      flex: 1;
+      /* Reduced spacing between buttons */
+    }
+
+    .button-container button:first-child {
+      margin-left: 0;
+    }
+
+    .button-container button:last-child {
+      margin-right: 0;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #wordInfoPopup,
+    #speedInfoPopup,
+    #constructorInfoPopup,
+    #infoPopup,
+    #listeningInfoPopup,
+    #repetitionInfoPopup,
+    #generatorInfoPopup {
+      overflow: auto;
+      z-index: 1001;
+      opacity: 1;
+    }
+
+    #wordInfoPopup .popup-content {
+      align-items: baseline;
+    }
+
+    #wordInfoPopup .popup-content p {
+     margin-top: 0;
+     margin-bottom: 10px;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div id="wordInfoPopup" class="popup hidden"></div>
+  <div id="progressPopup" class="hidden">
+    <div class="popup-content-analitic">
+      <div class="popup-content-wrapper">
+        <h2>Звіт про ваш прогрес</h2>
+        <p id="dateRange"></p>
+        <div id="progressData" class="tile-container">
+          <div class="tile">
+            <p>Нові слова</p>
+            <span id="newWords">0</span>
+            <div class="info-icon" onclick="showInfo('newWords')">i</div>
+          </div>
+          <div class="tile">
+            <p>Гарні знання</p>
+            <span id="goodKnowledge">0</span>
+            <div class="info-icon" onclick="showInfo('goodKnowledge')">i</div>
+          </div>
+          <div class="tile">
+            <p>Середні знання</p>
+            <span id="averageKnowledge">0</span>
+            <div class="info-icon" onclick="showInfo('averageKnowledge')">i</div>
+          </div>
+          <div class="tile">
+            <p>Погані знання</p>
+            <span id="poorKnowledge">0</span>
+            <div class="info-icon" onclick="showInfo('poorKnowledge')">i</div>
+          </div>
+        </div>
+        <button id="closeBtn">Закрити</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="sharedWordsPopup" class="hidden popup">
+    <div class="popup-content">
+      <h3>Додати слова до словника</h3>
+      <p id="sharedWordsMessage"></p>
+      <div id="shared-words-container" class="words-container">
+        <!-- Word cards will be added here -->
+      </div>
+      <div class="button-container">
+        <button onclick="addAllSharedWords()" class="add-all-button">Додати всі слова</button>
+        <button onclick="closeSharedWordsPopup()" class="close-popup-button">Закрити</button>
+      </div>
+      <div id="popupMessage" class="popup-message"></div>
+    </div>
+  </div>
+  <!-- Overlay -->
+  <div class="overlay hidden" onclick="closeSharedWordsPopup()"></div>
+
+
+
+  <!-- Оверлей завантаження -->
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+  <div class="overlay hidden" onclick="closeInfoPopup()"></div>
+  <!-- Кнопка "Прокрутити вверх" -->
+  <button id="scroll-to-top" onclick="scrollToTop()"></button>
+  <!-- Контейнер для всього контенту -->
+  <div class="container fade-in">
+    <!-- Заголовок додатку -->
+    <div class="title-main">
+      <h1>Мій словник</h1>
+      <div class="buttons-right-corner hidden">
+        <button class="button-with-icon premium-icon" onclick="showTariffs()">
+          <i class="fas fa-star"></i>
+        </button>
+        <button class="button-with-icon logout-button" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+
+    </div>
+    <!-- Форма входу -->
+    <div id="login-form">
+      <h2>Вхід</h2>
+      <input type="email" id="login-email" placeholder="Email">
+      <div id="login-email-error" class="error-message"></div>
+      <input type="password" id="login-password" placeholder="Пароль">
+      <div id="login-password-error" class="error-message"></div>
+      <button onclick="login()">Увійти</button>
+      <button class="button-with-icon link-button register-link" onclick="showRegister()">Зареєструватися</button>
+    </div>
+    <!-- Форма реєстрації -->
+    <div id="register-form" class="hidden">
+      <h2>Реєстрація</h2>
+      <input type="email" id="register-email" placeholder="Email">
+      <div id="register-email-error" class="error-message"></div>
+      <input type="password" id="register-password" placeholder="Пароль">
+      <div id="register-password-error" class="error-message"></div>
+      <button onclick="register()">Зареєструватися</button>
+      <button class="button-with-icon link-button register-link" onclick="showLogin()">Вже є акаунт?
+        Увійти</button>
+    </div>
+    <!-- Головний екран облікового запису -->
+    <div id="account-screen" class="hidden">
+      <h2>Вітаємо, <span class="user-email"></span>!</h2>
+      <div class="subscription-info" id="subscription-info"></div>
+      <div class="menu">
+        <button onclick="showMyWords()"><i class="fas fa-book"></i> Мої слова</button>
+        <button onclick="showAddWord()"><i class="fas fa-plus"></i> Додати слово</button>
+        <button onclick="showWordBase()"><i class="fas fa-database"></i> База слів</button>
+        <button onclick="loadUserProgress()"><i class="fa-solid fa-chart-line"></i> Мій прогрес </button>
+        <div class="menu-tiles">
+          <button onclick="startQuiz()"><i class="fas fa-pen"></i> Тестування</button>
+          <button onclick="startSpeedTraining()"><i class="fas fa-stopwatch"></i> Тестування на
+            швидкість</button>
+          <button onclick="startListeningTraining()"><i class="fas fa-headphones"></i> Тестування на
+            слух</button>
+          <button onclick="startWordConstructorTraining()"><i class="fas fa-puzzle-piece"></i>
+            Конструктор</button>
+          <!-- Нова кнопка для Генеративного тексту -->
+          <button onclick="startGenerativeTextTraining()"><i class="fas fa-scroll"></i> Генеративний
+            текст</button>
+          <button onclick="startRepetitionTraining()"><i class="fas fa-repeat"></i> Повторення</button>
+        </div>
+      </div>
+    </div>
+    <!-- Попап для поділених слів -->
+    <div id="sharedWordsPopup" class="popup hidden">
+      <div class="popup-content">
+        <h3>Додані слова</h3>
+        <div id="shared-words-list">
+          <!-- Слова будуть додані динамічно -->
+        </div>
+        <div class="popup-buttons">
+          <button onclick="addAllSharedWords()">Додати всі слова</button>
+          <button class="close-button" onclick="closeSharedWordsPopup()">Закрити</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Секція "Мої слова" -->
+    <div id="my-words-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <h2>Мої слова</h2>
+      </div>
+      <input type="text" id="search-input" placeholder="Пошук слова...">
+      <div id="word-count"></div>
+      <div id="word-list">
+        <ul id="words"></ul>
+      </div>
+      <button onclick="hideMyVocabulatyAndOpenAddWords()" id="add-word-from-my-vocabulary"
+        class="add-word-from-my-vocabulary hidden" id="add-word-from-my-vocabulary">
+        <i class="fas fa-database"></i>
+        База слів
+      </button>
+    </div>
+    <!-- Секція "Генеративний текст" -->
+    <div id="generative-text-section" class="hidden">
+      <div id="generatorInfoPopup" class="popup hidden">
+        <div class="popup-content">
+          <p class="training-title-desc">Опис тренування:</p>
+          <p class="description">У цьому тренуванні штучний інтелект згенерує жартівливу, містичну або іншу історію на основі вашого
+            словника.</p>
+          <div class="algorithm-block">
+            <p>Як відбираються слова:</p>
+            <ol>
+              <li>Алгоритм обирає 10 випадкових слів зі словника.</li>
+            </ol>
+          </div>
+          <button class="close-button" onclick="closeGeneratorInfoPopup()">Закрити</button>
+        </div>
+      </div>
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <button class="button-with-icon small-button info-button" onclick="openGeneratorInfoPopup()">
+          <i class="fas fa-info-circle"></i>
+        </button>
+      </div>
+
+      <p>На основі вашого словника ми згенеруємо для вас історію.</p>
+      <!-- Кнопки вместо селектов -->
+      <div class="title-wrapper">
+        <label for="text-style">Cтиль тексту:</label>
+        <button class="option-button" onclick="openOptionMenu('text-style', this)">-- Виберіть стиль --</button>
+      </div>
+      <div class="title-wrapper">
+        <label for="text-difficulty">Cкладність тексту:</label>
+        <button class="option-button" onclick="openOptionMenu('text-difficulty', this)">-- Виберіть складність
+          --</button>
+      </div>
+      <div class="title-wrapper">
+        <label for="text-length">Довжина тексту:</label>
+        <button class="option-button" onclick="openOptionMenu('text-length', this)">-- Виберіть довжину --</button>
+      </div>
+      <button class="generate" onclick="generateStory()">
+        <div class="spinner hidden"></div>
+        <span>Сгенерувати</span>
+      </button>
+      <!-- Область для відображення згенерованого тексту -->
+      <div id="generated-story" class="hidden">
+        <h4 id="story-title"></h4>
+        <p id="story-text"></p>
+      </div>
+      <!-- Боковое меню -->
+      <div id="option-menu" class="option-menu hidden">
+        <div class="option-menu-content">
+          <button class="button-with-icon back-button" onclick="closeOptionMenu()">
+            <i class="fas fa-arrow-left"></i>
+            <span>Назад</span>
+          </button>
+          <ul id="option-menu-list">
+            <!-- Опції будуть додані динамічно -->
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Секция "Повторення" -->
+    <div id="repetition-training-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <button class="button-with-icon small-button info-button" onclick="openRepetitionInfoPopup()">
+          <i class="fas fa-info-circle"></i>
+        </button>
+      </div>
+      <!-- Попап для информации -->
+      <div id="repetitionInfoPopup" class="popup hidden">
+        <div class="popup-content">
+          <p class="training-title-desc">Опис тренування:</p>
+          <p class="description">У цьому тренуванні ви обиратимете правильний варіант перекладу англійського слова українською мовою.</p>
+          <div class="algorithm-block">
+            <p>Як відбираються слова:</p>
+            <ol>
+              <li>Алгоритм обирає 10 слів для тренування.</li>
+              <li>Слова обираються, починаючи з тих, з якими давно не було взаємодії, до більш недавніх.</li>
+              <li>До списку включаються лише ті слова, з якими вже були взаємодії; нові слова не додаються.</li>
+            </ol>
+          </div>
+          <button class="close-button" onclick="closeRepetitionInfoPopup()">Закрити</button>
+        </div>
+      </div>
+      <div id="repetition-quiz-container"></div>
+      <div id="repetition-progress">
+        <div id="repetition-progress-bar"></div>
+        <div id="repetition-question-number"></div>
+      </div>
+      <div id="repetition-result" class="quiz-result hidden">
+        <i id="repetition-emoji" class=""></i>
+        <p id="repetition-result-text"></p>
+        <button class="finish-button" onclick="finishRepetition()">Завершити тренування</button>
+      </div>
+    </div>
+    <!-- Секція "База слів" -->
+    <div id="word-base-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <h2>База слів</h2>
+      </div>
+      <!-- Список тем -->
+      <div id="topics-list" class="topics-grid"></div>
+      <!-- Список слів обраної теми -->
+      <div id="topic-words" class="hidden">
+        <button class="button-with-icon back-button" onclick="backToTopics()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад до тем</span>
+        </button>
+        <!-- Доданий заголовок для назви теми -->
+        <h2 id="topic-title" style="text-align: center; margin: 10px 0;"></h2>
+        <!-- Кнопка для додавання всіх слів з поточної теми -->
+        <button class="long-button" onclick="addAllWordsFromTopic(document.getElementById('topic-title').textContent)">
+          Додати всі слова з теми
+        </button>
+        <ul id="topic-words-list"></ul>
+      </div>
+      <!-- Повідомлення про успішне додавання -->
+      <div id="success-message" class="success-message"></div>
+    </div>
+    <!-- Секція "Додати слово" -->
+    <div id="add-word-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <h2>Додати слово</h2>
+      </div>
+      <input type="text" id="english-word" placeholder="Англійське слово"
+        onblur="getTranslationSuggestions(this.value)">
+      <div id="english-word-error" class="error-message"></div>
+      <input type="text" id="translation" placeholder="Переклад">
+      <div id="translation-error" class="error-message"></div>
+      <div id="translation-suggestions"></div>
+      <input type="text" id="example" placeholder="Приклад використання (необов'язково)">
+      <div id="example-error" class="error-message"></div>
+      <button onclick="addWord()">Додати</button>
+    </div>
+    <!-- Секція "Тренування знань" -->
+    <div id="quiz-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <button class="button-with-icon small-button info-button" onclick="openInfoPopup()">
+          <i class="fas fa-info-circle"></i>
+        </button>
+      </div>
+      <!-- Всплывающее окно (Попап) -->
+      <div id="infoPopup" class="popup hidden">
+        <div class="popup-content">
+          <p class="training-title-desc">Опис тренування:</p>
+          <p class="description">У цьому тренуванні ви обиратимете правильний варіант перекладу англійського слова українською мовою.</p>
+          <div class="algorithm-block">
+            <p>Як підбираються слова</p>
+            <ol>
+              <li>Алгоритм обирає 10 слів.</li>
+              <li>Початково використовуються нові слова.</li>
+              <li>Якщо нових слів недостатньо, додаються слова від складних до простих. Складність визначається
+                відсотком правильних відповідей в попередніх тестах</li>
+            </ol>
+          </div>
+          <!-- Кнопка закрытия -->
+          <button class="close-button" onclick="closeInfoPopup()">Закрити</button>
+        </div>
+      </div>
+
+      <div id="quiz-container"></div>
+      <div id="quiz-progress">
+        <div id="quiz-progress-bar"></div>
+        <div id="quiz-question-number"></div> <!-- Новый элемент -->
+      </div>
+      <div id="quiz-result" class="quiz-result hidden">
+        <i id="quiz-emoji" class=""></i>
+        <p id="quiz-result-text"></p>
+        <button class="finish-button" onclick="finishQuiz()">Завершити тест</button>
+      </div>
+    </div>
+
+    <!-- Секция "Тренування на слух" -->
+    <div id="listening-training-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <button class="button-with-icon small-button info-button" onclick="openListeningInfoPopup()">
+          <i class="fas fa-info-circle"></i>
+        </button>
+      </div>
+      <!-- Попап для информации -->
+      <div id="listeningInfoPopup" class="popup hidden">
+        <div class="popup-content">
+          <p class="training-title-desc">Опис тренування:</p>
+          <p class="description">Прослухайте слово та введіть його правильно. Ви можете прослухати слово повторно, натиснувши на іконку звуку.</p>
+          <div class="algorithm-block">
+            <p>Як підбираються слова</p>
+            <ol>
+              <li>Алгоритм обирає 10 слів.</li>
+              <li>Початково використовуються нові слова.</li>
+              <li>Якщо нових слів недостатньо, додаються слова від складних до простих. Складність визначається
+                відсотком правильних відповідей в попередніх тестах</li>
+            </ol>
+          </div>
+          <button class="close-button" onclick="closeListeningInfoPopup()">Закрити</button>
+        </div>
+      </div>
+      <div id="listening-quiz-container">
+        <!-- Контент тренування буде динамічно додаватися тут -->
+      </div>
+
+      <div id="listening-progress">
+        <div id="listening-progress-bar"></div>
+      </div>
+      <div id="listening-result" class="quiz-result hidden">
+        <img src="" alt="Результат емодзі" id="listening-emoji">
+        <p id="listening-result-text"></p>
+        <button onclick="finishListening()">Завершити тренування</button>
+      </div>
+    </div>
+
+
+    <!-- Секция "Тренування конструктор слова" -->
+    <div id="word-constructor-training-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <button class="button-with-icon small-button info-button" onclick="openConstructorInfoPopup()">
+          <i class="fas fa-info-circle"></i>
+        </button>
+      </div>
+      <!-- Попап для информации -->
+      <div id="constructorInfoPopup" class="popup hidden">
+        <div class="popup-content">
+          <p class="training-title-desc">Опис тренування:</p>
+          <p class="description">
+            Складіть слово з наданих літер. Використовуйте всі літери, щоб отримати правильне слово. Ви можете прослухати вимову слова, натиснувши на іконку звуку.
+          </p>
+          <div class="algorithm-block">
+            <p>Як підбираються слова</p>
+            <ol>
+              <li>Алгоритм обирає 10 слів.</li>
+              <li>Початково використовуються нові слова.</li>
+              <li>Якщо нових слів недостатньо, додаються слова від складних до простих. Складність визначається
+                відсотком правильних відповідей в попередніх тестах</li>
+            </ol>
+          </div>
+          <button class="close-button" onclick="closeConstructorInfoPopup()">Закрити</button>
+        </div>
+      </div>
+      <!-- Остальной контент -->
+      <div id="word-constructor-quiz-container">
+        <!-- Контент тренування буде динамічно додаватися тут -->
+      </div>
+      <div id="constructor-progress">
+        <div id="constructor-progress-bar"></div>
+      </div>
+      <div id="constructor-quiz-result" class="constructor-quiz-result hidden">
+        <img src="" alt="Результат емодзі" id="constructor-emoji">
+        <p id="constructor-result-text"></p>
+        <button onclick="finishConstructor()">Завершити тренування</button>
+      </div>
+    </div>
+
+    <!-- Секція "Тренування на швидкість" -->
+    <div id="speed-training-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <button class="button-with-icon small-button info-button" onclick="openSpeedInfoPopup()">
+          <i class="fas fa-info-circle"></i>
+        </button>
+      </div>
+      <div id="speed-training-info">
+        <!-- Контент для выбора режима тренировки -->
+        <p>Оберіть режим тренування:</p>
+        <button id="ukr-to-eng-button" onclick="selectSpeedTrainingMode('ukr_to_eng')">З української на
+          англійську</button>
+        <button id="eng-to-ukr-button" onclick="selectSpeedTrainingMode('eng_to_ukr')">З англійської на
+          українську</button>
+      </div>
+      <!-- Попап для информации -->
+      <div id="speedInfoPopup" class="popup hidden">
+        <div class="popup-content">
+          <p class="training-title-desc">Опис тренування:</p>
+        <p class="description">
+          Вам дається 60 секунд.
+          За кожну правильну відповідь +1 секунда.
+          За кожну неправильну -2 секунди.
+          Мінімальна кількість слів для тренування: 60.
+        </p>
+          <div class="algorithm-block">
+            <p>Як підбираються слова</p>
+            <ol>
+              <li>Алгоритм обирає 10 слів.</li>
+              <li>Початково використовуються нові слова.</li>
+              <li>Якщо нових слів недостатньо, додаються слова від складних до простих. Складність визначається
+                відсотком правильних відповідей в попередніх тестах</li>
+            </ol>
+          </div>
+
+          <button class="close-button" onclick="closeSpeedInfoPopup()">Закрити</button>
+        </div>
+      </div>
+      <div id="speed-training-quiz" class="hidden">
+        <div id="speed-training-timer">Час: 60 сек</div>
+        <div id="speed-training-question"></div>
+      </div>
+      <div id="speed-training-result" class="hidden">
+        <!-- Тут будуть результати тренування -->
+      </div>
+    </div>
+
+    <!-- Секція "Оплата" -->
+    <div id="payment-section" class="hidden">
+      <h2>Термін підписки закінчився</h2>
+      <p>Для подальшого використання додатку, будь ласка, оформіть підписку.</p>
+      <button class="button-with-icon pay-button" onclick="showTariffs()">Оплатити</button>
+    </div>
+    <!-- Секція "Тарифи" -->
+    <div id="tariffs-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <h2>Виберіть тариф</h2>
+      </div>
+      <div class="tariff">
+        <h3>1 місяць</h3>
+        <p>Повний доступ до всіх функцій на 1 місяць.</p>
+        <div class="tariff-price">₴99</div>
+        <button onclick="purchaseSubscription(30)">Купити</button>
+      </div>
+      <div class="tariff">
+        <h3>3 місяці</h3>
+        <p>Повний доступ до всіх функцій на 3 місяці.</p>
+        <div class="tariff-price">₴249</div>
+        <button onclick="purchaseSubscription(90)">Купити</button>
+      </div>
+      <div class="tariff">
+        <h3>1 рік</h3>
+        <p>Повний доступ до всіх функцій на 1 рік.</p>
+        <div class="tariff-price">₴899</div>
+        <button onclick="purchaseSubscription(365)">Купити</button>
+      </div>
+      <p>З Преміум підпискою ви зможете покращити свій рівень англійської швидше та ефективніше!</p>
+    </div>
+  </div>
+  <!-- Підключення Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <!-- Підключення бібліотеки для озвучки -->
+  <script src="https://code.responsivevoice.org/responsivevoice.js?key=Gq7zTuY8"></script>
+  <!-- Підключення бібліотеки для HTTP-запитів -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    // Ваші налаштування Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDGv20PKPYdPAQ_j5lX-UgmckSMb3M-3sk",
+      authDomain: "engpuzzle-2d723.firebaseapp.com",
+      projectId: "engpuzzle-2d723",
+      storageBucket: "engpuzzle-2d723.appspot.com",
+      messagingSenderId: "598252940695",
+      appId: "1:598252940695:web:af908a6912218b3c8d68d2",
+      measurementId: "G-67BCSGB7MN"
+    };
+    let speedTrainingWords = [];
+    let currentSpeedQuestion = 0;
+    let speedCorrectAnswers = 0;
+    let speedTotalAnswers = 0;
+    let speedTimer = 60; // 60 секунд
+    let speedTrainingMode = ''; // 'ukr_to_eng' або 'eng_to_ukr'
+    let speedTimerInterval;
+    let repetitionWords = [];
+    let currentRepetitionQuestion = 0;
+    let repetitionCorrectAnswers = 0;
+
+    checkForSharedWordsOnLoad();
+
+    function startRepetitionTraining() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('repetition-training-section').classList.remove('hidden');
+      initializeRepetitionTraining();
+    }
+
+    function initializeRepetitionTraining() {
+      showLoading();
+      const userId = auth.currentUser.uid;
+      db.collection('users').doc(userId).collection('words').get()
+        .then(querySnapshot => {
+          let wordsArray = [];
+          querySnapshot.forEach(doc => {
+            const wordData = doc.data();
+            if (wordData.interactions > 0 && wordData.lastInteractionDate) {
+              wordsArray.push({
+                english: doc.id,
+                translation: wordData.translation,
+                interactions: wordData.interactions || 0,
+                correctAnswers: wordData.correctAnswers || 0,
+                lastInteractionDate: wordData.lastInteractionDate.toDate()
+              });
+            }
+          });
+
+          console.log(wordsArray.length)
+
+          if (wordsArray.length < 10) {
+            document.getElementById('repetition-quiz-container').innerHTML =
+              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+            hideLoading();
+            return;
+          }
+
+          // Сортируем слова от давнего взаимодействия к недавнему
+          wordsArray.sort((a, b) => a.lastInteractionDate - b.lastInteractionDate);
+          repetitionWords = wordsArray.slice(0, 10);
+          currentRepetitionQuestion = 0;
+          repetitionCorrectAnswers = 0;
+          showRepetitionQuestion();
+          hideLoading();
+        })
+        .catch(error => {
+          console.error('Помилка ініціалізації повторення:', error);
+          hideLoading();
+        });
+    }
+
+    function showRepetitionQuestion() {
+      if (currentRepetitionQuestion >= repetitionWords.length) {
+        showRepetitionResult();
+        return;
+      }
+
+      function showRepetitionResult() {
+        const repetitionContainer = document.getElementById('repetition-quiz-container');
+        const repetitionProgress = document.getElementById('repetition-progress');
+        const repetitionResult = document.getElementById('repetition-result');
+        const repetitionEmoji = document.getElementById('repetition-emoji');
+        const repetitionResultText = document.getElementById('repetition-result-text');
+
+        // Скрываем контейнер и прогресс
+        repetitionContainer.classList.add('hidden');
+        repetitionProgress.classList.add('hidden');
+
+        // Показываем результат
+        repetitionResult.classList.remove('hidden');
+
+        let iconClasses = '';
+        let resultText = '';
+        if (repetitionCorrectAnswers <= 4) {
+          iconClasses = 'fas fa-sad-tear text-red-500';
+          resultText = 'Не погано, але є місце для покращення.';
+        } else if (repetitionCorrectAnswers <= 7) {
+          iconClasses = 'fas fa-meh text-yellow-500';
+          resultText = 'Добре! Але можна краще.';
+        } else {
+          iconClasses = 'fas fa-grin-stars text-green-500';
+          resultText = 'Відмінно! Ви чудово знаєте ці слова!';
+        }
+
+        repetitionEmoji.className = '';
+        repetitionEmoji.classList.add(...iconClasses.split(' '));
+        repetitionResultText.textContent =
+          `Правильних відповідей: ${repetitionCorrectAnswers} з ${repetitionWords.length}`;
+      }
+
+
+      const questionWord = repetitionWords[currentRepetitionQuestion];
+      const options = [questionWord.translation];
+
+      // Добавляем случайные переводы
+      while (options.length < 4) {
+        const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+        if (!options.includes(randomWord.translation)) {
+          options.push(randomWord.translation);
+        }
+      }
+
+      // Перемешиваем варианты
+      options.sort(() => 0.5 - Math.random());
+
+      // Обновляем прогресс-бар и номер вопроса
+      const progressPercent = ((currentRepetitionQuestion) / repetitionWords.length) * 100;
+      document.getElementById('repetition-progress-bar').style.width = `${progressPercent}%`;
+      document.getElementById('repetition-question-number').textContent =
+        `${currentRepetitionQuestion + 1}/${repetitionWords.length}`;
+
+      // Отображаем вопрос
+      document.getElementById('repetition-quiz-container').innerHTML = `
+    <h3>${questionWord.english}</h3>
+    ${options.map(option => `<button class="check-word" onclick="checkRepetitionAnswer('${option.replace(/'/g, "\\'")}')">${option}</button>`).join('')}
+  `;
+    }
+
+    function checkRepetitionAnswer(selectedOption) {
+      const questionWord = repetitionWords[currentRepetitionQuestion];
+      const buttons = document.querySelectorAll('#repetition-quiz-container button');
+      buttons.forEach(button => {
+        if (button.textContent === questionWord.translation) {
+          button.classList.add('correct');
+        } else if (button.textContent === selectedOption) {
+          button.classList.add('incorrect');
+        }
+        button.disabled = true;
+      });
+
+      const correct = selectedOption === questionWord.translation;
+      if (correct) {
+        repetitionCorrectAnswers++;
+      }
+
+      // Обновляем статистику слова и дату последнего взаимодействия
+      updateWordStats(questionWord.english, correct);
+
+      // Обновляем прогресс-бар
+      const progressPercent = ((currentRepetitionQuestion + 1) / repetitionWords.length) * 100;
+      document.getElementById('repetition-progress-bar').style.width = `${progressPercent}%`;
+
+      // Переходим к следующему вопросу через 1 секунду
+      setTimeout(() => {
+        currentRepetitionQuestion++;
+        showRepetitionQuestion();
+      }, 1000);
+    }
+
+
+    function startSpeedTraining() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('speed-training-section').classList.remove('hidden');
+
+      const speedTrainingInfo = document.getElementById('speed-training-info');
+      const errorClass = 'training-error'; // Класс для ошибки
+
+      // Перевірка, чи достатньо слів для тренування
+      if (allWords.length < 60) {
+        // Отключаем кнопки
+        document.getElementById('ukr-to-eng-button').disabled = true;
+        document.getElementById('eng-to-ukr-button').disabled = true;
+
+        // Проверяем, есть ли уже параграф с классом 'training-error'
+        if (!speedTrainingInfo.querySelector(`.${errorClass}`)) {
+          const errorParagraph = document.createElement('p');
+          errorParagraph.classList.add(errorClass);
+          errorParagraph.textContent = 'У вас недостатньо слів для тренування.';
+          speedTrainingInfo.appendChild(errorParagraph);
+        }
+      } else {
+        // Включаем кнопки
+        document.getElementById('ukr-to-eng-button').disabled = false;
+        document.getElementById('eng-to-ukr-button').disabled = false;
+
+        // Удаляем сообщение об ошибке, если оно существует
+        const existingError = speedTrainingInfo.querySelector(`.${errorClass}`);
+        if (existingError) {
+          existingError.remove();
+        }
+      }
+    }
+
+
+    function selectSpeedTrainingMode(mode) {
+      speedTrainingMode = mode; // 'ukr_to_eng' або 'eng_to_ukr'
+      document.getElementById('speed-training-info').classList.add('hidden');
+      document.getElementById('speed-training-quiz').classList.remove('hidden');
+      initializeSpeedTraining();
+    }
+
+    function initializeSpeedTraining() {
+      // Выбираем 60 случайных слов
+      speedTrainingWords = allWords.slice();
+      // Перемешиваем массив слов
+      speedTrainingWords.sort(() => 0.5 - Math.random());
+      // Берем первые 60 слов
+      speedTrainingWords = speedTrainingWords.slice(0, 60);
+
+      if (speedTrainingWords.length < 60) {
+        document.getElementById('speed-training-quiz').classList.add('hidden');
+        document.getElementById('speed-training-info').classList.remove('hidden');
+        document.getElementById('speed-training-info').innerHTML +=
+          '<p style="color: red;">У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+        return;
+      }
+
+      currentSpeedQuestion = 0;
+      speedCorrectAnswers = 0;
+      speedTotalAnswers = 0;
+      speedTimer = 60;
+      updateSpeedTimerDisplay();
+      speedTimerInterval = setInterval(updateSpeedTimer, 1000);
+      showSpeedQuestion();
+    }
+
+
+    function updateSpeedTimer() {
+      speedTimer--;
+      updateSpeedTimerDisplay();
+      if (speedTimer <= 0) {
+        clearInterval(speedTimerInterval);
+        finishSpeedTraining();
+      }
+    }
+
+    function updateSpeedTimerDisplay() {
+      const timerElement = document.getElementById('speed-training-timer');
+      timerElement.textContent = `Час: ${speedTimer} сек`;
+      if (speedTimer <= 10) {
+        timerElement.style.color = 'red';
+      } else {
+        timerElement.style.color = 'black';
+      }
+    }
+
+    function showSpeedQuestion() {
+      if (currentSpeedQuestion >= speedTrainingWords.length) {
+        finishSpeedTraining();
+        return;
+      }
+      const questionWord = speedTrainingWords[currentSpeedQuestion];
+      let questionText = '';
+      let options = [];
+      if (speedTrainingMode === 'ukr_to_eng') {
+        // Показываем украинское слово, варианты на английском
+        questionText = questionWord.translation;
+        options = [questionWord.english];
+        // Добавляем случайные английские слова
+        while (options.length < 4) {
+          const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+          if (!options.includes(randomWord.english)) {
+            options.push(randomWord.english);
+          }
+        }
+      } else {
+        // Показываем английское слово, варианты на украинском
+        questionText = questionWord.english;
+        options = [questionWord.translation];
+        // Добавляем случайные украинские слова
+        while (options.length < 4) {
+          const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+          if (!options.includes(randomWord.translation)) {
+            options.push(randomWord.translation);
+          }
+        }
+      }
+      // Перемешиваем варианты
+      options.sort(() => 0.5 - Math.random());
+      // Отображаем вопрос и варианты
+      let questionHTML = `
+    <h3>${questionText}</h3>
+    ${options.map(option => `<button onclick="checkSpeedAnswer('${option.replace(/'/g, "\\'")}')">${option}</button>`).join('')}
+    <button onclick="playSpeedWordSound()" class="listening-sound-icon"><i class="fas fa-volume-up"></i></button>
+  `;
+      document.getElementById('speed-training-question').innerHTML = questionHTML;
+    }
+
+    function playSpeedWordSound() {
+      const questionWord = speedTrainingWords[currentSpeedQuestion];
+      if (speedTrainingMode === 'ukr_to_eng') {
+        responsiveVoice.speak(questionWord.translation, "Ukrainian Female");
+      } else {
+        responsiveVoice.speak(questionWord.english, "UK English Female");
+      }
+    }
+
+    function checkSpeedAnswer(selectedOption) {
+      const questionWord = speedTrainingWords[currentSpeedQuestion];
+      let correctOption = '';
+      if (speedTrainingMode === 'ukr_to_eng') {
+        correctOption = questionWord.english;
+      } else {
+        correctOption = questionWord.translation;
+      }
+      speedTotalAnswers++;
+      const isCorrect = selectedOption === correctOption;
+      if (isCorrect) {
+        speedCorrectAnswers++;
+        speedTimer += 1; // +1 секунда
+      } else {
+        speedTimer -= 2; // -2 секунды
+        if (speedTimer < 0) speedTimer = 0;
+      }
+      updateWordStats(questionWord.english, isCorrect);
+      updateSpeedTimerDisplay();
+      currentSpeedQuestion++;
+      showSpeedQuestion();
+    }
+
+
+    function finishSpeedTraining() {
+      clearInterval(speedTimerInterval);
+      document.getElementById('speed-training-quiz').classList.add('hidden');
+      document.getElementById('speed-training-result').classList.remove('hidden');
+      let percentage = Math.round((speedCorrectAnswers / speedTotalAnswers) * 100);
+      let emojiUrl = '';
+      let resultText = '';
+      if (percentage <= 40) {
+        emojiUrl = 'https://img.icons8.com/emoji/96/000000/sad-emoji.png';
+        resultText = 'Не погано, але є місце для покращення.';
+      } else if (percentage <= 80) {
+        emojiUrl = 'https://img.icons8.com/emoji/96/000000/neutral-emoji.png';
+        resultText = 'Добре! Але можна краще.';
+      } else {
+        emojiUrl = 'https://img.icons8.com/emoji/96/000000/smiling-face-with-sunglasses.png';
+        resultText = 'Відмінно! Ви чудово знаєте ці слова!';
+      }
+      document.getElementById('speed-training-result').innerHTML = `
+    <img src="${emojiUrl}" alt="Результат">
+    <p>Правильних відповідей: ${speedCorrectAnswers} з ${speedTotalAnswers}</p>
+    <p>${resultText}</p>
+    <button class="finishSpeedButton" onclick="finishSpeedTrainingSession()">Завершити тренування</button>
+  `;
+    }
+
+    function finishSpeedTrainingSession() {
+      // Сброс переменных тренировки
+      speedTrainingWords = [];
+      currentSpeedQuestion = 0;
+      speedCorrectAnswers = 0;
+      speedTotalAnswers = 0;
+      speedTimer = 60;
+      speedTrainingMode = '';
+      clearInterval(speedTimerInterval);
+      // Скрываем секции тренировки
+      document.getElementById('speed-training-info').classList.remove('hidden');
+      document.getElementById('speed-training-quiz').classList.add('hidden');
+      document.getElementById('speed-training-result').classList.add('hidden');
+      // Возвращаемся на главный экран
+      backToAccount();
+    }
+
+    function backToAccount() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.remove('hidden');
+      document.getElementById('my-words-section').classList.add('hidden');
+      document.getElementById('word-base-section').classList.add('hidden');
+      document.getElementById('add-word-section').classList.add('hidden');
+      document.getElementById('quiz-section').classList.add('hidden');
+      document.getElementById('payment-section').classList.add('hidden');
+      document.getElementById('listening-training-section').classList.add('hidden');
+      document.getElementById('word-constructor-training-section').classList.add('hidden');
+      document.getElementById('speed-training-section').classList.add('hidden');
+      document.getElementById('generative-text-section').classList.add('hidden');
+      document.getElementById('tariffs-section').classList.add('hidden');
+      document.getElementById('repetition-training-section').classList.add('hidden'); // Добавлено
+    }
+
+
+    function hideMyVocabulatyAndOpenAddWords() {
+      backToAccount();
+      showWordBase();
+    }
+    // Ініціалізація Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    // Перемінні для стану завантаження
+    let isLoading = false;
+    // Функція для показу оверлея завантаження
+    function showLoading() {
+      isLoading = true;
+      document.getElementById('loading-overlay').classList.remove('hidden');
+    }
+    // Функція для приховування оверлея завантаження
+    function hideLoading() {
+      isLoading = false;
+      document.getElementById('loading-overlay').classList.add('hidden');
+    }
+    // Показати форму реєстрації
+    function showRegister() {
+      document.getElementById('login-form').classList.add('hidden');
+      document.getElementById('register-form').classList.remove('hidden');
+    }
+    // Показати форму входу
+    function showLogin() {
+      document.getElementById('register-form').classList.add('hidden');
+      document.getElementById('login-form').classList.remove('hidden');
+    }
+    // Реєстрація користувача
+    async function register() {
+      clearErrors();
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+
+      let valid = true;
+      if (!email) {
+        document.getElementById('register-email-error').textContent = 'Введіть email.';
+        valid = false;
+      }
+      if (!password) {
+        document.getElementById('register-password-error').textContent = 'Введіть пароль.';
+        valid = false;
+      }
+      if (!valid) return;
+
+      showLoading();
+      try {
+        await auth.createUserWithEmailAndPassword(email, password);
+        const userId = auth.currentUser.uid;
+        const registrationDate = new Date();
+        const subscriptionExpiration = new Date();
+        subscriptionExpiration.setDate(subscriptionExpiration.getDate() + 3); // 3 дня подписки
+
+        await db.collection('users').doc(userId).set({
+          email: email,
+          registrationDate: firebase.firestore.Timestamp.fromDate(registrationDate),
+          subscriptionExpiration: firebase.firestore.Timestamp.fromDate(subscriptionExpiration),
+        });
+
+        updateUI();
+      } catch (error) {
+        document.getElementById('register-password-error').textContent = error.message;
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Вхід користувача
+    async function login() {
+      clearErrors();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      let valid = true;
+      if (!email) {
+        document.getElementById('login-email-error').textContent = 'Введіть email.';
+        valid = false;
+      }
+      if (!password) {
+        document.getElementById('login-password-error').textContent = 'Введіть пароль.';
+        valid = false;
+      }
+      if (!valid) return;
+
+      showLoading();
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        updateUI();
+      } catch (error) {
+        document.getElementById('login-password-error').textContent = error.message;
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Вихід користувача
+    function logout() {
+      auth.signOut().then(() => {
+        updateUI();
+      });
+    }
+    // Очистка повідомлень про помилки
+    function clearErrors() {
+      const errorElements = document.querySelectorAll('.error-message');
+      errorElements.forEach(el => el.textContent = '');
+    }
+
+    function finishRepetition() {
+      // Возвращаемся на главный экран
+      backToAccount();
+      // Сбрасываем переменные
+      repetitionWords = [];
+      currentRepetitionQuestion = 0;
+      repetitionCorrectAnswers = 0;
+      // Сбрасываем UI
+      document.getElementById('repetition-quiz-container').classList.remove('hidden');
+      document.getElementById('repetition-progress').classList.remove('hidden');
+      document.getElementById('repetition-result').classList.add('hidden');
+    }
+
+    // Оновлення інтерфейсу
+    function updateUI() {
+      const user = auth.currentUser;
+      const buttonsRightCorner = document.querySelector('.buttons-right-corner');
+
+      if (user) {
+        buttonsRightCorner.classList.remove('hidden');
+        showLoading();
+        // Ховаємо форми входу та реєстрації
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('register-form').classList.add('hidden');
+        document.getElementById('payment-section').classList.add('hidden');
+        // Отримуємо дані користувача
+        db.collection('users').doc(user.uid).get()
+          .then(doc => {
+            const userData = doc.data();
+            document.querySelector('.user-email').textContent = userData.email;
+            // Перевіряємо підписку
+            checkSubscription(userData);
+            if (userData.subscriptionExpiration) {
+              startSubscriptionTimer(userData.subscriptionExpiration.toDate());
+            }
+            // Завантажуємо слова одразу після входу
+            return fetchWords();
+          })
+          .then(() => {
+            hideLoading();
+            document.getElementById('account-screen').classList.remove('hidden');
+          })
+          .catch(error => {
+            console.error('Помилка при оновленні інтерфейсу:', error);
+            hideLoading();
+            showNotification('Сталася помилка при оновленні інтерфейсу. Спробуйте пізніше.', 'warning');
+          });
+      } else {
+        buttonsRightCorner.classList.add('hidden');
+        // Якщо користувач не автентифікований, показуємо форму входу
+        document.getElementById('login-form').classList.remove('hidden');
+        document.getElementById('account-screen').classList.add('hidden');
+        document.getElementById('my-words-section').classList.add('hidden');
+        document.getElementById('word-base-section').classList.add('hidden');
+        document.getElementById('add-word-section').classList.add('hidden');
+        document.getElementById('quiz-section').classList.add('hidden');
+        document.getElementById('payment-section').classList.add('hidden');
+        document.getElementById('listening-training-section').classList.add('hidden');
+        document.getElementById('word-constructor-training-section').classList.add('hidden');
+        document.getElementById('speed-training-section').classList.add('hidden');
+        document.getElementById('generative-text-section').classList.add('hidden');
+        document.getElementById('tariffs-section').classList.add('hidden');
+        document.getElementById('repetition-training-section').classList.add('hidden');
+      }
+    }
+
+    // Перевірка підписки
+    function checkSubscription(userData) {
+      const subscriptionExpiration = userData.subscriptionExpiration.toDate();
+      const currentDate = new Date();
+      const timeDiff = subscriptionExpiration - currentDate;
+      const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+      if (daysLeft > 0) {
+        document.getElementById('subscription-info').textContent =
+          `Залишилось днів підписки: ${daysLeft}`;
+      } else {
+        document.getElementById('subscription-info').textContent = 'Підписка закінчилася.';
+        document.getElementById('account-screen').classList.add('hidden');
+        document.getElementById('payment-section').classList.remove('hidden');
+      }
+    }
+    // Слідкуємо за змінами стану автентифікації
+    auth.onAuthStateChanged(user => {
+      updateUI();
+      decodeLink();
+    });
+    // Показати "Мої слова"
+    function showMyWords() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('my-words-section').classList.remove('hidden');
+      fetchWords();
+    }
+
+    function toggleMainTitle() {
+      let titleMain = document.querySelector('.title-main');
+      titleMain.classList.toggle('hidden');
+    }
+
+    function showWordBase() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('word-base-section').classList.remove('hidden');
+      document.getElementById('topics-list').classList.remove('hidden');
+      document.getElementById('topic-words').classList.add('hidden');
+      fetchTopics();
+    }
+    // Змінні для зберігання слів та пагінації
+    let allWords = [];
+    let displayedWords = [];
+    let wordsPerPage = 75;
+    let currentIndex = 0;
+    // Отримання та відображення слів користувача
+    async function fetchWords() {
+      try {
+        showLoading();
+        if (!auth.currentUser) {
+          console.error('Користувач не автентифікований.');
+          hideLoading();
+          showNotification('Ви не автентифіковані. Будь ласка, увійдіть у систему.', 'warning');
+          return Promise.reject('User not authenticated');
+        }
+
+        const userId = auth.currentUser.uid;
+        console.log(`Отримання слів для користувача: ${userId}`);
+
+        const querySnapshot = await db
+          .collection('users')
+          .doc(userId)
+          .collection('words')
+          .orderBy('dateAdded', 'desc')
+          .get();
+
+        console.log(`Знайдено ${querySnapshot.size} слів.`);
+        allWords = [];
+        querySnapshot.forEach(doc => {
+          const wordData = doc.data();
+          allWords.push({
+            english: doc.id,
+            translation: wordData.translation,
+            example: wordData.example || '',
+            interactions: wordData.interactions || 0,
+            correctAnswers: wordData.correctAnswers || 0,
+            dateAdded: wordData.dateAdded,
+          });
+        });
+
+        console.log('Слова успішно завантажені:', allWords);
+        currentIndex = 0;
+        displayedWords = [];
+        document.getElementById('words').innerHTML = '';
+        displayNextWords();
+        hideLoading();
+        updateSadCatVisibility();
+      } catch (error) {
+        console.error('Помилка при отриманні слів:', error);
+        hideLoading();
+        showNotification('Сталася помилка при отриманні слів. Спробуйте пізніше.', 'warning');
+      }
+    }
+
+    // Відображення наступних слів
+    function displayNextWords() {
+      const wordsElement = document.getElementById('words');
+      const wordsToShow = allWords.slice(currentIndex, currentIndex + wordsPerPage);
+      displayedWords = displayedWords.concat(wordsToShow);
+      currentIndex += wordsPerPage;
+
+      wordsToShow.forEach(word => {
+        const li = document.createElement('li');
+        // Добавляем обработчик клика на элемент списка
+        li.onclick = () => showWordInfo(word);
+
+        // Иконка озвучивания
+        const soundIcon = document.createElement('i');
+        soundIcon.classList.add('fas', 'fa-volume-up');
+        soundIcon.onclick = (e) => {
+          e.stopPropagation(); // Останавливаем всплытие события
+          responsiveVoice.speak(word.english, "UK English Female");
+        };
+        li.appendChild(soundIcon);
+
+        // Информация о слове
+        const wordInfo = document.createElement('div');
+        wordInfo.innerHTML = `<strong>${word.english}</strong> - ${word.translation}<br><em>${word.example}</em>`;
+        li.appendChild(wordInfo);
+
+        // Кнопка удаления
+        const deleteBtn = document.createElement('i');
+        deleteBtn.classList.add('fas', 'fa-trash');
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation(); // Останавливаем всплытие события
+          deleteWord(word.english, li);
+        };
+        li.appendChild(deleteBtn);
+
+        wordsElement.appendChild(li);
+      });
+      document.getElementById('word-count').textContent = `Загальна кількість слів: ${allWords.length}`;
+      updateSadCatVisibility();
+    }
+
+    // Відстеження прокрутки всього вікна
+    window.addEventListener('scroll', function () {
+      const scrollButton = document.getElementById('scroll-to-top');
+      // Показуємо кнопку, якщо прокручено більше ніж 200px
+      if (window.scrollY > 200) {
+        scrollButton.classList.add('visible');
+      } else {
+        scrollButton.classList.remove('visible');
+      }
+    });
+    // Функція для прокрутки вверх
+    // Функція для прокрутки вгорі сторінки
+    function scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+
+    function showWordInfo(word) {
+      const interactions = word.interactions || 0;
+      const correctAnswers = word.correctAnswers || 0;
+      const percentage = interactions > 0 ? Math.round((correctAnswers / interactions) * 100) : 0;
+
+      const popupContent = `
+    <div class="popup-content">
+      <h3>Інформація про слово "${word.english}"</h3>
+      <p>Кількість взаємодій: ${interactions}</p>
+      <p>Правильних відповідей: ${correctAnswers}</p>
+      <p>Відсоток правильних відповідей: ${percentage}%</p>
+      <button style="margin-top: 20px" onclick="closePopupWord()">Закрити</button>
+    </div>
+  `;
+
+      const popup = document.getElementById('wordInfoPopup');
+      popup.innerHTML = popupContent;
+      popup.classList.remove('hidden');
+      document.querySelector('.overlay').classList.remove('hidden'); // Показываем оверлей
+    }
+
+    function closePopupWord() {
+      const popup = document.getElementById('wordInfoPopup');
+      if (popup) {
+        popup.classList.add('hidden');
+      }
+      document.querySelector('.overlay').classList.add('hidden'); // Скрываем оверлей
+    }
+
+    let currentOptionType = '';
+    let currentOptionButton = null;
+
+    function openOptionMenu(type, button) {
+      currentOptionType = type;
+      currentOptionButton = button;
+      const menu = document.getElementById('option-menu');
+      const title = document.getElementById('option-menu-title');
+      const list = document.getElementById('option-menu-list');
+      list.innerHTML = '';
+
+      let options = [];
+      if (type === 'text-style') {
+        options = ['Пригоди', 'Містика', 'Романтика', 'Наукова фантастика', 'Гумор', 'Повсякденне спілкування'];
+      } else if (type === 'text-difficulty') {
+        options = ['Легкий', 'Середній', 'Складний'];
+      } else if (type === 'text-length') {
+        options = ['Короткий (250 символів)', 'Середній (500 символів)', 'Довгий (1200 символів)'];
+      }
+
+      options.forEach(option => {
+        const li = document.createElement('li');
+        const optionButton = document.createElement('button');
+        optionButton.textContent = option;
+        optionButton.onclick = () => selectOption(option);
+        li.appendChild(optionButton);
+        list.appendChild(li);
+      });
+
+      menu.classList.remove('hidden');
+      setTimeout(() => {
+        menu.classList.add('show');
+      }, 10);
+    }
+
+    function closeOptionMenu() {
+      const menu = document.getElementById('option-menu');
+      menu.classList.remove('show');
+      setTimeout(() => {
+        menu.classList.add('hidden');
+      }, 300);
+    }
+
+    // Функція для декодування Base64 з підтримкою UTF-8
+    function b64DecodeUnicode(str) {
+      // Замінюємо символи URL-безпечного Base64 на стандартні символи Base64
+      str = str.replace(/-/g, '+').replace(/_/g, '/');
+      // Додаємо padding, якщо необхідно
+      while (str.length % 4) {
+        str += '=';
+      }
+      // Декодуємо Base64 в бінарний рядок
+      const binary = atob(str);
+      // Перетворюємо бінарний рядок у масив байтів
+      const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+      // Декодуємо байти у строку UTF-8
+      const decoder = new TextDecoder();
+      return decoder.decode(bytes);
+    }
+
+
+    function selectOption(option) {
+      if (currentOptionButton) {
+        currentOptionButton.textContent = option;
+        currentOptionButton.dataset.value = option; // Сохраняем выбранное значение
+      }
+      // Сохраняем выбранную опцию в localStorage
+      localStorage.setItem(currentOptionType, option);
+      closeOptionMenu();
+    }
+
+
+    function closePopup() {
+      const popupOverlay = document.getElementById('popup-overlay');
+      if (popupOverlay) {
+        popupOverlay.remove();
+      }
+    }
+    // Пошук слова
+    document.getElementById('search-input').addEventListener('input', function () {
+      const query = this.value.toLowerCase();
+      const filteredWords = allWords.filter(word =>
+        word.english.toLowerCase().includes(query) || word.translation.toLowerCase().includes(query)
+      );
+      displayedWords = filteredWords.slice(0, currentIndex);
+      displaySearchedWords(filteredWords);
+    });
+
+    function displaySearchedWords(words) {
+      const wordsElement = document.getElementById('words');
+      wordsElement.innerHTML = '';
+      words.forEach(word => {
+        const li = document.createElement('li');
+        // Добавляем обработчик клика на элемент списка
+        li.onclick = () => showWordInfo(word);
+
+        // Иконка озвучивания
+        const soundIcon = document.createElement('i');
+        soundIcon.classList.add('fas', 'fa-volume-up');
+        soundIcon.onclick = (e) => {
+          e.stopPropagation(); // Останавливаем всплытие события
+          responsiveVoice.speak(word.english, "UK English Female");
+        };
+        li.appendChild(soundIcon);
+
+        // Информация о слове
+        const wordInfo = document.createElement('div');
+        wordInfo.innerHTML = `<strong>${word.english}</strong> - ${word.translation}<br><em>${word.example}</em>`;
+        li.appendChild(wordInfo);
+
+        // Кнопка удаления
+        const deleteBtn = document.createElement('i');
+        deleteBtn.classList.add('fas', 'fa-trash');
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation(); // Останавливаем всплытие события
+          deleteWord(word.english, li);
+        };
+        li.appendChild(deleteBtn);
+
+        wordsElement.appendChild(li);
+      });
+      updateSadCatVisibility();
+    }
+
+    // Видалення слова користувача з анімацією
+    function deleteWord(word, listItem) {
+      const userId = auth.currentUser.uid;
+      db.collection('users').doc(userId).collection('words').doc(word).delete()
+        .then(() => {
+          listItem.classList.add('fade-out');
+          listItem.addEventListener('animationend', () => {
+            listItem.remove();
+            // Оновлення лічильника слів
+            allWords = allWords.filter(w => w.english !== word);
+            document.getElementById('word-count').textContent =
+              `Загальна кількість слів: ${allWords.length}`;
+            if (allWords.length === 0) {
+              document.getElementById('add-word-from-my-vocabulary').classList.remove(
+                'hidden');
+            }
+          });
+        });
+      updateSadCatVisibility();
+    }
+    // Показати "Додати слово"
+    function showAddWord() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('add-word-section').classList.remove('hidden');
+      document.getElementById('translation-suggestions').innerHTML = '';
+    }
+
+    async function addWord() {
+      clearErrors();
+      const englishWord = document.getElementById('english-word').value.trim();
+      const translation = document.getElementById('translation').value.trim();
+      const example = document.getElementById('example').value.trim();
+
+      const englishRegex = /^[A-Za-z\s]{1,50}$/;
+      let valid = true;
+      if (!englishRegex.test(englishWord)) {
+        document.getElementById('english-word-error').textContent = 'Введіть коректне англійське слово.';
+        valid = false;
+      }
+      if (!translation) {
+        document.getElementById('translation-error').textContent = 'Введіть переклад.';
+        valid = false;
+      }
+      if (!valid) return;
+
+      showLoading();
+      try {
+        const userId = auth.currentUser.uid;
+        const doc = await db.collection('users').doc(userId).collection('words').doc(englishWord).get();
+        if (doc.exists) {
+          document.getElementById('english-word-error').textContent = 'Це слово вже існує.';
+          showNotification(`Слово "${englishWord}" вже є у вашому словнику.`, 'warning');
+        } else {
+          await db.collection('users').doc(userId).collection('words').doc(englishWord).set({
+            translation: translation,
+            example: example || '',
+            interactions: 0,
+            correctAnswers: 0,
+            dateAdded: firebase.firestore.Timestamp.now(),
+          });
+
+          // Очистка полей
+          document.getElementById('english-word').value = '';
+          document.getElementById('translation').value = '';
+          document.getElementById('example').value = '';
+          document.getElementById('translation-suggestions').innerHTML = '';
+
+          // Обновление списка слов
+          await fetchWords();
+          showNotification(`Слово "${englishWord}" успішно додано.`);
+        }
+      } catch (error) {
+        console.error('Помилка при додаванні слова:', error);
+        showNotification('Сталася помилка при додаванні слова. Спробуйте пізніше.', 'warning');
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Функция для открытия попапа
+    function openInfoPopup() {
+      const popup = document.getElementById('infoPopup');
+      popup.classList.remove('hidden');
+      document.querySelector('.overlay').classList.remove('hidden');
+    }
+    // Функция для закрытия попапа
+    function closeInfoPopup() {
+      const popup = document.getElementById('infoPopup');
+      popup.classList.add('hidden');
+      document.querySelector('.overlay').classList.add('hidden');
+    }
+    // Закрытие попапа при клике вне его содержимого
+    window.onclick = function (event) {
+      const popup = document.getElementById('infoPopup');
+      // Проверяем, был ли клик вне содержимого попапа
+      if (event.target === popup) {
+        popup.classList.add('hidden');
+      }
+    }
+
+    function fetchTopics() {
+      showLoading();
+      db.collection('wordBase').get()
+        .then(querySnapshot => {
+          const topicsList = document.getElementById('topics-list');
+          topicsList.innerHTML = '';
+          querySnapshot.forEach(doc => {
+            const topicName = doc.id;
+            const tile = document.createElement('div');
+            tile.classList.add('topic-tile');
+            tile.onclick = () => showTopicWords(topicName);
+            tile.textContent = topicName;
+            topicsList.appendChild(tile);
+          });
+          hideLoading();
+        })
+        .catch(error => {
+          console.error('Помилка при отриманні тем:', error);
+          hideLoading();
+        });
+    }
+    // Показати слова по темі
+    function showTopicWords(topic) {
+      console.log(`Выбрана тема: ${topic}`);
+      // Скрываем список тем
+      document.getElementById('topics-list').classList.add('hidden');
+      // Показываем секцию слов темы
+      document.getElementById('topic-words').classList.remove('hidden');
+      // Устанавливаем название темы
+      document.getElementById('topic-title').textContent = topic;
+      // Показываем кнопки "Назад к темам" и "Добавить все слова"
+      const titleAndButton = document.querySelector('.title-and-btn');
+      titleAndButton.classList.remove('hidden');
+      // Показываем оверлей загрузки
+      showLoading();
+      // Получаем слова из выбранной темы из Firestore
+      db.collection('wordBase').doc(topic).collection('words').get()
+        .then(querySnapshot => {
+          const wordsList = document.getElementById('topic-words-list');
+          wordsList.innerHTML = ''; // Очищаем предыдущие слова
+          querySnapshot.forEach(doc => {
+            const wordData = doc.data();
+            const li = document.createElement('li');
+            li.classList.add('word-card');
+            // Иконка озвучивания
+            const soundIcon = document.createElement('i');
+            soundIcon.classList.add('fas', 'fa-volume-up');
+            soundIcon.onclick = () => {
+              responsiveVoice.speak(doc.id, "UK English Female");
+            };
+            li.appendChild(soundIcon);
+            // Информация о слове
+            const wordInfo = document.createElement('div');
+            wordInfo.innerHTML = `<strong>${doc.id}</strong> - ${wordData.translation}`;
+            li.appendChild(wordInfo);
+            // Иконка добавления в словарь
+            const addIcon = document.createElement('i');
+            addIcon.classList.add('fas', 'fa-plus');
+            addIcon.style.color = 'black';
+            addIcon.style.cursor = 'pointer';
+            addIcon.onclick = () => addWordToMyDictionary(doc.id, wordData, li);
+            li.appendChild(addIcon);
+            wordsList.appendChild(li);
+          });
+          hideLoading();
+        })
+        .catch(error => {
+          console.error('Ошибка при получении слов темы:', error);
+          hideLoading();
+          showNotification('Произошла ошибка при загрузке слов темы. Попробуйте позже.', 'warning');
+        });
+    }
+
+    // Функція для показу сповіщень
+    function showNotification(message, type = 'success') {
+      const notification = document.createElement('div');
+      notification.classList.add('notification');
+      if (type === 'warning') {
+        notification.classList.add('warning');
+      }
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      // Видаляємо повідомлення через 3 секунди
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+
+
+    // Функція для перевірки та обробки поділених слів при завантаженні сторінки
+    function checkForSharedWordsOnLoad() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('share')) {
+        const encodedWords = urlParams.get('share');
+        try {
+          // Декодуємо параметр URL
+          const decodedParam = decodeURIComponent(encodedWords);
+          // Декодуємо Base64 з підтримкою UTF-8
+          const wordsJSON = b64DecodeUnicode(decodedParam);
+          // Парсимо JSON
+          const sharedWords = JSON.parse(wordsJSON);
+          // Перевіряємо, чи вже показували попап у поточній сесії
+          const popupShown = sessionStorage.getItem('sharedWordsPopupShown');
+          if (!popupShown) {
+            showSharedWordsPopup(sharedWords);
+            // Встановлюємо прапорець, що попап показано
+            sessionStorage.setItem('sharedWordsPopupShown', 'true');
+          }
+        } catch (error) {
+          console.error('Помилка при парсингу поділених слів:', error);
+          showNotification('Невдала спроба поділитися словами.', 'warning');
+        }
+      }
+    }
+
+    function playWordSound(word) {
+      responsiveVoice.speak(word, "UK English Female");
+    }
+
+
+
+    // Функція для відображення попапу з поділеними словами
+    function showSharedWordsPopup(words) {
+      const popup = document.getElementById('sharedWordsPopup');
+      const wordsContainer = document.getElementById('shared-words-container');
+      wordsContainer.innerHTML = ''; // Clear previous content
+
+      words.forEach(word => {
+        const wordCard = document.createElement('div');
+        wordCard.classList.add('word-card');
+
+        // Sound icon
+        const soundIcon = document.createElement('i');
+        soundIcon.classList.add('fas', 'fa-volume-up');
+        soundIcon.onclick = () => {
+          responsiveVoice.speak(word.english, "UK English Female");
+        };
+        wordCard.appendChild(soundIcon);
+
+        // Word info
+        const wordInfo = document.createElement('div');
+        wordInfo.innerHTML = `<strong>${word.english}</strong> - ${word.translation}`;
+        wordCard.appendChild(wordInfo);
+
+        // Add icon
+        const addIcon = document.createElement('i');
+        addIcon.classList.add('fas', 'fa-plus');
+        addIcon.onclick = () => addWordFromShared(word.english, word.translation, addIcon);
+        wordCard.appendChild(addIcon);
+
+        wordsContainer.appendChild(wordCard);
+      });
+
+      // Message under the title
+      document.getElementById('sharedWordsMessage').textContent =
+        'Слова, які вже є у вашому словнику, додані не будуть.';
+
+      // Show the popup and overlay
+      popup.classList.remove('hidden');
+      document.querySelector('.overlay').classList.remove('hidden');
+
+      // Add animation class
+      popup.classList.add('popup-animate');
+    }
+
+
+
+    // Функція для закриття попапу
+    function closeSharedWordsPopup() {
+      const popup = document.getElementById('sharedWordsPopup');
+      popup.classList.remove('popup-animate');
+      popup.classList.add('hidden');
+      document.querySelector('.overlay').classList.add('hidden');
+
+      // Remove URL parameters after closing the popup
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+
+    // Функція для додавання окремого слова з попапу
+    async function addWordFromShared(english, translation, addIcon) {
+      try {
+        const userId = auth.currentUser.uid;
+        const wordRef = db.collection('users').doc(userId).collection('words').doc(english);
+        const doc = await wordRef.get();
+        if (doc.exists) {
+          // Show message in the popup
+          showMessageInPopup(`Слово "${english}" вже є у вашому словнику.`, 'warning');
+        } else {
+          await wordRef.set({
+            translation: translation,
+            example: '',
+            interactions: 0,
+            correctAnswers: 0,
+            dateAdded: firebase.firestore.Timestamp.now(),
+          });
+          // Show success message in the popup
+          showMessageInPopup(`Слово "${english}" додано до вашого словника.`);
+          // Hide the add icon
+          addIcon.style.display = 'none';
+        }
+      } catch (error) {
+        console.error(`Помилка при додаванні слова "${english}":`, error);
+        showMessageInPopup('Сталася помилка при додаванні слова. Спробуйте пізніше.', 'warning');
+      }
+    }
+
+
+
+    // Функція для додавання всіх слів з попапу
+    async function addAllSharedWords() {
+      const wordsList = document.getElementById('shared-words-container');
+      const wordCards = wordsList.querySelectorAll('.word-card');
+
+      const wordsToAdd = [];
+      wordCards.forEach(card => {
+        const english = card.querySelector('strong').textContent;
+        const translation = card.querySelector('strong').nextSibling.textContent.trim().split('-')[1].trim();
+        const addIcon = card.querySelector('.fa-plus');
+        wordsToAdd.push({
+          english,
+          translation,
+          addIcon
+        });
+      });
+
+      const userId = auth.currentUser.uid;
+      let wordsAdded = 0;
+      let wordsAlreadyExists = 0;
+
+      try {
+        for (const wordObj of wordsToAdd) {
+          const wordRef = db.collection('users').doc(userId).collection('words').doc(wordObj.english);
+          const doc = await wordRef.get();
+          if (!doc.exists) {
+            await wordRef.set({
+              translation: wordObj.translation,
+              example: '',
+              interactions: 0,
+              correctAnswers: 0,
+              dateAdded: firebase.firestore.Timestamp.now(),
+            });
+            wordsAdded++;
+            // Hide the add icon
+            wordObj.addIcon.style.display = 'none';
+          } else {
+            wordsAlreadyExists++;
+          }
+        }
+
+        // Show summary message inside the popup
+        let summaryMessage = '';
+        if (wordsAdded > 0) {
+          summaryMessage += `Додано ${wordsAdded} нових слів до вашого словника. `;
+        }
+        if (wordsAlreadyExists > 0) {
+          summaryMessage += `Слів, які вже є у словнику: ${wordsAlreadyExists}.`;
+        }
+        if (summaryMessage === '') {
+          summaryMessage = 'Усі слова вже є у вашому словнику.';
+        }
+        showMessageInPopup(summaryMessage);
+      } catch (error) {
+        console.error('Помилка при додаванні всіх слів:', error);
+        showMessageInPopup('Сталася помилка при додаванні слів. Спробуйте пізніше.', 'warning');
+      }
+    }
+
+    function showMessageInPopup(message, type = 'success') {
+      const popupMessage = document.getElementById('popupMessage');
+      popupMessage.textContent = message;
+      popupMessage.className = 'popup-message'; // Reset classes
+      if (type === 'warning') {
+        popupMessage.classList.add('warning');
+      }
+    }
+
+    function showMessageInCard(card, message, type = 'success') {
+      let messageElement = card.querySelector('.message');
+      if (!messageElement) {
+        messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+        card.appendChild(messageElement);
+      }
+      messageElement.textContent = message;
+      messageElement.className = 'message'; // Reset classes
+      messageElement.classList.add(type);
+    }
+
+    function showMessageInPopup(message, type = 'success') {
+      const popupMessage = document.getElementById('popupMessage');
+      popupMessage.textContent = message;
+      popupMessage.className = ''; // Reset classes
+      popupMessage.classList.add(type);
+    }
+
+
+
+
+
+
+    // Додавання слова з бази до особистого словника
+    async function addWordToMyDictionary(word, wordData, listItem) {
+      const userId = auth.currentUser.uid;
+      const userWordRef = db.collection('users').doc(userId).collection('words').doc(word);
+
+      try {
+        const docSnapshot = await userWordRef.get();
+        if (docSnapshot.exists) {
+          showNotification(`Слово "${word}" вже є у вашому словнику.`, 'warning');
+        } else {
+          await userWordRef.set({
+            translation: wordData.translation,
+            example: wordData.example || '',
+            interactions: 0,
+            correctAnswers: 0,
+            dateAdded: firebase.firestore.Timestamp.now(),
+          });
+          showNotification(`Слово "${word}" додано до вашого словника.`);
+
+          // Добавляем анимацию
+          listItem.classList.add('added-word');
+          listItem.addEventListener('animationend', () => {
+            listItem.classList.remove('added-word');
+          });
+        }
+      } catch (error) {
+        console.error(`Помилка при додаванні слова "${word}":`, error);
+        showNotification('Сталася помилка при додаванні слова. Спробуйте пізніше.', 'warning');
+      }
+    }
+
+    async function addAllWordsFromTopic(topic) {
+      const userId = auth.currentUser.uid;
+      showLoading();
+      try {
+        const topicRef = db.collection('wordBase').doc(topic);
+        const wordsSnapshot = await topicRef.collection('words').get();
+        const batch = db.batch();
+        let wordsAdded = 0;
+
+        for (const wordDoc of wordsSnapshot.docs) {
+          const wordData = wordDoc.data();
+          const userWordRef = db.collection('users').doc(userId).collection('words').doc(wordDoc.id);
+          const docSnapshot = await userWordRef.get();
+          if (!docSnapshot.exists) {
+            batch.set(userWordRef, {
+              translation: wordData.translation,
+              example: wordData.example || '',
+              interactions: 0,
+              correctAnswers: 0,
+              dateAdded: firebase.firestore.Timestamp.now(),
+            });
+            wordsAdded++;
+          }
+        }
+
+        if (wordsAdded > 0) {
+          await batch.commit();
+          showNotification(`Нові слова з цієї теми додано до вашого словника.`);
+        } else {
+          showNotification(`Усі слова з цієї теми вже є у вашому словнику.`, 'warning');
+        }
+      } catch (error) {
+        console.error('Помилка додавання слів з теми:', error);
+        showNotification('Сталася помилка при додаванні слів. Спробуйте пізніше.', 'warning');
+      } finally {
+        hideLoading();
+      }
+      updateSadCatVisibility();
+    }
+
+    function openSpeedInfoPopup() {
+      document.getElementById('speedInfoPopup').classList.remove('hidden');
+      document.querySelector('.overlay').classList.remove('hidden');
+    }
+
+    function closeSpeedInfoPopup() {
+      document.getElementById('speedInfoPopup').classList.add('hidden');
+      document.querySelector('.overlay').classList.add('hidden');
+    }
+
+
+    // Додати всі слова з теми до словника
+    function addAllWords() {
+      const userId = auth.currentUser.uid;
+      showLoading();
+      db.collection('wordBase').get()
+        .then(querySnapshot => {
+          const batch = db.batch();
+          querySnapshot.forEach(topicDoc => {
+            topicDoc.ref.collection('words').get()
+              .then(wordsSnapshot => {
+                wordsSnapshot.forEach(wordDoc => {
+                  const wordData = wordDoc.data();
+                  const userWordRef = db.collection('users').doc(userId)
+                    .collection('words').doc(wordDoc
+                      .id);
+                  batch.set(userWordRef, {
+                    translation: wordData.translation,
+                    example: wordData.example || '',
+                    interactions: 0,
+                    correctAnswers: 0
+                  });
+                });
+              });
+          });
+          return batch.commit();
+        })
+        .then(() => {
+          const successMessage = document.getElementById('success-message');
+          successMessage.textContent = `Всі слова додано до вашого словника.`;
+          setTimeout(() => {
+            successMessage.textContent = '';
+          }, 3000);
+          hideLoading();
+        })
+        .catch(error => {
+          console.error('Помилка додавання всіх слів:', error);
+          hideLoading();
+        });
+      updateSadCatVisibility();
+    }
+
+    function openGenerativeTextInfoPopup() {
+      document.getElementById('generativeTextInfoPopup').classList.remove('hidden');
+    }
+
+    function closeGenerativeTextInfoPopup() {
+      document.getElementById('generativeTextInfoPopup').classList.add('hidden');
+    }
+
+    // Назад до списку тем
+    function backToTopics() {
+      console.log('Нажата кнопка "Назад к темам"');
+      // Показываем список тем
+      document.getElementById('topics-list').classList.remove('hidden');
+      console.log('Показана секция тем');
+      // Скрываем секцию слов темы
+      document.getElementById('topic-words').classList.add('hidden');
+      console.log('Скрыта секция слов темы');
+      // Скрываем кнопки "Назад к темам" и "Добавить все слова"
+      const titleAndButton = document.querySelector('.title-and-btn');
+      titleAndButton.classList.add('hidden');
+      // Очищаем список слов
+      const wordsList = document.getElementById('topic-words-list');
+      wordsList.innerHTML = '';
+      console.log('Очищен список слов');
+      // Очищаем название темы
+      document.getElementById('topic-title').textContent = '';
+      // Очищаем сообщения об успехе
+      const successMessage = document.getElementById('success-message');
+      successMessage.textContent = '';
+    }
+    // Показати тарифні плани
+    function showTariffs() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('payment-section').classList.add('hidden');
+      document.getElementById('tariffs-section').classList.remove('hidden');
+    }
+    // Придбати підписку
+    function purchaseSubscription(days) {
+      const userId = auth.currentUser.uid;
+      const currentDate = new Date();
+      const newExpiration = new Date(currentDate);
+      newExpiration.setDate(newExpiration.getDate() + days);
+      db.collection('users').doc(userId).update({
+          subscriptionExpiration: firebase.firestore.Timestamp.fromDate(newExpiration)
+        })
+        .then(() => {
+          alert('Підписку оновлено!');
+          updateUI();
+        })
+        .catch(error => {
+          console.error('Помилка оновлення підписки:', error);
+          hideLoading();
+        });
+    }
+    // Почати тренування знань
+    function startQuiz() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('quiz-section').classList.remove('hidden');
+      initializeQuiz();
+    }
+
+    function openConstructorInfoPopup() {
+      document.getElementById('constructorInfoPopup').classList.remove('hidden');
+      document.querySelector('.overlay').classList.remove('hidden');
+    }
+
+    function closeConstructorInfoPopup() {
+      document.getElementById('constructorInfoPopup').classList.add('hidden');
+      document.querySelector('.overlay').classList.add('hidden');
+    }
+
+    // Ініціалізація тренування
+    function initializeQuiz() {
+      showLoading();
+      const userId = auth.currentUser.uid;
+      db.collection('users').doc(userId).collection('words').get()
+        .then(querySnapshot => {
+          if (querySnapshot.size < 10) {
+            document.getElementById('quiz-container').innerHTML =
+              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+            hideLoading();
+            return;
+          }
+          let wordsArray = [];
+          querySnapshot.forEach(doc => {
+            const wordData = doc.data();
+            wordsArray.push({
+              english: doc.id,
+              translation: wordData.translation,
+              interactions: wordData.interactions || 0,
+              correctAnswers: wordData.correctAnswers || 0
+            });
+          });
+          // Розділення слів на нові та вже взаємодіяли
+          const newWords = wordsArray.filter(word => word.interactions <= 3);
+          const interactedWords = wordsArray.filter(word => word.interactions > 3);
+          // Сортування взаємодіяних слів від найскладніших до найпростіших
+          interactedWords.sort((a, b) => {
+            const aRatio = a.correctAnswers / a.interactions;
+            const bRatio = b.correctAnswers / b.interactions;
+            return aRatio - bRatio; // Менше співвідношення означає складніше слово
+          });
+          // Об'єднання масивів
+          const sortedWords = [...newWords, ...interactedWords];
+          // Вибір перших 10 слів
+          quizWords = sortedWords.slice(0, 10);
+          currentQuestion = 0;
+          correctAnswers = 0;
+          showQuestion();
+          hideLoading();
+        });
+    }
+
+
+    // Змінні для тренування
+    let quizWords = [];
+    let currentQuestion = 0;
+    let correctAnswers = 0;
+
+    function showQuestion() {
+      if (currentQuestion >= quizWords.length) {
+        // Тренування завершено
+        showQuizResult();
+        return;
+      }
+      const questionWord = quizWords[currentQuestion];
+      const options = [questionWord.translation];
+      // Додаємо випадкові переклади
+      while (options.length < 4) {
+        const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+        if (!options.includes(randomWord.translation)) {
+          options.push(randomWord.translation);
+        }
+      }
+      // Перемішуємо варіанти
+      options.sort(() => 0.5 - Math.random());
+      // Оновлюємо прогрес бар
+      const progressPercent = ((currentQuestion) / quizWords.length) * 100;
+      document.getElementById('quiz-progress-bar').style.width = `${progressPercent}%`;
+      // Обновляем номер вопроса
+      document.getElementById('quiz-question-number').textContent = `${currentQuestion + 1}/${quizWords.length}`;
+      // Відображаємо питання
+      document.getElementById('quiz-container').innerHTML = `
+    <h3>${questionWord.english}</h3>
+    ${options.map(option => `<button class="check-word" onclick="checkAnswer('${option.replace(/'/g, "\\'")}')">${option}</button>`).join('')}
+  `;
+    }
+
+    function showQuizResult() {
+      const quizContainer = document.getElementById('quiz-container');
+      const quizProgress = document.getElementById('quiz-progress');
+      const quizResult = document.getElementById('quiz-result');
+      const quizEmoji = document.getElementById('quiz-emoji'); // Элемент <i>
+      const quizResultText = document.getElementById('quiz-result-text');
+      // Скрываем контейнер и прогресс
+      quizContainer.classList.add('hidden');
+      quizProgress.classList.add('hidden');
+      // Показываем результат
+      quizResult.classList.remove('hidden');
+      let iconClasses = '';
+      let resultText = '';
+      if (correctAnswers <= 4) {
+        // Плохой результат
+        iconClasses = 'fas fa-sad-tear text-red-500'; // Пример: грустный смайлик
+        resultText = 'Не погано, але є місце для покращення.';
+      } else if (correctAnswers <= 7) {
+        // Средний результат
+        iconClasses = 'fas fa-meh text-yellow-500'; // Пример: нейтральный смайлик
+        resultText = 'Добре! Але можна краще.';
+      } else {
+        // Отличный результат
+        iconClasses = 'fas fa-grin-stars text-green-500'; // Пример: улыбающийся с солнцезащитными очками
+        resultText = 'Відмінно! Ви чудово знаєте ці слова!';
+      }
+      // Удаляем все предыдущие классы и добавляем новые
+      quizEmoji.className = ''; // Очищаем все классы
+      quizEmoji.classList.add(...iconClasses.split(' '));
+      // Обновляем текст результата
+      quizResultText.textContent = `Правильних відповідей: ${correctAnswers} з ${quizWords.length}`;
+    }
+    // Перевірка відповіді
+    function checkAnswer(selectedOption) {
+      const questionWord = quizWords[currentQuestion];
+      const buttons = document.querySelectorAll('#quiz-container button');
+      buttons.forEach(button => {
+        if (button.textContent === questionWord.translation) {
+          button.classList.add('correct');
+        } else if (button.textContent === selectedOption) {
+          button.classList.add('incorrect');
+        }
+        button.disabled = true;
+      });
+
+      const correct = selectedOption === questionWord.translation;
+      if (correct) {
+        correctAnswers++;
+      }
+
+      // Обновляем статистику слова и дату последнего взаимодействия
+      updateWordStats(questionWord.english, correct);
+
+      // Обновляем прогресс-бар
+      const progressPercent = ((currentQuestion + 1) / quizWords.length) * 100;
+      document.getElementById('quiz-progress-bar').style.width = `${progressPercent}%`;
+
+      // Переходим к следующему вопросу через 1 секунду
+      setTimeout(() => {
+        currentQuestion++;
+        showQuestion();
+      }, 1000);
+    }
+
+    function openListeningInfoPopup() {
+      document.getElementById('listeningInfoPopup').classList.remove('hidden');
+      document.querySelector('.overlay').classList.remove('hidden');
+    }
+
+    function closeListeningInfoPopup() {
+      document.getElementById('listeningInfoPopup').classList.add('hidden');
+      document.querySelector('.overlay').classList.add('hidden');
+    }
+
+
+    // Отримання рекомендацій перекладу
+    function getTranslationSuggestions(word) {
+      if (!word) return;
+      const apiKey = 'YOUR_TRANSLATION_API_KEY';
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|uk`;
+      axios.get(url)
+        .then(response => {
+          const suggestions = response.data.matches.slice(0, 3).map(match => match.translation);
+          displayTranslationSuggestions(suggestions);
+        })
+        .catch(error => {
+          console.error('Помилка отримання перекладу:', error);
+        });
+    }
+    // Відображення рекомендацій перекладу
+    function displayTranslationSuggestions(translations) {
+      const suggestionsContainer = document.getElementById('translation-suggestions');
+      suggestionsContainer.innerHTML = '';
+      translations.forEach(translation => {
+        const suggestion = document.createElement('div');
+        suggestion.classList.add('suggestion');
+        suggestion.textContent = translation;
+        suggestion.onclick = () => {
+          document.getElementById('translation').value = translation;
+          suggestionsContainer.innerHTML = '';
+        };
+        suggestionsContainer.appendChild(suggestion);
+      });
+    }
+    // Показати тренування на слух
+    function startListeningTraining() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('listening-training-section').classList.remove('hidden');
+      initializeListeningTraining();
+    }
+    // Ініціалізація тренування на слух
+    function initializeListeningTraining() {
+      showLoading();
+      const userId = auth.currentUser.uid;
+      db.collection('users').doc(userId).collection('words').get()
+        .then(querySnapshot => {
+          if (querySnapshot.size < 10) {
+            document.getElementById('listening-quiz-container').innerHTML =
+              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+            hideLoading();
+            return;
+          }
+          let wordsArray = [];
+          querySnapshot.forEach(doc => {
+            const wordData = doc.data();
+            wordsArray.push({
+              english: doc.id,
+              translation: wordData.translation,
+              interactions: wordData.interactions || 0,
+              correctAnswers: wordData.correctAnswers || 0
+            });
+          });
+          // Розділення слів на нові та взаємодіяні
+          const newWords = wordsArray.filter(word => word.interactions === 0);
+          const interactedWords = wordsArray.filter(word => word.interactions > 0);
+          // Сортування взаємодіяних слів від найскладніших до найпростіших
+          interactedWords.sort((a, b) => {
+            const aRatio = a.correctAnswers / a.interactions;
+            const bRatio = b.correctAnswers / b.interactions;
+            return aRatio - bRatio;
+          });
+          // Об'єднання масивів
+          const sortedWords = [...newWords, ...interactedWords];
+          listeningWords = sortedWords.slice(0, 10);
+          currentListeningQuestion = 0;
+          listeningCorrectAnswers = 0;
+          showListeningQuestion();
+          hideLoading();
+        });
+    }
+
+    // Змінні для тренування на слух
+    let listeningWords = [];
+    let currentListeningQuestion = 0;
+    let listeningCorrectAnswers = 0;
+
+    function showListeningQuestion() {
+      if (currentListeningQuestion >= listeningWords.length) {
+        showListeningResult();
+        return;
+      }
+      const questionWord = listeningWords[currentListeningQuestion];
+      // Обновляем прогресс-бар
+      const progressPercent = ((currentListeningQuestion) / listeningWords.length) * 100;
+      document.getElementById('listening-progress-bar').style.width = `${progressPercent}%`;
+      const container = document.getElementById('listening-quiz-container');
+      // Добавляем класс для анимации появления
+      container.classList.add('fade-in');
+      // Удаляем класс после завершения анимации
+      setTimeout(() => {
+        container.classList.remove('fade-in');
+      }, 500);
+      // Отображаем контент
+      container.innerHTML = `
+    <button onclick="responsiveVoice.speak('${questionWord.english}', 'UK English Female')" class="listening-sound-icon"><i class="fas fa-volume-up"></i></button>
+    <input type="text" id="listening-answer" placeholder="Введіть слово...">
+    <button class="check-button" onclick="checkListeningAnswer('${questionWord.english}')">Перевірити</button>
+    <button class="skip-button" onclick="skipListeningQuestion()">Пропустити</button>
+    <div id="listening-feedback" class="listening-feedback hidden"></div>
+  `;
+    }
+    // Перевірка відповіді в тренуванні на слух
+    function checkListeningAnswer(correctWord) {
+      const userAnswer = document.getElementById('listening-answer').value.trim().toLowerCase();
+      const feedback = document.getElementById('listening-feedback');
+      const isCorrect = userAnswer === correctWord.toLowerCase();
+
+      if (isCorrect) {
+        listeningCorrectAnswers++;
+        feedback.textContent = 'Правильно!';
+        feedback.style.color = '#2ecc71'; // Зеленый
+      } else {
+        feedback.textContent = `Неправильно! Правильне слово: ${correctWord}`;
+        feedback.style.color = '#e74c3c'; // Красный
+      }
+      feedback.classList.remove('hidden');
+
+      // Обновляем статистику слова
+      updateWordStats(correctWord, isCorrect);
+
+      // Переходим к следующему вопросу через 1.5 секунды
+      setTimeout(() => {
+        currentListeningQuestion++;
+        showListeningQuestion();
+      }, 1500);
+    }
+
+    function openRepetitionInfoPopup() {
+      document.getElementById('repetitionInfoPopup').classList.remove('hidden');
+      document.querySelector('.overlay').classList.remove('hidden');
+    }
+
+    function openGeneratorInfoPopup() {
+      document.getElementById('generatorInfoPopup').classList.remove('hidden');
+      document.querySelector('.overlay').classList.remove('hidden');
+    }
+
+    function closeRepetitionInfoPopup() {
+      document.getElementById('repetitionInfoPopup').classList.add('hidden');
+      document.querySelector('.overlay').classList.add('hidden');
+    }
+
+    function closeGeneratorInfoPopup() {
+      document.getElementById('generatorInfoPopup').classList.add('hidden');
+      document.querySelector('.overlay').classList.add('hidden');
+    }
+
+    function skipListeningQuestion() {
+      currentListeningQuestion++;
+      showListeningQuestion();
+    }
+    // Показати тренування конструктор слова
+    function startWordConstructorTraining() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('word-constructor-training-section').classList.remove('hidden');
+      initializeWordConstructorTraining();
+      document.getElementById('constructor-progress').classList.remove('hidden');
+      document.getElementById('word-constructor-quiz-container').classList.remove('hidden');
+    }
+    // Ініціалізація тренування конструктор слова
+    function initializeWordConstructorTraining() {
+      showLoading();
+      const userId = auth.currentUser.uid;
+      db.collection('users').doc(userId).collection('words').get()
+        .then(querySnapshot => {
+          if (querySnapshot.size < 10) {
+            document.getElementById('word-constructor-quiz-container').innerHTML =
+              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+            hideLoading();
+            return;
+          }
+          let wordsArray = [];
+          querySnapshot.forEach(doc => {
+            const wordData = doc.data();
+            wordsArray.push({
+              english: doc.id,
+              translation: wordData.translation,
+              interactions: wordData.interactions || 0,
+              correctAnswers: wordData.correctAnswers || 0
+            });
+          });
+          // Розділення слів на нові та взаємодіяні
+          const newWords = wordsArray.filter(word => word.interactions === 0);
+          const interactedWords = wordsArray.filter(word => word.interactions > 0);
+          // Сортування взаємодіяних слів від найскладніших до найпростіших
+          interactedWords.sort((a, b) => {
+            const aRatio = a.correctAnswers / a.interactions;
+            const bRatio = b.correctAnswers / b.interactions;
+            return aRatio - bRatio;
+          });
+          // Об'єднання масивів
+          const sortedWords = [...newWords, ...interactedWords];
+          constructorWords = sortedWords.slice(0, 10);
+          currentConstructorQuestion = 0;
+          constructorCorrectAnswers = 0;
+          showConstructorQuestion();
+          hideLoading();
+        })
+        .catch(error => {
+          console.error('Помилка ініціалізації конструктора:', error);
+          hideLoading();
+        });
+    }
+
+    // Змінні для тренування конструктор слова
+    let constructorWords = [];
+    let currentConstructorQuestion = 0;
+    let constructorCorrectAnswers = 0;
+
+    function showConstructorQuestion() {
+      if (currentConstructorQuestion >= constructorWords.length) {
+        showConstructorResult();
+        return;
+      }
+      const questionWord = constructorWords[currentConstructorQuestion];
+      const letters = getUniqueLetters(questionWord.english);
+      // Сброс переменных
+      constructedWord = '';
+      usedLetters = {};
+      // Обновление прогресс-бара
+      const progressPercent = ((currentConstructorQuestion) / constructorWords.length) * 100;
+      document.getElementById('constructor-progress-bar').style.width = `${progressPercent}%`;
+      const container = document.getElementById('word-constructor-quiz-container');
+      // Анимация
+      container.classList.remove('fade-in');
+      container.classList.add('fade-out');
+      setTimeout(() => {
+        // Обновляем контент после анимации
+        container.innerHTML = `
+      <div class="sound-icon-container">
+        <button onclick="responsiveVoice.speak('${questionWord.english}', 'UK English Female')" class="listening-sound-icon">
+          <i class="fas fa-volume-up"></i>
+        </button>
+      </div>
+      <div class="input-block-custom" style="display: flex; justify-content: center; margin-top: 10px;">
+        <input type="text" id="constructor-answer" placeholder="Соберіть слово..." readonly>
+        <button class="delete-constructor-button" onclick="deleteLastLetter()">
+          <i class="fas fa-backspace"></i>
+        </button>
+      </div>
+      <div class="constructor-letter-buttons" id="letter-buttons">
+        ${generateLetterButtonsHTML(letters)}
+      </div>
+      <button class="check-button" onclick="submitConstructorAnswer('${questionWord.english}')">Перевірити</button>
+      <button class="skip-button" onclick="skipConstructor()">Пропустити</button>
+      <div id="constructor-feedback" class="listening-feedback hidden"></div>
+    `;
+        // Добавляем класс для анимации появления
+        container.classList.remove('fade-out');
+        container.classList.add('fade-in');
+        // Автоматическое озвучивание слова
+        responsiveVoice.speak(questionWord.english, 'UK English Female');
+      }, 500); // Задержка должна совпадать с длительностью анимации в CSS
+    }
+
+    function generateLetterButtonsHTML(letters) {
+      let letterButtonsHTML = '';
+      letters.forEach(letterObj => {
+        const displayText = letterObj.letter;
+        letterButtonsHTML +=
+          `<button class="unique-letter-button" data-letter="${letterObj.letter}" data-count="${letterObj.count}" data-initial-count="${letterObj.count}" onclick="addLetterToConstructor('${letterObj.letter}')">${displayText}</button>`;
+      });
+      return letterButtonsHTML;
+    }
+    // Замените функцию getShuffledLetters на getUniqueLetters
+    function getUniqueLetters(word) {
+      const letterCounts = {};
+      word.toLowerCase().split('').forEach(letter => {
+        letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+      });
+      let letters = [];
+      for (const [letter, count] of Object.entries(letterCounts)) {
+        letters.push({
+          letter: letter,
+          count: count
+        });
+      }
+      // Перемешиваем буквы
+      for (let i = letters.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [letters[i], letters[j]] = [letters[j], letters[i]];
+      }
+      return letters;
+    }
+    // Змінні для відстеження створеного слова
+    let constructedWord = '';
+    let usedLetters = {};
+
+    function addLetterToConstructor(letter) {
+      const letterButton = document.querySelector(`button[data-letter='${letter}']`);
+      let remainingCount = parseInt(letterButton.getAttribute('data-count'));
+      if (remainingCount <= 0) return;
+      constructedWord += letter;
+      document.getElementById('constructor-answer').value = constructedWord;
+      // Уменьшение количества оставшихся букв
+      remainingCount--;
+      letterButton.setAttribute('data-count', remainingCount);
+      // Обновление текста кнопки
+      const displayText = remainingCount > 1 ? `${letter} (${remainingCount})` : letter;
+      letterButton.textContent = displayText;
+      // Отключение кнопки, если букв больше нет
+      if (remainingCount === 0) {
+        letterButton.disabled = true;
+      }
+    }
+    // Функція для отримання кількості певної букви в слові
+    function getLetterCount(letter) {
+      const currentWord = constructorWords[currentConstructorQuestion].english.toLowerCase();
+      return currentWord.split(letter).length - 1;
+    }
+
+    function submitConstructorAnswer(correctWord) {
+      const userAnswer = document.getElementById('constructor-answer').value.trim().toLowerCase();
+      const feedback = document.getElementById('constructor-feedback');
+      if (userAnswer === correctWord.toLowerCase()) {
+        constructorCorrectAnswers++;
+        updateWordStats(correctWord, true);
+        feedback.classList.remove('not-correct-label');
+        feedback.classList.add('correct-label');
+        feedback.textContent = 'Правильно!';
+        feedback.classList.remove('hidden');
+        // Переход к следующему слову через 1.5 секунды
+        setTimeout(() => {
+          currentConstructorQuestion++;
+          showConstructorQuestion();
+        }, 1500);
+      } else {
+        updateWordStats(correctWord, false);
+        feedback.classList.remove('correct-label');
+        feedback.classList.add('not-correct-label');
+        feedback.textContent = `Неправильно! спробуйте ще раз.`;
+        feedback.classList.remove('hidden');
+        // Сброс введенного слова и кнопок букв
+        constructedWord = '';
+        document.getElementById('constructor-answer').value = constructedWord;
+        resetLetterButtons();
+      }
+    }
+
+    function resetLetterButtons() {
+      const letterButtons = document.querySelectorAll('.unique-letter-button');
+      letterButtons.forEach(button => {
+        const initialCount = parseInt(button.getAttribute('data-initial-count'));
+        button.setAttribute('data-count', initialCount);
+        const letter = button.getAttribute('data-letter');
+        const displayText = letter;
+        button.textContent = displayText;
+        button.disabled = false;
+      });
+    }
+
+    function skipConstructor() {
+      currentConstructorQuestion++;
+      showConstructorQuestion();
+    }
+
+    async function updateWordStats(word, correct) {
+      const userId = auth.currentUser.uid;
+      const wordRef = db.collection('users').doc(userId).collection('words').doc(word);
+
+      try {
+        const doc = await wordRef.get();
+        if (doc.exists) {
+          const wordData = doc.data();
+          const interactions = (wordData.interactions || 0) + 1;
+          const correctAnswersCount = correct ?
+            (wordData.correctAnswers || 0) + 1 :
+            (wordData.correctAnswers || 0);
+          await wordRef.update({
+            interactions: interactions,
+            correctAnswers: correctAnswersCount,
+            lastInteractionDate: firebase.firestore.Timestamp.now(), // Добавлено
+          });
+        }
+      } catch (error) {
+        console.error('Помилка оновлення статистики слова:', error);
+      }
+    }
+
+
+
+    function finishQuiz() {
+      // Перехід на головну сторінку
+      backToAccount();
+      // Скидання прогресу та результатів
+      document.getElementById('quiz-result').classList.add('hidden');
+      document.getElementById('quiz-container').classList.remove('hidden');
+      document.getElementById('quiz-progress').classList.remove('hidden');
+      correctAnswers = 0;
+      currentQuestion = 0;
+      initializeQuiz();
+    }
+
+    function updateSadCatVisibility() {
+      if (allWords.length === 0) {
+        document.getElementById('add-word-from-my-vocabulary').classList.remove('hidden');
+      } else {
+        document.getElementById('add-word-from-my-vocabulary').classList.add('hidden');
+      }
+    }
+
+    function showListeningResult() {
+      const listeningContainer = document.getElementById('listening-quiz-container');
+      listeningContainer.innerHTML = `
+    <div class="quiz-result">
+      ${listeningCorrectFeedback()}
+      <button onclick="finishListening()">Завершити тренування</button>
+    </div>
+  `;
+    }
+
+    function listeningCorrectFeedback() {
+      if (listeningCorrectAnswers <= 4) {
+        return `<img src="https://img.icons8.com/emoji/96/000000/sad-emoji.png" alt="Сумний емодзі"><p>Не погано, але є місце для покращення.</p>`;
+      } else if (listeningCorrectAnswers <= 7) {
+        return `<img src="https://img.icons8.com/emoji/96/000000/neutral-emoji.png" alt="Нейтральний емодзі"><p>Добре! Але можна краще.</p>`;
+      } else {
+        return `<img src="https://img.icons8.com/emoji/96/000000/smiling-face-with-sunglasses.png" alt="Щасливий емодзі"><p>Відмінно! Ви чудово знаєте ці слова.</p>`;
+      }
+    }
+
+    function finishListening() {
+      backToAccount();
+      // Скидання результатів слухання
+      listeningCorrectAnswers = 0;
+      currentListeningQuestion = 0;
+      initializeListeningTraining();
+    }
+
+    function deleteLastLetter() {
+      if (constructedWord.length === 0) return;
+      const lastLetter = constructedWord.slice(-1);
+      constructedWord = constructedWord.slice(0, -1);
+      document.getElementById('constructor-answer').value = constructedWord;
+      // Увеличение количества доступных букв
+      const letterButton = document.querySelector(`button[data-letter='${lastLetter}']`);
+      let remainingCount = parseInt(letterButton.getAttribute('data-count')) + 1;
+      const initialCount = parseInt(letterButton.getAttribute('data-initial-count'));
+      if (remainingCount <= initialCount) {
+        letterButton.setAttribute('data-count', remainingCount);
+        // Обновление текста кнопки
+        const displayText = remainingCount > 1 ? `${lastLetter} (${remainingCount})` : lastLetter;
+        letterButton.textContent = displayText;
+        // Включение кнопки
+        letterButton.disabled = false;
+      }
+    }
+
+    function showConstructorResult() {
+      const constructorContainer = document.getElementById('word-constructor-quiz-container');
+      const constructorProgress = document.getElementById('constructor-progress');
+      const constructorResult = `
+    <div class="constructor-quiz-result">
+      ${constructorCorrectFeedback()}
+      <button class="finish-button" onclick="finishConstructor()">Завершити тренування</button>
+    </div>
+  `;
+      constructorContainer.innerHTML = constructorResult;
+      constructorProgress.classList.add('hidden');
+    }
+
+    function constructorCorrectFeedback() {
+      if (constructorCorrectAnswers <= 4) {
+        return `<img src="https://img.icons8.com/emoji/96/000000/sad-emoji.png" alt="Сумний емодзі"><p>Не погано, але є місце для покращення.</p>`;
+      } else if (constructorCorrectAnswers <= 7) {
+        return `<img src="https://img.icons8.com/emoji/96/000000/neutral-emoji.png" alt="Нейтральний емодзі"><p>Добре! Але можна краще.</p>`;
+      } else {
+        return `<img src="https://img.icons8.com/emoji/96/000000/smiling-face-with-sunglasses.png" alt="Щасливий емодзі"><p>Відмінно! Ви чудово створюєте слова.</p>`;
+      }
+    }
+
+    function finishConstructor() {
+      // Скрываем результаты и показываем главный экран
+      document.getElementById('constructor-quiz-result').classList.add('hidden');
+      document.getElementById('word-constructor-quiz-container').classList.add('hidden');
+      document.getElementById('constructor-progress').classList.add('hidden');
+      // Сброс результатов
+      constructorCorrectAnswers = 0;
+      currentConstructorQuestion = 0;
+      backToAccount();
+    }
+    // Оновлення залишку днів підписки в реальному часі
+    function startSubscriptionTimer(subscriptionExpiration) {
+      function updateDaysLeft() {
+        const currentDate = new Date();
+        const timeDiff = subscriptionExpiration - currentDate;
+        const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+        if (daysLeft > 0) {
+          document.getElementById('subscription-info').textContent =
+            `Залишилось днів підписки: ${daysLeft}`;
+        } else {
+          clearInterval(timer);
+          document.getElementById('account-screen').classList.add('hidden');
+          document.getElementById('payment-section').classList.remove('hidden');
+        }
+      }
+      updateDaysLeft(); // Початкове оновлення
+      const timer = setInterval(updateDaysLeft, 24 * 60 * 60 * 1000); // Оновлення щодня
+    }
+    // Функція для показу секції Генеративний текст
+    function startGenerativeTextTraining() {
+      toggleMainTitle();
+      fetchWords(); // Додано цей рядок для завантаження слів
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('generative-text-section').classList.remove('hidden');
+      document.getElementById('generated-story').classList.add('hidden');
+      document.getElementById('story-text').textContent = '';
+      document.getElementById('story-title').textContent = '';
+
+      // Загружаем сохраненные настройки из localStorage
+      const textStyleButton = document.querySelector('.option-button[onclick*="text-style"]');
+      const textDifficultyButton = document.querySelector('.option-button[onclick*="text-difficulty"]');
+      const textLengthButton = document.querySelector('.option-button[onclick*="text-length"]');
+
+      const savedStyle = localStorage.getItem('text-style');
+      const savedDifficulty = localStorage.getItem('text-difficulty');
+      const savedLength = localStorage.getItem('text-length');
+
+      if (savedStyle) {
+        textStyleButton.textContent = savedStyle;
+        textStyleButton.dataset.value = savedStyle;
+      }
+      if (savedDifficulty) {
+        textDifficultyButton.textContent = savedDifficulty;
+        textDifficultyButton.dataset.value = savedDifficulty;
+      }
+      if (savedLength) {
+        textLengthButton.textContent = savedLength;
+        textLengthButton.dataset.value = savedLength;
+      }
+    }
+
+    // Функція для генерації історії
+    async function generateStory() {
+      const textStyleButton = document.querySelector('.option-button[onclick*="text-style"]');
+      const textDifficultyButton = document.querySelector('.option-button[onclick*="text-difficulty"]');
+      const textLengthButton = document.querySelector('.option-button[onclick*="text-length"]');
+
+      const selectedStyle = textStyleButton.dataset.value;
+      const selectedDifficulty = textDifficultyButton.dataset.value;
+      const selectedLength = textLengthButton.dataset.value;
+
+      if (!selectedStyle || !selectedDifficulty || !selectedLength) {
+        showNotification('Будь ласка, заповніть всі налаштування.', 'warning');
+        return;
+      }
+
+      if (allWords.length === 0) {
+        showNotification('У вашому словнику немає слів для генерації історії.', 'warning');
+        return;
+      }
+
+      let wordCount;
+      let maxTokens;
+      if (selectedLength.includes('Короткий')) {
+        wordCount = 5;
+        maxTokens = 250;
+      } else if (selectedLength.includes('Середній')) {
+        wordCount = 7;
+        maxTokens = 500;
+      } else if (selectedLength.includes('Довгий')) {
+        wordCount = 10;
+        maxTokens = 1200;
+      } else {
+        showNotification('Невідомий формат довжини тексту.', 'warning');
+        return;
+      }
+
+      const selectedWords = getEnglishWords(allWords, wordCount);
+      if (selectedWords.length < wordCount) {
+        showNotification('Не вдалося вибрати достатню кількість слів для генерації.', 'warning');
+        return;
+      }
+      const wordList = selectedWords.join(', ');
+
+      const promptText = `Generate a narrative story in English, in the style of "${selectedStyle}", with "${selectedDifficulty}" difficulty, incorporating the following words: ${wordList}. Also, generate a short title for the story. The output must be valid HTML, structured exactly as follows:
+  <div class="generative-text">
+    <h3>[Title of the story]</h3>
+    <p>
+      [Narrative text here, with each of the specified words wrapped in <span class="highlight">...</span> tags.]
+    </p>
+  </div>
+  Ensure that:
+  1. The entire output is enclosed within the <div class="generative-text">...</div> block.
+  2. Inside the <div>, there is one <h3> element containing the title, and one <p> element containing the narrative.
+  3. Each occurrence of the specified words in the narrative is wrapped in a <span class="highlight">...</span> tag.
+  4. No additional HTML elements or text are included outside of the specified structure.
+  5. The HTML is properly formatted and valid.`;
+
+      document.querySelector('.generate .spinner').classList.remove('hidden');
+      document.querySelector('.generate span').classList.add('hidden');
+      document.getElementById('generated-story').classList.add('hidden');
+      document.getElementById('story-text').textContent = '';
+      document.getElementById('story-title').textContent = '';
+
+      const url =
+        'https://cheapest-gpt-4-turbo-gpt-4-vision-chatgpt-openai-ai-api.p.rapidapi.com/v1/chat/completions';
+      const options = {
+        method: 'POST',
+        headers: {
+          'x-rapidapi-key': '1314626d48msh60b16a9edf2a291p1f7fdcjsnbfbf3e85e14a', // Замените на ваш ключ
+          'x-rapidapi-host': 'cheapest-gpt-4-turbo-gpt-4-vision-chatgpt-openai-ai-api.p.rapidapi.com',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [{
+            role: 'user',
+            content: promptText
+          }],
+          model: 'gpt-4',
+          temperature: 0.9,
+          max_tokens: maxTokens,
+        }),
+      };
+
+      try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(
+            `HTTP error! статус: ${response.status}, повідомлення: ${errorText || 'Не відома помилка'}`
+          );
+        }
+        const result = await response.json();
+        let storyHTML = 'Немає згенерованого тексту.';
+        if (
+          result.choices &&
+          result.choices[0] &&
+          result.choices[0].message &&
+          result.choices[0].message.content
+        ) {
+          storyHTML = result.choices[0].message.content;
+        }
+
+        document.querySelector('.generate .spinner').classList.add('hidden');
+        document.querySelector('.generate span').classList.remove('hidden');
+        document.getElementById('generated-story').classList.remove('hidden');
+
+        // Парсинг HTML для получения заголовка и истории
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(storyHTML, 'text/html');
+        const div = doc.querySelector('.generative-text');
+        if (div) {
+          const titleElement = div.querySelector('h3');
+          const storyElement = div.querySelector('p');
+          if (titleElement && storyElement) {
+            document.getElementById('story-title').innerHTML = titleElement.innerHTML;
+            document.getElementById('story-text').innerHTML = storyElement.innerHTML;
+          } else {
+            document.getElementById('story-text').innerHTML = 'Невдала генерація тексту.';
+          }
+        } else {
+          document.getElementById('story-text').innerHTML = 'Невдала генерація тексту.';
+        }
+      } catch (error) {
+        console.error('Помилка при генерації історії:', error);
+        document.querySelector('.generate .spinner').classList.add('hidden');
+        document.querySelector('.generate span').classList.remove('hidden');
+        showNotification('Сталася помилка при генерації історії. Спробуйте пізніше.', 'warning');
+      }
+    }
+
+
+    async function translateText(text, sourceLang, targetLang) {
+      const url = 'https://translate.astian.org/translate';
+      try {
+        const response = await axios.post(url, {
+          q: text,
+          source: sourceLang,
+          target: targetLang,
+          format: 'text',
+        });
+        if (response.data && response.data.translatedText) {
+          return response.data.translatedText;
+        } else {
+          return text;
+        }
+      } catch (error) {
+        console.error('Помилка перекладу:', error);
+        return text;
+      }
+    }
+
+
+    function getEnglishWords(words, count) {
+      const englishWords = words.map(wordObj => wordObj.english);
+      const shuffled = englishWords.sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count);
+    }
+
+    // Функція для розкодування посилання та виведення масивів у консоль
+    function decodeLink() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('adding_words')) {
+        const encodedWords = urlParams.get('adding_words');
+        try {
+          // Decode and parse the words (format: 'eng1=ukr1;eng2=ukr2;...')
+          const decodedParam = decodeURIComponent(encodedWords);
+          const pairs = decodedParam.split(';');
+          let sharedWords = [];
+          pairs.forEach(pair => {
+            const [eng, ukr] = pair.split('=');
+            sharedWords.push({
+              english: eng,
+              translation: ukr
+            });
+          });
+
+          // Check if the user is logged in
+          if (auth.currentUser) {
+            // Show popup with shared words
+            showSharedWordsPopup(sharedWords);
+          } else {
+            // If not logged in, prompt the user to log in
+            showNotification('Будь ласка, увійдіть у систему, щоб додати слова.', 'warning');
+          }
+        } catch (error) {
+          console.error('Помилка при парсингу слів з посилання:', error);
+          showNotification('Невірний формат поділених слів.', 'warning');
+        }
+      }
+    }
+
+    // Call decodeLink after authentication state is determined
+    let decodeLinkCalled = false;
+    auth.onAuthStateChanged(user => {
+      updateUI();
+      if (!decodeLinkCalled) {
+        decodeLink();
+        decodeLinkCalled = true;
+      }
+    });
+
+    function loadUserProgress() {
+      let dateAdded = null;
+      let reportDate = new Date();
+      const userId = auth.currentUser.uid;
+
+      db.collection("users").doc(userId).collection("words").get()
+        .then(snapshot => {
+          let newWords = 0;
+          let goodKnowledge = 0;
+          let averageKnowledge = 0;
+          let poorKnowledge = 0;
+
+          snapshot.forEach(doc => {
+            const word = doc.data();
+            const iterations = word.interactions || 0;
+            const correctAnswers = word.correctAnswers || 0;
+            const accuracy = iterations > 0 ? (correctAnswers / iterations) * 100 : 0;
+
+            // Выбираем диапазон дат
+            if (!dateAdded || word.dateAdded.toDate() < dateAdded) {
+              dateAdded = word.dateAdded.toDate();
+            }
+
+            // Считаем статистику
+            if (iterations < 3) {
+              newWords++;
+            } else if (iterations >= 3 && accuracy > 90) {
+              goodKnowledge++;
+            } else if (iterations >= 3 && accuracy >= 60 && accuracy <= 90) {
+              averageKnowledge++;
+            } else if (iterations >= 3 && accuracy < 60) {
+              poorKnowledge++;
+            }
+          });
+
+          // Вставляем значения в плитки
+          document.getElementById("newWords").innerText = newWords;
+          document.getElementById("goodKnowledge").innerText = goodKnowledge;
+          document.getElementById("averageKnowledge").innerText = averageKnowledge;
+          document.getElementById("poorKnowledge").innerText = poorKnowledge;
+
+          // Вставляем диапазон дат
+          document.getElementById("dateRange").innerText =
+            `Звіт за період: ${dateAdded.toLocaleDateString()} - ${reportDate.toLocaleDateString()}`;
+
+          // Открываем попап
+          document.getElementById("progressPopup").classList.remove("hidden");
+        })
+        .catch(error => {
+          console.error("Ошибка при загрузке данных пользователя:", error);
+        });
+    }
+
+    // Показ информации при клике на "i"
+    function showInfo(type) {
+      const info = {
+        newWords: "Слова, які мають менш ніж 3 ітерації.",
+        goodKnowledge: "Слова, які мають понад 90% правильних відповідей.",
+        averageKnowledge: "Слова з 60-90% правильних відповідей.",
+        poorKnowledge: "Слова з менш ніж 60% правильних відповідей."
+      };
+      alert(info[type]);
+    }
+
+    // Закрытие попапа
+    document.getElementById("closeBtn").addEventListener("click", () => {
+      document.getElementById("progressPopup").classList.add("hidden");
+    });
+  </script>
+</body>
+
+</html>
