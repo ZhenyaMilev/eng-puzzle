@@ -22,6 +22,13 @@
       background: linear-gradient(90deg, rgba(139, 198, 236, 1), rgba(139, 198, 236, 1));
     }
 
+    .info-limit {
+      padding: 10px;
+      border-radius: 10px;
+      background-color: lightcoral;
+      color: white;
+    }
+
     /* Адаптивный попап на весь экран */
     #progressPopup {
       position: fixed;
@@ -561,6 +568,7 @@
 
     #word-list #words i {
       margin-right: 10px;
+      font-size: 20px;
     }
 
     #listening-quiz-container {
@@ -1630,11 +1638,13 @@
       position: relative;
     }
 
-    .word-card .fa-plus {
+    .word-card .fa-plus,
+      .word-card .fa-check {
       position: absolute;
       right: 10px;
       top: 50%;
       transform: translateY(-50%);
+      margin-right: 10px;
     }
 
     #quiz-container .check-word:last-child {
@@ -1688,9 +1698,9 @@
       left: 50%;
       transform: translate(-50%, -50%);
       margin: 0;
-      font-size: 16px;
+      font-size: 24px;
       color: #324855;
-      font-weight: 300;
+      font-weight: 600;
     }
 
     #scroll-to-top.visible {
@@ -1743,6 +1753,7 @@
     .word-card .fa-plus {
       cursor: pointer;
       margin-right: 10px;
+      font-size: 20px;
     }
 
     .fas.fa-backspace {
@@ -2026,6 +2037,12 @@
     .popup-content-wrapper {
       width: 60%;
       margin: 0 auto;
+    }
+
+    @media only screen and (max-width: 768px) {
+      .popup-content-wrapper {
+        width: 90%;
+      }
     }
 
     @media only screen and (max-width: 768px) {
@@ -2734,7 +2751,7 @@
 
           if (wordsArray.length < 10) {
             document.getElementById('repetition-quiz-container').innerHTML =
-              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+              '<p class="info-limit">Для тренування потрібно щоб в словнику було > 10 слів</p>';
             hideLoading();
             return;
           }
@@ -2906,7 +2923,7 @@
         document.getElementById('speed-training-quiz').classList.add('hidden');
         document.getElementById('speed-training-info').classList.remove('hidden');
         document.getElementById('speed-training-info').innerHTML +=
-          '<p style="color: red;">У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+          '<p style="color: red;">Для тренування потрібно щоб в словнику було > 60 слів</p>';
         return;
       }
 
@@ -3977,8 +3994,14 @@
           });
           showNotification(`Слово "${word}" додано до вашого словника.`);
 
-          // Добавляем анимацию
+          const icon = listItem.querySelector('i.fa-plus');
+
+          // Добавляем анимацию fas
           listItem.classList.add('added-word');
+          if (icon) {
+            icon.classList.remove('fa-plus');
+            icon.classList.add('fa-check');
+          }
           listItem.addEventListener('animationend', () => {
             listItem.classList.remove('added-word');
           });
@@ -4162,7 +4185,7 @@
         .then(querySnapshot => {
           if (querySnapshot.size < 10) {
             document.getElementById('quiz-container').innerHTML =
-              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+              '<p class="info-limit">Для тренування потрібно щоб в словнику було > 10 слів</p>';
             hideLoading();
             return;
           }
@@ -4350,7 +4373,7 @@
         .then(querySnapshot => {
           if (querySnapshot.size < 10) {
             document.getElementById('listening-quiz-container').innerHTML =
-              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+              '<p class="info-limit">Для тренування потрібно щоб в словнику було > 10 слів</p>';
             hideLoading();
             return;
           }
@@ -4480,7 +4503,7 @@
         .then(querySnapshot => {
           if (querySnapshot.size < 10) {
             document.getElementById('word-constructor-quiz-container').innerHTML =
-              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+              '<p class="info-limit">Для тренування потрібно щоб в словнику було > 10 слів</p>';
             hideLoading();
             return;
           }
