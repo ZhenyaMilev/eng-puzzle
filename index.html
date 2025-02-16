@@ -22,13 +22,6 @@
       background: linear-gradient(90deg, rgba(139, 198, 236, 1), rgba(139, 198, 236, 1));
     }
 
-    .info-limit {
-      padding: 10px;
-      border-radius: 10px;
-      background-color: lightcoral;
-      color: white;
-    }
-
     /* Адаптивный попап на весь экран */
     #progressPopup {
       position: fixed;
@@ -568,7 +561,6 @@
 
     #word-list #words i {
       margin-right: 10px;
-      font-size: 20px;
     }
 
     #listening-quiz-container {
@@ -1413,6 +1405,16 @@
       gap: 10px;
     }
 
+    .copy-animation {
+  animation: copyPulse 0.5s ease-in-out;
+}
+
+@keyframes copyPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
     /* Стилі для кнопки "Стерти" */
     /* Стилі для прогрес бару у конструкторі слова */
     #constructor-progress {
@@ -1638,13 +1640,11 @@
       position: relative;
     }
 
-    .word-card .fa-plus,
-      .word-card .fa-check {
+    .word-card .fa-plus {
       position: absolute;
       right: 10px;
       top: 50%;
       transform: translateY(-50%);
-      margin-right: 10px;
     }
 
     #quiz-container .check-word:last-child {
@@ -1698,9 +1698,9 @@
       left: 50%;
       transform: translate(-50%, -50%);
       margin: 0;
-      font-size: 24px;
+      font-size: 16px;
       color: #324855;
-      font-weight: 600;
+      font-weight: 300;
     }
 
     #scroll-to-top.visible {
@@ -1753,7 +1753,6 @@
     .word-card .fa-plus {
       cursor: pointer;
       margin-right: 10px;
-      font-size: 20px;
     }
 
     .fas.fa-backspace {
@@ -2040,12 +2039,6 @@
     }
 
     @media only screen and (max-width: 768px) {
-      .popup-content-wrapper {
-        width: 90%;
-      }
-    }
-
-    @media only screen and (max-width: 768px) {
         .popup-content {
         width: 100%;
       }
@@ -2164,6 +2157,128 @@
      margin-top: 0;
      margin-bottom: 10px;
     }
+
+/* Стилізація кнопки, що відкриває меню опцій */
+.option-button {
+  background: linear-gradient(145deg, #4DD0E1, #26C6DA); /* Градієнт бірюзових відтінків */
+  color: #fff;                   /* Білий текст */
+  font-size: 18px;
+  font-weight: bold;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  box-shadow:  4px 4px 8px rgba(0, 0, 0, 0.15), 
+              -4px -4px 8px rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin: 8px 0;
+  text-align: center;
+}
+
+.option-button:hover {
+  transform: scale(1.03);
+  box-shadow:  2px 2px 4px rgba(0, 0, 0, 0.2), 
+              -2px -2px 4px rgba(255, 255, 255, 0.8);
+}
+
+.option-button:active {
+  transform: scale(0.98);
+}
+
+/* Стилізація кнопок, що знаходяться в опційному меню */
+#option-menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#option-menu-list li {
+  margin-bottom: 10px;
+}
+
+#option-menu-list li button {
+  display: block;
+  width: 100%;
+  background-color: #26C6DA; /* Однорідний фон для кнопок меню */
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+#option-menu-list li button:hover {
+  background-color: #00BCD4; /* Трохи насиченіший відтінок при наведенні */
+  transform: scale(1.02);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+#option-menu-list li button:active {
+  transform: scale(0.98);
+}
+
+.copy-animation {
+  animation: copyPulse 0.5s ease-in-out;
+}
+
+@keyframes copyPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Клас для круглих кнопок з іконками */
+.round-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #000;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  z-index: 1;
+}
+
+#story-actions {
+  justify-content: center;
+}
+.round-btn:hover {
+  background-color: #333;
+}
+
+/* Клас для кнопки "Прочитано" (залишається великою) */
+.large-btn {
+  padding: 15px 20px;
+  font-size: 18px;
+  border-radius: 12px;
+  background-color: #E0F7FA;
+  border: 2px solid #B2EBF2;
+  color: #37474F;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+/* Анімація спіралі навколо кнопки "Прочитано" */
+@keyframes spiral {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 20px rgba(0, 0, 0, 0);
+  }
+}
+.spiral-animation {
+  animation: spiral 1s forwards;
+}
   </style>
 
 </head>
@@ -2240,6 +2355,11 @@
         </button>
         <button class="button-with-icon logout-button" onclick="logout()">
           <i class="fas fa-sign-out-alt"></i>
+        </button>
+        <button class="button-with-icon question-button">
+          <a href="https://t.me/shopify_evgene">
+            <i class="fas fa-question-circle"></i>
+          </a>
         </button>
       </div>
 
@@ -2368,11 +2488,29 @@
         <div class="spinner hidden"></div>
         <span>Сгенерувати</span>
       </button>
-      <!-- Область для відображення згенерованого тексту -->
-      <div id="generated-story" class="hidden">
-        <h4 id="story-title"></h4>
-        <p id="story-text"></p>
-      </div>
+<!-- Область для відображення згенерованого тексту -->
+<div id="generated-story" class="hidden">
+  <h4 id="story-title"></h4>
+  <p id="story-text"></p>
+</div>
+
+<!-- Блок для кнопок дій після генерації -->
+<div id="story-actions" class="hidden" style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+  <!-- Кругла кнопка для копіювання (іконка fa-copy) -->
+  <button id="copy-story-btn" class="round-btn" onclick="copyStory()">
+    <i class="fas fa-copy"></i>
+  </button>
+  <!-- Кругла кнопка для озвучування (іконка fa-volume-up) -->
+  <button id="play-story-btn" class="round-btn" onclick="playStory()">
+    <i class="fas fa-volume-up"></i>
+  </button>
+  <!-- Кругла кнопка для перекладу (іконка fa-language) -->
+  <button id="translate-story-btn" class="round-btn" onclick="translateStory()">
+    <i class="fas fa-language"></i>
+  </button>
+  <!-- Більша кнопка для підтвердження "Прочитано" (залишаємо як є) -->
+  <button id="read-story-btn" class="large-btn" onclick="markStoryAsRead()">Прочитано</button>
+</div>
       <!-- Боковое меню -->
       <div id="option-menu" class="option-menu hidden">
         <div class="option-menu-content">
@@ -2439,14 +2577,14 @@
       <div id="topics-list" class="topics-grid"></div>
       <!-- Список слів обраної теми -->
       <div id="topic-words" class="hidden">
-        <button class="button-with-icon back-button" onclick="backToTopics()">
+        <button id="back-to-topics-button" class="button-with-icon back-button" onclick="backToTopics()">
           <i class="fas fa-arrow-left"></i>
           <span>Назад до тем</span>
         </button>
         <!-- Доданий заголовок для назви теми -->
         <h2 id="topic-title" style="text-align: center; margin: 10px 0;"></h2>
         <!-- Кнопка для додавання всіх слів з поточної теми -->
-        <button class="long-button" onclick="addAllWordsFromTopic(document.getElementById('topic-title').textContent)">
+        <button id="addAllButton" class="long-button" onclick="addAllWordsFromTopic(document.getElementById('topic-title').textContent)">
           Додати всі слова з теми
         </button>
         <ul id="topic-words-list"></ul>
@@ -2751,7 +2889,7 @@
 
           if (wordsArray.length < 10) {
             document.getElementById('repetition-quiz-container').innerHTML =
-              '<p class="info-limit">Для тренування потрібно щоб в словнику було > 10 слів</p>';
+              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
             hideLoading();
             return;
           }
@@ -2923,7 +3061,7 @@
         document.getElementById('speed-training-quiz').classList.add('hidden');
         document.getElementById('speed-training-info').classList.remove('hidden');
         document.getElementById('speed-training-info').innerHTML +=
-          '<p style="color: red;">Для тренування потрібно щоб в словнику було > 60 слів</p>';
+          '<p style="color: red;">У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
         return;
       }
 
@@ -3074,20 +3212,45 @@
     }
 
     function backToAccount() {
-      toggleMainTitle();
-      document.getElementById('account-screen').classList.remove('hidden');
-      document.getElementById('my-words-section').classList.add('hidden');
-      document.getElementById('word-base-section').classList.add('hidden');
-      document.getElementById('add-word-section').classList.add('hidden');
-      document.getElementById('quiz-section').classList.add('hidden');
-      document.getElementById('payment-section').classList.add('hidden');
-      document.getElementById('listening-training-section').classList.add('hidden');
-      document.getElementById('word-constructor-training-section').classList.add('hidden');
-      document.getElementById('speed-training-section').classList.add('hidden');
-      document.getElementById('generative-text-section').classList.add('hidden');
-      document.getElementById('tariffs-section').classList.add('hidden');
-      document.getElementById('repetition-training-section').classList.add('hidden'); // Добавлено
-    }
+  // Если мы сейчас в режиме тренировки на скорость, сбрасываем его
+  if (!document.getElementById('speed-training-section').classList.contains('hidden')) {
+    exitSpeedTraining();
+  }
+  
+  toggleMainTitle();
+  document.getElementById('account-screen').classList.remove('hidden');
+  document.getElementById('my-words-section').classList.add('hidden');
+  document.getElementById('word-base-section').classList.add('hidden');
+  document.getElementById('add-word-section').classList.add('hidden');
+  document.getElementById('quiz-section').classList.add('hidden');
+  document.getElementById('payment-section').classList.add('hidden');
+  document.getElementById('listening-training-section').classList.add('hidden');
+  document.getElementById('word-constructor-training-section').classList.add('hidden');
+  document.getElementById('speed-training-section').classList.add('hidden');
+  document.getElementById('generative-text-section').classList.add('hidden');
+  document.getElementById('tariffs-section').classList.add('hidden');
+  document.getElementById('repetition-training-section').classList.add('hidden');
+}
+
+function exitSpeedTraining() {
+  // Если таймер запущен, останавливаем его
+  if (speedTimerInterval) {
+    clearInterval(speedTimerInterval);
+    speedTimerInterval = null;
+  }
+  // Сбрасываем переменные тренировки
+  speedTrainingWords = [];
+  currentSpeedQuestion = 0;
+  speedCorrectAnswers = 0;
+  speedTotalAnswers = 0;
+  speedTimer = 60;
+  speedTrainingMode = '';
+  // Скрываем контейнеры с вопросами и результатами
+  document.getElementById('speed-training-quiz').classList.add('hidden');
+  document.getElementById('speed-training-result').classList.add('hidden');
+  // Возвращаем меню выбора режима тренировки
+  document.getElementById('speed-training-info').classList.remove('hidden');
+}
 
 
     function hideMyVocabulatyAndOpenAddWords() {
@@ -3852,6 +4015,22 @@
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
+    function markStoryAsRead() {
+  // Видаляємо збережені дані про історію
+  localStorage.removeItem("generatedStoryTitle");
+  localStorage.removeItem("generatedStoryText");
+
+  // Ховаємо блок зі згенерованим текстом та кнопками дій
+  document.getElementById('generated-story').classList.add('hidden');
+  document.getElementById('story-actions').classList.add('hidden');
+
+  // Повертаємо користувачу доступ до налаштувань (стиль, складність, довжина) та кнопки «Сгенерувати»
+  document.querySelectorAll('.title-wrapper').forEach(el => el.style.display = 'flex');
+  document.querySelectorAll('.option-button').forEach(btn => btn.disabled = false);
+  document.querySelector('.generate').disabled = false;
+  document.querySelector('.generate').style.display = 'inline-block';
+}
+
 
     // Функція для додавання окремого слова з попапу
     async function addWordFromShared(english, translation, addIcon) {
@@ -3994,14 +4173,8 @@
           });
           showNotification(`Слово "${word}" додано до вашого словника.`);
 
-          const icon = listItem.querySelector('i.fa-plus');
-
-          // Добавляем анимацию fas
+          // Добавляем анимацию
           listItem.classList.add('added-word');
-          if (icon) {
-            icon.classList.remove('fa-plus');
-            icon.classList.add('fa-check');
-          }
           listItem.addEventListener('animationend', () => {
             listItem.classList.remove('added-word');
           });
@@ -4013,44 +4186,74 @@
     }
 
     async function addAllWordsFromTopic(topic) {
-      const userId = auth.currentUser.uid;
-      showLoading();
-      try {
-        const topicRef = db.collection('wordBase').doc(topic);
-        const wordsSnapshot = await topicRef.collection('words').get();
-        const batch = db.batch();
-        let wordsAdded = 0;
+  const addAllBtn = document.getElementById('addAllButton');
+  // Зберігаємо початковий вміст кнопки
+  const originalContent = addAllBtn.innerHTML;
+  // Встановлюємо HTML з прелоадером (можна задати inline-стилі або використовувати окремий CSS клас)
+  addAllBtn.innerHTML = '<div style="width:20px;height:20px;border:2px solid #000;border-top:2px solid white;border-radius:50%;animation: spin 1s linear infinite;margin:0 auto;"></div>';
+  
+  // (Опційно) можна відключити кнопку, щоб уникнути повторних кліків
+  addAllBtn.disabled = true;
+  
+  const userId = auth.currentUser.uid;
+  showLoading();
+  try {
+    const topicRef = db.collection('wordBase').doc(topic);
+    const wordsSnapshot = await topicRef.collection('words').get();
+    const batch = db.batch();
+    let wordsAdded = 0;
 
-        for (const wordDoc of wordsSnapshot.docs) {
-          const wordData = wordDoc.data();
-          const userWordRef = db.collection('users').doc(userId).collection('words').doc(wordDoc.id);
-          const docSnapshot = await userWordRef.get();
-          if (!docSnapshot.exists) {
-            batch.set(userWordRef, {
-              translation: wordData.translation,
-              example: wordData.example || '',
-              interactions: 0,
-              correctAnswers: 0,
-              dateAdded: firebase.firestore.Timestamp.now(),
-            });
-            wordsAdded++;
-          }
-        }
-
-        if (wordsAdded > 0) {
-          await batch.commit();
-          showNotification(`Нові слова з цієї теми додано до вашого словника.`);
-        } else {
-          showNotification(`Усі слова з цієї теми вже є у вашому словнику.`, 'warning');
-        }
-      } catch (error) {
-        console.error('Помилка додавання слів з теми:', error);
-        showNotification('Сталася помилка при додаванні слів. Спробуйте пізніше.', 'warning');
-      } finally {
-        hideLoading();
+    for (const wordDoc of wordsSnapshot.docs) {
+      const wordData = wordDoc.data();
+      const userWordRef = db.collection('users').doc(userId).collection('words').doc(wordDoc.id);
+      const docSnapshot = await userWordRef.get();
+      if (!docSnapshot.exists) {
+        batch.set(userWordRef, {
+          translation: wordData.translation,
+          example: wordData.example || '',
+          interactions: 0,
+          correctAnswers: 0,
+          dateAdded: firebase.firestore.Timestamp.now(),
+        });
+        wordsAdded++;
       }
-      updateSadCatVisibility();
     }
+
+    if (wordsAdded > 0) {
+      await batch.commit();
+      showNotification(`Нові слова з цієї теми додано до вашого словника.`);
+    } else {
+      showNotification(`Усі слова з цієї теми вже є у вашому словнику.`, 'warning');
+    }
+  } catch (error) {
+    console.error('Помилка додавання слів з теми:', error);
+    showNotification('Сталася помилка при додаванні слів. Спробуйте пізніше.', 'warning');
+  } finally {
+    // Повертаємо початковий вміст кнопки і включаємо її
+    addAllBtn.innerHTML = originalContent;
+    addAllBtn.disabled = false;
+    hideLoading();
+  }
+  updateSadCatVisibility();
+}
+
+function copyStory() {
+  const title = document.getElementById('story-title').innerText;
+  const text = document.getElementById('story-text').innerText;
+  const fullText = title + "\n" + text;
+  navigator.clipboard.writeText(fullText).then(() => {
+    const copyBtn = document.getElementById('copy-story-btn');
+    copyBtn.style.backgroundColor = '#4CAF50'; // зелёный фон
+    copyBtn.classList.add('copy-animation');   // добавляем класс анимации (см. ниже CSS)
+    setTimeout(() => {
+      copyBtn.style.backgroundColor = '';
+      copyBtn.classList.remove('copy-animation');
+    }, 2000);
+  }).catch(err => {
+    console.error('Помилка копіювання:', err);
+  });
+}
+
 
     function openSpeedInfoPopup() {
       document.getElementById('speedInfoPopup').classList.remove('hidden');
@@ -4114,26 +4317,25 @@
 
     // Назад до списку тем
     function backToTopics() {
-      console.log('Нажата кнопка "Назад к темам"');
-      // Показываем список тем
-      document.getElementById('topics-list').classList.remove('hidden');
-      console.log('Показана секция тем');
-      // Скрываем секцию слов темы
-      document.getElementById('topic-words').classList.add('hidden');
-      console.log('Скрыта секция слов темы');
-      // Скрываем кнопки "Назад к темам" и "Добавить все слова"
-      const titleAndButton = document.querySelector('.title-and-btn');
-      titleAndButton.classList.add('hidden');
-      // Очищаем список слов
-      const wordsList = document.getElementById('topic-words-list');
-      wordsList.innerHTML = '';
-      console.log('Очищен список слов');
-      // Очищаем название темы
-      document.getElementById('topic-title').textContent = '';
-      // Очищаем сообщения об успехе
-      const successMessage = document.getElementById('success-message');
-      successMessage.textContent = '';
-    }
+  console.log('Нажата кнопка "Назад до тем"');
+  // Показываем список тем
+  document.getElementById('topics-list').classList.remove('hidden');
+  console.log('Показана секция тем');
+  // Скрываем секцию слов темы
+  document.getElementById('topic-words').classList.add('hidden');
+  console.log('Скрыта секция слов темы');
+  
+  // Не требуется скрывать общий блок .title-and-btn,
+  // тому що кнопка "Назад до тем" уже имеет свой id
+  
+  // Очищаем список слов
+  document.getElementById('topic-words-list').innerHTML = '';
+  console.log('Очищен список слов');
+  // Очищаем название темы
+  document.getElementById('topic-title').textContent = '';
+  // Очищаем сообщения об успехе
+  document.getElementById('success-message').textContent = '';
+}
     // Показати тарифні плани
     function showTariffs() {
       toggleMainTitle();
@@ -4185,7 +4387,7 @@
         .then(querySnapshot => {
           if (querySnapshot.size < 10) {
             document.getElementById('quiz-container').innerHTML =
-              '<p class="info-limit">Для тренування потрібно щоб в словнику було > 10 слів</p>';
+              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
             hideLoading();
             return;
           }
@@ -4327,6 +4529,58 @@
       document.getElementById('listeningInfoPopup').classList.add('hidden');
       document.querySelector('.overlay').classList.add('hidden');
     }
+    function playStory() {
+  const title = document.getElementById('story-title').innerText;
+  const text = document.getElementById('story-text').innerText;
+  const fullText = title + ". " + text;
+  responsiveVoice.speak(fullText, "UK English Female");
+}
+
+let storyIsEnglish = true; // Відстежуємо, чи зараз історія англійською
+
+async function translateStory() {
+  const storyTitleElement = document.getElementById('story-title');
+  const storyTextElement = document.getElementById('story-text');
+
+  // Якщо історія в оригіналі (англійською), тоді перекладаємо на українську
+  if (storyIsEnglish) {
+    // Зберігаємо оригінальний текст (якщо раптом ще не зберегли) у data-атрибутах
+    if (!storyTitleElement.dataset.originalTitle) {
+      storyTitleElement.dataset.originalTitle = storyTitleElement.innerHTML;
+      storyTextElement.dataset.originalText = storyTextElement.innerHTML;
+    }
+
+    // Перекладаємо за допомогою вашої функції translateText (не забудьте налаштувати source/target)
+    try {
+      // Переклад заголовка
+      const translatedTitle = await translateText(
+        storyTitleElement.dataset.originalTitle,
+        'en', // мова оригіналу
+        'uk'  // цільова мова
+      );
+      // Переклад тексту
+      const translatedText = await translateText(
+        storyTextElement.dataset.originalText,
+        'en',
+        'uk'
+      );
+
+      storyTitleElement.innerHTML = translatedTitle;
+      storyTextElement.innerHTML = translatedText;
+
+      storyIsEnglish = false; // тепер історія українською
+    } catch (error) {
+      console.error('Помилка перекладу історії:', error);
+    }
+
+  } else {
+    // Якщо натискаємо ще раз – повертаємося до оригіналу (англ.)
+    storyTitleElement.innerHTML = storyTitleElement.dataset.originalTitle || storyTitleElement.innerHTML;
+    storyTextElement.innerHTML = storyTextElement.dataset.originalText || storyTextElement.innerHTML;
+    storyIsEnglish = true;
+  }
+}
+
 
 
     // Отримання рекомендацій перекладу
@@ -4373,7 +4627,7 @@
         .then(querySnapshot => {
           if (querySnapshot.size < 10) {
             document.getElementById('listening-quiz-container').innerHTML =
-              '<p class="info-limit">Для тренування потрібно щоб в словнику було > 10 слів</p>';
+              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
             hideLoading();
             return;
           }
@@ -4503,7 +4757,7 @@
         .then(querySnapshot => {
           if (querySnapshot.size < 10) {
             document.getElementById('word-constructor-quiz-container').innerHTML =
-              '<p class="info-limit">Для тренування потрібно щоб в словнику було > 10 слів</p>';
+              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
             hideLoading();
             return;
           }
@@ -4837,81 +5091,103 @@
     }
     // Функція для показу секції Генеративний текст
     function startGenerativeTextTraining() {
-      toggleMainTitle();
-      fetchWords(); // Додано цей рядок для завантаження слів
-      document.getElementById('account-screen').classList.add('hidden');
-      document.getElementById('generative-text-section').classList.remove('hidden');
-      document.getElementById('generated-story').classList.add('hidden');
-      document.getElementById('story-text').textContent = '';
-      document.getElementById('story-title').textContent = '';
+  toggleMainTitle();
+  fetchWords(); // Додано цей рядок для завантаження слів
+  document.getElementById('account-screen').classList.add('hidden');
+  document.getElementById('generative-text-section').classList.remove('hidden');
+  document.getElementById('generated-story').classList.add('hidden');
+  document.getElementById('story-text').textContent = '';
+  document.getElementById('story-title').textContent = '';
 
-      // Загружаем сохраненные настройки из localStorage
-      const textStyleButton = document.querySelector('.option-button[onclick*="text-style"]');
-      const textDifficultyButton = document.querySelector('.option-button[onclick*="text-difficulty"]');
-      const textLengthButton = document.querySelector('.option-button[onclick*="text-length"]');
+  // Загружаем сохраненные настройки из localStorage
+  const textStyleButton = document.querySelector('.option-button[onclick*="text-style"]');
+  const textDifficultyButton = document.querySelector('.option-button[onclick*="text-difficulty"]');
+  const textLengthButton = document.querySelector('.option-button[onclick*="text-length"]');
 
-      const savedStyle = localStorage.getItem('text-style');
-      const savedDifficulty = localStorage.getItem('text-difficulty');
-      const savedLength = localStorage.getItem('text-length');
+  const savedStyle = localStorage.getItem('text-style');
+  const savedDifficulty = localStorage.getItem('text-difficulty');
+  const savedLength = localStorage.getItem('text-length');
 
-      if (savedStyle) {
-        textStyleButton.textContent = savedStyle;
-        textStyleButton.dataset.value = savedStyle;
-      }
-      if (savedDifficulty) {
-        textDifficultyButton.textContent = savedDifficulty;
-        textDifficultyButton.dataset.value = savedDifficulty;
-      }
-      if (savedLength) {
-        textLengthButton.textContent = savedLength;
-        textLengthButton.dataset.value = savedLength;
-      }
-    }
+  if (savedStyle) {
+    textStyleButton.textContent = savedStyle;
+    textStyleButton.dataset.value = savedStyle;
+  }
+  if (savedDifficulty) {
+    textDifficultyButton.textContent = savedDifficulty;
+    textDifficultyButton.dataset.value = savedDifficulty;
+  }
+  if (savedLength) {
+    textLengthButton.textContent = savedLength;
+    textLengthButton.dataset.value = savedLength;
+  }
 
-    // Функція для генерації історії
-    async function generateStory() {
-      const textStyleButton = document.querySelector('.option-button[onclick*="text-style"]');
-      const textDifficultyButton = document.querySelector('.option-button[onclick*="text-difficulty"]');
-      const textLengthButton = document.querySelector('.option-button[onclick*="text-length"]');
+  // Проверяем наличие сохранённой истории в Local Storage
+  const storedTitle = localStorage.getItem("generatedStoryTitle");
+  const storedText = localStorage.getItem("generatedStoryText");
 
-      const selectedStyle = textStyleButton.dataset.value;
-      const selectedDifficulty = textDifficultyButton.dataset.value;
-      const selectedLength = textLengthButton.dataset.value;
+  if (storedTitle && storedText) {
+    // Вставляем данные в элементы
+    document.getElementById('story-title').innerHTML = storedTitle;
+    document.getElementById('story-text').innerHTML = storedText;
 
-      if (!selectedStyle || !selectedDifficulty || !selectedLength) {
-        showNotification('Будь ласка, заповніть всі налаштування.', 'warning');
-        return;
-      }
+    // Показываем блок с историей
+    document.getElementById('generated-story').classList.remove('hidden');
+    document.getElementById('story-actions').classList.remove('hidden'); // Отображаем кнопки
+    document.querySelector('.generate').disabled = true; // Отключаем кнопку генерации
+    document.querySelector('.generate').style.display = 'none'; // Прячем кнопку генерации
 
-      if (allWords.length === 0) {
-        showNotification('У вашому словнику немає слів для генерації історії.', 'warning');
-        return;
-      }
+    // Скрываем конфигурацию
+    document.querySelectorAll('.title-wrapper').forEach(el => el.style.display = 'none');
+  } else {
+    // Если данных нет, показываем конфигурацию
+    document.querySelectorAll('.title-wrapper').forEach(el => el.style.display = 'flex');
+    document.querySelector('.generate').disabled = false;
+    document.querySelector('.generate').style.display = 'inline-block';
+    console.log("Сохранённой истории в Local Storage нет.");
+  }
+}
+async function generateStory() {
+  const textStyleButton = document.querySelector('.option-button[onclick*="text-style"]');
+  const textDifficultyButton = document.querySelector('.option-button[onclick*="text-difficulty"]');
+  const textLengthButton = document.querySelector('.option-button[onclick*="text-length"]');
 
-      let wordCount;
-      let maxTokens;
-      if (selectedLength.includes('Короткий')) {
-        wordCount = 5;
-        maxTokens = 250;
-      } else if (selectedLength.includes('Середній')) {
-        wordCount = 7;
-        maxTokens = 500;
-      } else if (selectedLength.includes('Довгий')) {
-        wordCount = 10;
-        maxTokens = 1200;
-      } else {
-        showNotification('Невідомий формат довжини тексту.', 'warning');
-        return;
-      }
+  const selectedStyle = textStyleButton.dataset.value;
+  const selectedDifficulty = textDifficultyButton.dataset.value;
+  const selectedLength = textLengthButton.dataset.value;
 
-      const selectedWords = getEnglishWords(allWords, wordCount);
-      if (selectedWords.length < wordCount) {
-        showNotification('Не вдалося вибрати достатню кількість слів для генерації.', 'warning');
-        return;
-      }
-      const wordList = selectedWords.join(', ');
+  if (!selectedStyle || !selectedDifficulty || !selectedLength) {
+    showNotification('Будь ласка, заповніть всі налаштування.', 'warning');
+    return;
+  }
 
-      const promptText = `Generate a narrative story in English, in the style of "${selectedStyle}", with "${selectedDifficulty}" difficulty, incorporating the following words: ${wordList}. Also, generate a short title for the story. The output must be valid HTML, structured exactly as follows:
+  if (allWords.length === 0) {
+    showNotification('У вашому словнику немає слів для генерації історії.', 'warning');
+    return;
+  }
+
+  let wordCount, maxTokens;
+  if (selectedLength.includes('Короткий')) {
+    wordCount = 5;
+    maxTokens = 250;
+  } else if (selectedLength.includes('Середній')) {
+    wordCount = 7;
+    maxTokens = 500;
+  } else if (selectedLength.includes('Довгий')) {
+    wordCount = 10;
+    maxTokens = 1200;
+  } else {
+    showNotification('Невідомий формат довжини тексту.', 'warning');
+    return;
+  }
+
+  const selectedWords = getEnglishWords(allWords, wordCount);
+  if (selectedWords.length < wordCount) {
+    showNotification('Не вдалося вибрати достатню кількість слів для генерації.', 'warning');
+    return;
+  }
+  const wordList = selectedWords.join(', ');
+
+  const promptText = `Generate a narrative story in English, in the style of "${selectedStyle}", with "${selectedDifficulty}" difficulty, incorporating the following words: ${wordList}. Also, generate a short title for the story. The output must be valid HTML, structured exactly as follows:
   <div class="generative-text">
     <h3>[Title of the story]</h3>
     <p>
@@ -4925,78 +5201,85 @@
   4. No additional HTML elements or text are included outside of the specified structure.
   5. The HTML is properly formatted and valid.`;
 
-      document.querySelector('.generate .spinner').classList.remove('hidden');
-      document.querySelector('.generate span').classList.add('hidden');
-      document.getElementById('generated-story').classList.add('hidden');
-      document.getElementById('story-text').textContent = '';
-      document.getElementById('story-title').textContent = '';
+  // Показываем прелоадер
+  document.querySelector('.generate .spinner').classList.remove('hidden');
+  document.querySelector('.generate span').classList.add('hidden');
+  document.getElementById('generated-story').classList.add('hidden');
+  document.getElementById('story-text').textContent = '';
+  document.getElementById('story-title').textContent = '';
 
-      const url =
-        'https://cheapest-gpt-4-turbo-gpt-4-vision-chatgpt-openai-ai-api.p.rapidapi.com/v1/chat/completions';
-      const options = {
-        method: 'POST',
-        headers: {
-          'x-rapidapi-key': '1314626d48msh60b16a9edf2a291p1f7fdcjsnbfbf3e85e14a', // Замените на ваш ключ
-          'x-rapidapi-host': 'cheapest-gpt-4-turbo-gpt-4-vision-chatgpt-openai-ai-api.p.rapidapi.com',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [{
-            role: 'user',
-            content: promptText
-          }],
-          model: 'gpt-4',
-          temperature: 0.9,
-          max_tokens: maxTokens,
-        }),
-      };
+  const url = 'https://cheapest-gpt-4-turbo-gpt-4-vision-chatgpt-openai-ai-api.p.rapidapi.com/v1/chat/completions';
+  const options = {
+    method: 'POST',
+    headers: {
+      'x-rapidapi-key': '1314626d48msh60b16a9edf2a291p1f7fdcjsnbfbf3e85e14a', // Замените на ваш ключ
+      'x-rapidapi-host': 'cheapest-gpt-4-turbo-gpt-4-vision-chatgpt-openai-ai-api.p.rapidapi.com',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      messages: [{ role: 'user', content: promptText }],
+      model: 'gpt-4',
+      temperature: 0.9,
+      max_tokens: maxTokens,
+    }),
+  };
 
-      try {
-        const response = await fetch(url, options);
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(
-            `HTTP error! статус: ${response.status}, повідомлення: ${errorText || 'Не відома помилка'}`
-          );
-        }
-        const result = await response.json();
-        let storyHTML = 'Немає згенерованого тексту.';
-        if (
-          result.choices &&
-          result.choices[0] &&
-          result.choices[0].message &&
-          result.choices[0].message.content
-        ) {
-          storyHTML = result.choices[0].message.content;
-        }
-
-        document.querySelector('.generate .spinner').classList.add('hidden');
-        document.querySelector('.generate span').classList.remove('hidden');
-        document.getElementById('generated-story').classList.remove('hidden');
-
-        // Парсинг HTML для получения заголовка и истории
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(storyHTML, 'text/html');
-        const div = doc.querySelector('.generative-text');
-        if (div) {
-          const titleElement = div.querySelector('h3');
-          const storyElement = div.querySelector('p');
-          if (titleElement && storyElement) {
-            document.getElementById('story-title').innerHTML = titleElement.innerHTML;
-            document.getElementById('story-text').innerHTML = storyElement.innerHTML;
-          } else {
-            document.getElementById('story-text').innerHTML = 'Невдала генерація тексту.';
-          }
-        } else {
-          document.getElementById('story-text').innerHTML = 'Невдала генерація тексту.';
-        }
-      } catch (error) {
-        console.error('Помилка при генерації історії:', error);
-        document.querySelector('.generate .spinner').classList.add('hidden');
-        document.querySelector('.generate span').classList.remove('hidden');
-        showNotification('Сталася помилка при генерації історії. Спробуйте пізніше.', 'warning');
-      }
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! статус: ${response.status}, повідомлення: ${errorText || 'Не відома помилка'}`);
     }
+    const result = await response.json();
+    let storyHTML = 'Немає згенерованого тексту.';
+    if (result.choices && result.choices[0] && result.choices[0].message && result.choices[0].message.content) {
+      storyHTML = result.choices[0].message.content;
+    }
+
+    // Парсинг HTML для отримання заголовка та історії
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(storyHTML, 'text/html');
+    const div = doc.querySelector('.generative-text');
+    if (div) {
+      const titleElement = div.querySelector('h3');
+      const storyElement = div.querySelector('p');
+      if (titleElement && storyElement) {
+        document.getElementById('story-title').innerHTML = titleElement.innerHTML;
+        document.getElementById('story-text').innerHTML = storyElement.innerHTML;
+      } else {
+        document.getElementById('story-text').innerHTML = 'Невдала генерація тексту.';
+      }
+    } else {
+      document.getElementById('story-text').innerHTML = 'Невдала генерація тексту.';
+    }
+
+    // Скрываем прелоадер, показываем блок з історією
+    document.querySelector('.generate .spinner').classList.add('hidden');
+    document.querySelector('.generate span').classList.remove('hidden');
+    document.getElementById('generated-story').classList.remove('hidden');
+
+    // Деактивуємо кнопки конфігурації та генерації
+    document.querySelectorAll('.option-button').forEach(btn => btn.disabled = true);
+    document.querySelector('.generate').disabled = true;
+    document.querySelector('.generate').style.display = 'none';
+
+    // Зберігаємо історію в Local Storage
+    localStorage.setItem("generatedStoryTitle", document.getElementById('story-title').innerHTML);
+    localStorage.setItem("generatedStoryText", document.getElementById('story-text').innerHTML);
+
+    // Ховаємо блоки конфігурації (наприклад, блоки з класом "title-wrapper")
+    document.querySelectorAll('.title-wrapper').forEach(el => el.style.display = 'none');
+
+    // Відображаємо блок дій (копіювання, озвучення, переклад, прочитано)
+    document.getElementById('story-actions').classList.remove('hidden');
+
+  } catch (error) {
+    console.error('Помилка при генерації історії:', error);
+    document.querySelector('.generate .spinner').classList.add('hidden');
+    document.querySelector('.generate span').classList.remove('hidden');
+    showNotification('Сталася помилка при генерації історії. Спробуйте пізніше.', 'warning');
+  }
+}
 
 
     async function translateText(text, sourceLang, targetLang) {
