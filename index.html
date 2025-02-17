@@ -935,6 +935,10 @@
       color: black;
     }
 
+    .asset-link {
+      text-decoration: none;
+    }
+
     .tariff button {
       background-color: #3498db;
       color: #fff;
@@ -2356,11 +2360,11 @@
         <button class="button-with-icon logout-button" onclick="logout()">
           <i class="fas fa-sign-out-alt"></i>
         </button>
-        <button class="button-with-icon question-button">
-          <a href="https://t.me/shopify_evgene">
-            <i class="fas fa-question-circle"></i>
-          </a>
-        </button>
+        <a href="https://t.me/shopify_evgene" target="_blank" class="asset-link">
+          <button class="button-with-icon question-button">
+            <i class="fas fa-headset"></i>
+          </button>
+        </a>
       </div>
 
     </div>
@@ -3401,6 +3405,7 @@ function exitSpeedTraining() {
             return fetchWords();
           })
           .then(() => {
+            // После полной загрузки интерфейса скрываем прелоадер
             hideLoading();
             document.getElementById('account-screen').classList.remove('hidden');
           })
@@ -3411,7 +3416,6 @@ function exitSpeedTraining() {
           });
       } else {
         buttonsRightCorner.classList.add('hidden');
-        // Якщо користувач не автентифікований, показуємо форму входу
         document.getElementById('login-form').classList.remove('hidden');
         document.getElementById('account-screen').classList.add('hidden');
         document.getElementById('my-words-section').classList.add('hidden');
@@ -3425,6 +3429,8 @@ function exitSpeedTraining() {
         document.getElementById('generative-text-section').classList.add('hidden');
         document.getElementById('tariffs-section').classList.add('hidden');
         document.getElementById('repetition-training-section').classList.add('hidden');
+        // Если пользователь не залогинен, прелоадер скрываем
+        document.getElementById('loading-overlay').classList.add('hidden');
       }
     }
 
@@ -3955,9 +3961,6 @@ function exitSpeedTraining() {
     function playWordSound(word) {
       responsiveVoice.speak(word, "UK English Female");
     }
-
-
-
     // Функція для відображення попапу з поділеними словами
     function showSharedWordsPopup(words) {
       const popup = document.getElementById('sharedWordsPopup');
