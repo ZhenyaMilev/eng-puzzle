@@ -3398,7 +3398,7 @@ function exitSpeedTraining() {
             document.querySelector('.user-email').textContent = userData.email;
             // Перевіряємо підписку
             checkSubscription(userData);
-            if (userData.subscriptionExpiration) {
+            if (userData.subscriptionExpiration && !userData.lifetime) {
               startSubscriptionTimer(userData.subscriptionExpiration.toDate());
             }
             // Завантажуємо слова одразу після входу
@@ -3436,6 +3436,12 @@ function exitSpeedTraining() {
 
     // Перевірка підписки
     function checkSubscription(userData) {
+      // Перевірка на lifetime підписку
+      if (userData.lifetime === true) {
+        document.getElementById('subscription-info').textContent = 'Підписка: Безкоштовно назавжди ∞';
+        return;
+      }
+
       const subscriptionExpiration = userData.subscriptionExpiration.toDate();
       const currentDate = new Date();
       const timeDiff = subscriptionExpiration - currentDate;
