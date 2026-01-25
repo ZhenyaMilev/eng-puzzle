@@ -4316,12 +4316,28 @@
     // Функція для отримання API ключа з Firestore
     async function loadOpenAIKey() {
       try {
-        const doc = await db.collection('config').doc('api').get();
-        if (doc.exists) {
-          openaiApiKey = doc.data().openaiKey;
-          console.log('OpenAI API key loaded');
+        console.log('Loading API key from Firestore...');
+        const snapshot = await db.collection('config').limit(1).get();
+        console.log('Snapshot empty:', snapshot.empty);
+        if (!snapshot.empty) {
+          const data = snapshot.docs[0].data();
+          console.log('Document data fields:', Object.keys(data));
+          console.log('Document data:', data);
+          // Підтримуємо різні назви полів
+          openaiApiKey = data.openaiKey || data.api || data.key || data.apiKey;
+          // Видаляємо можливі зайві пробіли, лапки, переноси рядків
+          if (openaiApiKey) {
+            openaiApiKey = openaiApiKey
+              .trim()
+              .replace(/^["']|["']$/g, '')
+              .replace(/[\r\n\t]/g, '')
+              .replace(/\s+/g, '');
+            console.log('OpenAI API key loaded, length:', openaiApiKey.length);
+          } else {
+            console.error('API key field not found. Available fields:', Object.keys(data));
+          }
         } else {
-          console.error('API key document not found in Firestore');
+          console.error('No documents found in config collection');
         }
       } catch (error) {
         console.error('Error loading API key:', error);
@@ -8186,6 +8202,16 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
     }
 
     async function generateDefinitions() {
+      // Перевіряємо чи завантажений API ключ
+      if (!openaiApiKey) {
+        await loadOpenAIKey();
+        if (!openaiApiKey) {
+          showNotification('API ключ не знайдено. Перевірте налаштування.', 'warning');
+          resetDefinitionQuiz();
+          return;
+        }
+      }
+
       const userId = auth.currentUser.uid;
       const querySnapshot = await db.collection('users').doc(userId).collection('words').get();
 
@@ -8233,6 +8259,8 @@ Return ONLY a valid JSON array:
 ]
 Return ONLY the JSON array, no other text.`;
       }
+
+      console.log('API key before fetch:', openaiApiKey ? 'Key exists, length: ' + openaiApiKey.length + ', starts with: ' + openaiApiKey.substring(0, 10) : 'NULL');
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
