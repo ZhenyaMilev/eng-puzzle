@@ -101,55 +101,112 @@
       line-height: 130%;
     }
 
+    #progressPopup .title-and-btn {
+      margin-bottom: 10px;
+    }
+
+    #progressPopup .title-and-btn h2 {
+      position: static;
+      transform: none;
+      font-size: 22px;
+      font-weight: 600;
+      color: #333;
+      flex: 1;
+      text-align: center;
+      margin: 0;
+    }
+
+    .date-range {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+
     .tile-container {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      margin: 20px 0;
+      gap: 12px;
+      margin: 15px 0;
     }
 
     .tile {
-      background: #f1f1f1;
-      border-radius: 8px;
-      padding: 15px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      border-radius: 16px;
+      padding: 18px 15px;
       position: relative;
       text-align: center;
+      transition: transform 0.2s ease;
+      cursor: pointer;
+    }
+
+    .tile:active {
+      transform: scale(0.95);
+    }
+
+    .tile-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .tile p {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0.9;
     }
 
     .tile span {
       display: block;
-      font-size: 24px;
+      font-size: 32px;
       font-weight: bold;
-      color: black;
       margin-top: 5px;
     }
 
+    .tile-new {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .tile-new .tile-icon { color: #FFD700; }
+
+    .tile-good {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+
+    .tile-good .tile-icon { color: #FFD700; }
+
+    .tile-average {
+      background: linear-gradient(135deg, #F2994A 0%, #F2C94C 100%);
+      color: white;
+    }
+
+    .tile-average .tile-icon { color: white; }
+
+    .tile-poor {
+      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+      color: white;
+    }
+
+    .tile-poor .tile-icon { color: white; }
+
     .info-icon {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      background: black;
+      top: 8px;
+      right: 8px;
+      background: rgba(255, 255, 255, 0.3);
       color: #fff;
       border-radius: 50%;
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       display: flex;
       justify-content: center;
       align-items: center;
       font-size: 12px;
+      font-weight: bold;
       cursor: pointer;
     }
 
-    #closeBtn {
-      background: black;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      margin-top: 15px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
 
     .algorithm-block ol {
       line-height: 130%;
@@ -2794,8 +2851,9 @@
     }
 
     .popup-content-wrapper {
-      width: 60%;
+      width: 90%;
       margin: 0 auto;
+      padding-top: 40px;
     }
 
     @media only screen and (max-width: 768px) {
@@ -3661,33 +3719,37 @@
   <div id="progressPopup" class="hidden">
     <div class="popup-content-analitic">
       <div class="popup-content-wrapper">
-        <h2>Звіт про ваш прогрес</h2>
-        <p id="dateRange"></p>
+        <div class="title-and-btn">
+          <button class="button-with-icon back-button" onclick="closeProgressPopup()">
+            <i class="fas fa-arrow-left"></i>
+            <span>Назад</span>
+          </button>
+          <h2>Мій прогрес</h2>
+        </div>
+        <p id="dateRange" class="date-range"></p>
         <div id="progressData" class="tile-container">
-          <div class="tile">
+          <div class="tile tile-new" onclick="showInfo('newWords')">
+            <div class="tile-icon"><i class="fas fa-star"></i></div>
             <p>Нові слова</p>
             <span id="newWords">0</span>
-            <div class="info-icon" onclick="showInfo('newWords')">i</div>
           </div>
-          <div class="tile">
+          <div class="tile tile-good" onclick="showInfo('goodKnowledge')">
+            <div class="tile-icon"><i class="fas fa-trophy"></i></div>
             <p>Гарні знання</p>
             <span id="goodKnowledge">0</span>
-            <div class="info-icon" onclick="showInfo('goodKnowledge')">i</div>
           </div>
-          <div class="tile">
+          <div class="tile tile-average" onclick="showInfo('averageKnowledge')">
+            <div class="tile-icon"><i class="fas fa-book-open"></i></div>
             <p>Середні знання</p>
             <span id="averageKnowledge">0</span>
-            <div class="info-icon" onclick="showInfo('averageKnowledge')">i</div>
           </div>
-          <div class="tile">
+          <div class="tile tile-poor" onclick="showInfo('poorKnowledge')">
+            <div class="tile-icon"><i class="fas fa-redo"></i></div>
             <p>Погані знання</p>
             <span id="poorKnowledge">0</span>
-            <div class="info-icon" onclick="showInfo('poorKnowledge')">i</div>
           </div>
         </div>
-        <button id="closeBtn">Закрити</button>
       </div>
-
     </div>
   </div>
 
@@ -3706,15 +3768,12 @@
     </div>
   </div>
   <!-- Overlay -->
-  <div class="overlay hidden" onclick="closeSharedWordsPopup()"></div>
-
-
+  <div class="overlay hidden" onclick="closeAllPopups()"></div>
 
   <!-- Оверлей завантаження -->
   <div id="loading-overlay">
     <div class="spinner"></div>
   </div>
-  <div class="overlay hidden" onclick="closeAllInfoPopups()"></div>
   <!-- Контейнер для всього контенту -->
   <div class="container fade-in">
     <!-- Заголовок додатку -->
@@ -4732,6 +4791,12 @@
       document.getElementById('speed-training-result').classList.add('hidden');
       // Возвращаемся на главный экран
       backToAccount();
+    }
+
+    // Закрити всі попапи
+    function closeAllPopups() {
+      closeAllInfoPopups();
+      closeSharedWordsPopup();
     }
 
     // Закрити всі info попапи
@@ -8513,21 +8578,38 @@ Return ONLY the JSON array, no other text.`;
         });
     }
 
-    // Показ информации при клике на "i"
+    // Показ информации при клике на карточку
     function showInfo(type) {
       const info = {
-        newWords: "Слова, які мають менш ніж 3 ітерації.",
-        goodKnowledge: "Слова, які мають понад 90% правильних відповідей.",
-        averageKnowledge: "Слова з 60-90% правильних відповідей.",
-        poorKnowledge: "Слова з менш ніж 60% правильних відповідей."
+        newWords: {
+          title: "Нові слова",
+          icon: "fas fa-star",
+          description: "Слова, які мають менш ніж 3 взаємодії. Це слова, які ви нещодавно додали і ще не практикували достатньо."
+        },
+        goodKnowledge: {
+          title: "Гарні знання",
+          icon: "fas fa-trophy",
+          description: "Слова з понад 90% правильних відповідей. Ви відмінно знаєте ці слова!"
+        },
+        averageKnowledge: {
+          title: "Середні знання",
+          icon: "fas fa-book-open",
+          description: "Слова з 60-90% правильних відповідей. Потрібно ще трохи практики."
+        },
+        poorKnowledge: {
+          title: "Погані знання",
+          icon: "fas fa-redo",
+          description: "Слова з менш ніж 60% правильних відповідей. Рекомендуємо більше практикувати ці слова."
+        }
       };
-      alert(info[type]);
+      const data = info[type];
+      showInfoPopup(data.title, data.description);
     }
 
-    // Закрытие попапа
-    document.getElementById("closeBtn").addEventListener("click", () => {
+    // Закриття попапу прогресу
+    function closeProgressPopup() {
       document.getElementById("progressPopup").classList.add("hidden");
-    });
+    }
   </script>
 </body>
 
