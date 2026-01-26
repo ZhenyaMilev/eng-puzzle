@@ -231,7 +231,43 @@
       padding: 10px;
       border-radius: 8px;
       margin-top: 0;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+
+    .algorithm-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .algorithm-header p {
+      margin: 0;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .algorithm-chevron {
+      transition: transform 0.3s ease;
+      font-size: 14px;
+      color: #37474F;
+    }
+
+    .algorithm-block.open .algorithm-chevron {
+      transform: rotate(180deg);
+    }
+
+    .algorithm-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .algorithm-block.open .algorithm-content {
+      max-height: 300px;
+      margin-top: 10px;
     }
 
     .algorithm-block p {
@@ -1115,11 +1151,14 @@
       border-radius: 50%;
       width: 28px;
       height: 28px;
+      min-width: 28px;
+      min-height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       padding: 0;
+      margin: 0;
     }
 
     .info-btn-small i {
@@ -5524,9 +5563,12 @@ function exitSpeedTraining() {
       `;
       if (algorithm) {
         html += `
-          <div class="algorithm-block">
-            <p>Як підбираються слова</p>
-            <ol>
+          <div class="algorithm-block" onclick="toggleAlgorithm(this)">
+            <div class="algorithm-header">
+              <p>Як підбираються слова</p>
+              <i class="fas fa-chevron-down algorithm-chevron"></i>
+            </div>
+            <ol class="algorithm-content">
               ${algorithm.map(item => `<li>${item}</li>`).join('')}
             </ol>
           </div>
@@ -5538,8 +5580,21 @@ function exitSpeedTraining() {
       popup.classList.add('show');
     }
 
+    function toggleAlgorithm(element) {
+      element.classList.toggle('open');
+    }
+
     function openInfoPopup() {
-      showInfoPopup('Опис', 'Інформація про тренування');
+      showInfoPopup(
+        'Тестування',
+        'Оберіть правильний переклад слова з 4 варіантів відповідей. Тренування допомагає закріпити знання слів.',
+        [
+          'Алгоритм обирає 10 слів зі словника.',
+          'Спочатку використовуються нові слова (менше 3 взаємодій).',
+          'Якщо нових слів недостатньо, додаються слова від складних до простих.',
+          'Складність визначається відсотком правильних відповідей.'
+        ]
+      );
     }
 
     function closeInfoPopup() {
@@ -6693,20 +6748,28 @@ async function translateStory() {
 
     function openRepetitionInfoPopup() {
       showInfoPopup(
-        'Опис тренування:',
-        'Оберіть правильний переклад слова з 4 варіантів. Тренування допомагає закріпити вивчені слова.',
+        'Повторення',
+        'Тренування для повторення слів, які ви давно не практикували. Допомагає не забути вивчене.',
         [
-          'Алгоритм обирає 10 слів.',
-          'Початково використовуються нові слова.',
-          'Якщо нових слів недостатньо, додаються слова від складних до простих. Складність визначається відсотком правильних відповідей в попередніх тестах'
+          'Обираються тільки слова, які ви вже практикували раніше.',
+          'Слова сортуються за датою останньої взаємодії.',
+          'Перші 10 слів - ті, які найдовше не повторювались.',
+          'Це допомагає підтримувати знання всіх слів на рівні.'
         ]
       );
     }
 
     function openGeneratorInfoPopup() {
       showInfoPopup(
-        'Опис тренування:',
-        'Генератор створює унікальні тексти на основі ваших слів для практики читання та розуміння.'
+        'Генеративний текст',
+        'AI генерує унікальні історії з використанням слів з вашого словника. Практикуйте читання та розуміння в контексті.',
+        [
+          'Кількість слів залежить від довжини: Короткий - 5, Середній - 7, Довгий - 10 слів.',
+          'Слова обираються випадково з вашого словника.',
+          'AI створює історію у вибраному жанрі та складності.',
+          'Ваші слова виділяються кольором у тексті.',
+          'Можна прослухати історію та перекласти українською.'
+        ]
       );
     }
 
@@ -6981,8 +7044,14 @@ async function translateStory() {
 
     function openPictureQuizInfoPopup() {
       showInfoPopup(
-        'Опис тренування:',
-        'У цьому тренуванні ви бачите картинку і маєте обрати правильне англійське слово з 4 варіантів.'
+        'Картинки',
+        'У цьому тренуванні ви бачите картинку і маєте обрати правильне англійське слово з 4 варіантів.',
+        [
+          'Алгоритм обирає 10 слів зі словника.',
+          'Спочатку використовуються нові слова (менше 3 взаємодій).',
+          'Якщо нових слів недостатньо, додаються слова від складних до простих.',
+          'Для кожного слова завантажується відповідна картинка.'
+        ]
       );
     }
 
@@ -7948,12 +8017,13 @@ async function generateStory() {
 
     function openFillBlanksInfoPopup() {
       showInfoPopup(
-        'Опис тренування:',
-        'Заповніть пропуски в реченнях правильними словами. Тренування допомагає зрозуміти контекст використання слів.',
+        'Вставте слово',
+        'Заповніть пропуски в реченнях правильними словами. AI генерує речення з вашими словами.',
         [
-          'Алгоритм обирає 10 слів.',
-          'Початково використовуються нові слова.',
-          'Якщо нових слів недостатньо, додаються слова від складних до простих. Складність визначається відсотком правильних відповідей в попередніх тестах'
+          'Алгоритм обирає 10 слів зі словника.',
+          'Спочатку використовуються нові слова (менше 3 взаємодій).',
+          'Якщо нових слів недостатньо, додаються слова від складних до простих.',
+          'Складність визначається відсотком правильних відповідей.'
         ]
       );
     }
@@ -7993,13 +8063,26 @@ async function generateStory() {
         const wordData = doc.data();
         wordsArray.push({
           english: doc.id,
-          translation: wordData.translation
+          translation: wordData.translation,
+          interactions: wordData.interactions || 0,
+          correctAnswers: wordData.correctAnswers || 0
         });
       });
 
-      // Перемішуємо та обираємо 10 слів
-      wordsArray.sort(() => 0.5 - Math.random());
-      const selectedWords = wordsArray.slice(0, 10);
+      // Розділення слів на нові та вже взаємодіяли (як у Тестуванні)
+      const newWords = wordsArray.filter(word => word.interactions <= 3);
+      const interactedWords = wordsArray.filter(word => word.interactions > 3);
+
+      // Сортування взаємодіяних слів від найскладніших до найпростіших
+      interactedWords.sort((a, b) => {
+        const aRatio = a.correctAnswers / a.interactions;
+        const bRatio = b.correctAnswers / b.interactions;
+        return aRatio - bRatio;
+      });
+
+      // Об'єднання: спочатку нові, потім складні
+      const sortedWords = [...newWords, ...interactedWords];
+      const selectedWords = sortedWords.slice(0, 10);
 
       // Формуємо промпт для AI
       const wordPairs = selectedWords.map(w => `${w.english} (${w.translation})`).join(', ');
@@ -8279,10 +8362,11 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
         'Опис тренування:',
         'Вгадайте слово за його поясненням. Пояснення описує слово без згадування самого слова.',
         [
-          'Алгоритм обирає 10 слів зі словника.',
+          'Спочатку обираються нові слова (з якими було ≤3 взаємодій).',
+          'Потім додаються складні слова (з найнижчим % правильних відповідей).',
+          'Алгоритм обирає до 10 слів для тренування.',
           'AI генерує короткі пояснення для кожного слова.',
-          'Ви обираєте правильне слово з 4 варіантів.',
-          'Можна вибрати мову пояснень (англійська або українська).'
+          'Ви обираєте правильне слово з 4 варіантів.'
         ]
       );
     }
@@ -8326,14 +8410,27 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
         const wordData = doc.data();
         wordsArray.push({
           english: doc.id,
-          translation: wordData.translation
+          translation: wordData.translation,
+          interactions: wordData.interactions || 0,
+          correctAnswers: wordData.correctAnswers || 0
         });
       });
 
-      // Перемішуємо та обираємо 10 слів
-      wordsArray.sort(() => 0.5 - Math.random());
-      const selectedWords = wordsArray.slice(0, 10);
-      const allWords = wordsArray.slice(0, 40); // Для варіантів відповідей
+      // Розділення слів на нові та вже взаємодіяли (як у Тестуванні)
+      const newWords = wordsArray.filter(word => word.interactions <= 3);
+      const interactedWords = wordsArray.filter(word => word.interactions > 3);
+
+      // Сортування взаємодіяних слів від найскладніших до найпростіших
+      interactedWords.sort((a, b) => {
+        const aRatio = a.correctAnswers / a.interactions;
+        const bRatio = b.correctAnswers / b.interactions;
+        return aRatio - bRatio;
+      });
+
+      // Об'єднання: спочатку нові, потім складні
+      const sortedWords = [...newWords, ...interactedWords];
+      const selectedWords = sortedWords.slice(0, 10);
+      const allWordsForOptions = wordsArray.slice(0, 40); // Для варіантів відповідей
 
       const wordList = selectedWords.map(w => `${w.english} (${w.translation})`).join(', ');
 
@@ -8397,7 +8494,7 @@ Return ONLY the JSON array, no other text.`;
 
         // Додаємо варіанти відповідей для кожного питання
         definitionQuizData.forEach(item => {
-          const otherWords = allWords.filter(w => w.english !== item.word);
+          const otherWords = allWordsForOptions.filter(w => w.english !== item.word);
           const shuffledOthers = otherWords.sort(() => 0.5 - Math.random()).slice(0, 3);
           const options = [
             { word: item.word, translation: item.translation, correct: true },
