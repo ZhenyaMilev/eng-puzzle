@@ -102,6 +102,9 @@
     }
 
     #progressPopup .title-and-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 10px;
     }
 
@@ -1095,8 +1098,32 @@
     /* Стиль для лічильника слів */
     #word-count {
       text-align: left;
-      margin-top: 10px;
       color: #2c3e50;
+    }
+
+    .word-count-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    .info-btn-small {
+      background: #37474F;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .info-btn-small i {
+      font-size: 14px;
     }
 
     /* Стиль для привітання */
@@ -3725,6 +3752,9 @@
             <span>Назад</span>
           </button>
           <h2>Мій прогрес</h2>
+          <button class="info-btn-small" onclick="showProgressInfo()">
+            <i class="fas fa-info-circle"></i>
+          </button>
         </div>
         <p id="dateRange" class="date-range"></p>
         <div id="progressData" class="tile-container">
@@ -3867,7 +3897,12 @@
         <h2 style="font-size: 28px;">Мої слова</h2>
       </div>
       <input type="text" id="search-input" placeholder="Пошук слова...">
-      <div id="word-count"></div>
+      <div class="word-count-row">
+        <div id="word-count"></div>
+        <button class="info-btn-small" onclick="showMyWordsInfo()">
+          <i class="fas fa-info-circle"></i>
+        </button>
+      </div>
       <div id="word-list">
         <ul id="words"></ul>
       </div>
@@ -8604,6 +8639,22 @@ Return ONLY the JSON array, no other text.`;
       };
       const data = info[type];
       showInfoPopup(data.title, data.description);
+    }
+
+    // Показ інформації про "Мої слова"
+    function showMyWordsInfo() {
+      showInfoPopup(
+        'Мої слова',
+        'Натисніть на будь-яке слово, щоб побачити детальну статистику: кількість взаємодій, відсоток правильних відповідей та приклад використання.'
+      );
+    }
+
+    // Показ інформації про прогрес
+    function showProgressInfo() {
+      showInfoPopup(
+        'Про звіт',
+        'Цей звіт показує вашу статистику за останній тиждень. Натисніть на будь-яку картку, щоб дізнатися більше про категорію.'
+      );
     }
 
     // Закриття попапу прогресу
