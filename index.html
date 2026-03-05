@@ -1428,6 +1428,132 @@
     #account-screen .acc-delay-13 { animation-delay: 0.65s; }
     #account-screen .acc-delay-14 { animation-delay: 0.7s; }
 
+    /* Gamification: XP, Streak, Mastery */
+    .acc-gamification {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 16px 0 8px;
+    }
+
+    .acc-streak {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 10px 14px;
+      min-width: 80px;
+      justify-content: center;
+    }
+
+    .acc-streak-icon {
+      font-size: 20px;
+    }
+
+    .acc-streak-count {
+      font-size: 22px;
+      font-weight: 700;
+      color: #F0EDE8;
+    }
+
+    .acc-streak-label {
+      font-size: 12px;
+      color: rgba(240, 237, 232, 0.4);
+    }
+
+    .acc-xp-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .acc-level {
+      font-size: 14px;
+      font-weight: 600;
+      color: #E8A838;
+    }
+
+    .acc-xp-bar {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .acc-xp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #E8A838, #F2C94C);
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+
+    .acc-xp-text {
+      font-size: 11px;
+      color: rgba(240, 237, 232, 0.4);
+    }
+
+    .acc-mastery {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .acc-mastery-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: rgba(240, 237, 232, 0.6);
+    }
+
+    .acc-mastery-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .acc-mastery-dot.mastered { background: #34d399; }
+    .acc-mastery-dot.good { background: #E8A838; }
+    .acc-mastery-dot.learning { background: #ef4444; }
+    .acc-mastery-dot.new-word { background: rgba(255, 255, 255, 0.2); }
+
+    .mastery-dot-inline {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 6px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* XP Toast */
+    .xp-toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(232, 168, 56, 0.9);
+      color: #0f1117;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 16px;
+      z-index: 9999;
+      animation: xp-toast-anim 1.5s ease forwards;
+      pointer-events: none;
+    }
+
+    @keyframes xp-toast-anim {
+      0% { opacity: 0; transform: translateY(10px); }
+      15% { opacity: 1; transform: translateY(0); }
+      70% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-20px); }
+    }
+
     /* Override inherited styles inside account-screen */
     #account-screen .user-email {
       color: var(--acc-text-muted);
@@ -4168,6 +4294,25 @@
       <div class="acc-email acc-animate acc-delay-2"><span class="user-email"></span></div>
       <div class="subscription-info acc-animate acc-delay-3" id="subscription-info"></div>
 
+      <!-- Gamification Stats -->
+      <div class="acc-gamification acc-animate acc-delay-3">
+        <div class="acc-streak" id="acc-streak">
+          <span class="acc-streak-icon">🔥</span>
+          <span class="acc-streak-count" id="streak-count">0</span>
+          <span class="acc-streak-label">днів</span>
+        </div>
+        <div class="acc-xp-block">
+          <div class="acc-level" id="acc-level">Рівень 1</div>
+          <div class="acc-xp-bar">
+            <div class="acc-xp-fill" id="acc-xp-fill" style="width: 0%"></div>
+          </div>
+          <div class="acc-xp-text" id="acc-xp-text">0 / 500 XP</div>
+        </div>
+      </div>
+
+      <!-- Word Mastery Summary -->
+      <div class="acc-mastery acc-animate acc-delay-4" id="acc-mastery"></div>
+
       <!-- Quick Actions -->
       <div class="acc-actions acc-animate acc-delay-4">
         <button class="acc-action-btn" onclick="showMyWords()">
@@ -5478,6 +5623,7 @@ function exitSpeedTraining() {
       if (user) {
         loadOpenAIKey();
         loadUnsplashKey();
+        loadGamificationData();
       }
       // Ховаємо прелоадер після завантаження
       const preloader = document.getElementById('page-preloader');
@@ -5529,6 +5675,131 @@ function exitSpeedTraining() {
       } catch (error) {
         console.log('Не вдалося завантажити Unsplash ключ:', error);
       }
+    }
+
+    // ========== GAMIFICATION: XP, Streak, Mastery ==========
+    let userXP = 0;
+    let userLevel = 1;
+    let userStreak = 0;
+    let userLastActiveDate = '';
+
+    // Завантаження даних геймификації при логіні
+    async function loadGamificationData() {
+      try {
+        const userId = auth.currentUser.uid;
+        const userDoc = await db.collection('users').doc(userId).get();
+        if (userDoc.exists) {
+          const data = userDoc.data();
+          userXP = data.xp || 0;
+          userStreak = data.streak || 0;
+          userLastActiveDate = data.lastActiveDate || '';
+        }
+        userLevel = Math.floor(userXP / 500) + 1;
+        updateGamificationUI();
+        loadMasterySummary();
+      } catch (error) {
+        console.log('Помилка завантаження геймификації:', error);
+      }
+    }
+
+    // Оновлення UI геймификації на екрані акаунту
+    function updateGamificationUI() {
+      const xpInLevel = userXP % 500;
+      const xpPercent = (xpInLevel / 500) * 100;
+      userLevel = Math.floor(userXP / 500) + 1;
+
+      const levelEl = document.getElementById('acc-level');
+      const fillEl = document.getElementById('acc-xp-fill');
+      const textEl = document.getElementById('acc-xp-text');
+      const streakEl = document.getElementById('streak-count');
+
+      if (levelEl) levelEl.textContent = `Рівень ${userLevel}`;
+      if (fillEl) fillEl.style.width = `${xpPercent}%`;
+      if (textEl) textEl.textContent = `${xpInLevel} / 500 XP`;
+      if (streakEl) streakEl.textContent = userStreak;
+    }
+
+    // Нарахування XP + оновлення стрику
+    async function addXP(amount) {
+      userXP += amount;
+      userLevel = Math.floor(userXP / 500) + 1;
+
+      const today = new Date().toISOString().split('T')[0];
+      let streakUpdate = {};
+
+      if (userLastActiveDate !== today) {
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+        if (userLastActiveDate === yesterday) {
+          userStreak += 1;
+        } else if (userLastActiveDate !== today) {
+          userStreak = 1;
+        }
+        userLastActiveDate = today;
+        streakUpdate = { streak: userStreak, lastActiveDate: today };
+      }
+
+      try {
+        const userId = auth.currentUser.uid;
+        await db.collection('users').doc(userId).update({
+          xp: userXP,
+          ...streakUpdate
+        });
+      } catch (error) {
+        console.log('Помилка збереження XP:', error);
+      }
+
+      updateGamificationUI();
+      showXPToast(amount);
+    }
+
+    // Тост з нарахуванням XP
+    function showXPToast(amount) {
+      const toast = document.createElement('div');
+      toast.className = 'xp-toast';
+      toast.textContent = `+${amount} XP`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 1600);
+    }
+
+    // Завантаження зведення мастерства слів
+    async function loadMasterySummary() {
+      try {
+        const userId = auth.currentUser.uid;
+        const snapshot = await db.collection('users').doc(userId).collection('words').get();
+        let mastered = 0, good = 0, learning = 0, newW = 0;
+
+        snapshot.docs.forEach(doc => {
+          const d = doc.data();
+          const inter = d.interactions || 0;
+          const acc = inter > 0 ? (d.correctAnswers || 0) / inter * 100 : 0;
+          if (inter < 3) newW++;
+          else if (acc > 90 && inter >= 10) mastered++;
+          else if (acc >= 60) good++;
+          else learning++;
+        });
+
+        const el = document.getElementById('acc-mastery');
+        if (el) {
+          el.innerHTML = `
+            <div class="acc-mastery-item"><span class="acc-mastery-dot mastered"></span>${mastered} освоєно</div>
+            <div class="acc-mastery-item"><span class="acc-mastery-dot good"></span>${good} добре</div>
+            <div class="acc-mastery-item"><span class="acc-mastery-dot learning"></span>${learning} вивчаю</div>
+            <div class="acc-mastery-item"><span class="acc-mastery-dot new-word"></span>${newW} нових</div>
+          `;
+        }
+      } catch (error) {
+        console.log('Помилка завантаження мастерства:', error);
+      }
+    }
+
+    // Отримання кольору мастерства для слова
+    function getMasteryColor(word) {
+      const inter = word.interactions || 0;
+      const acc = inter > 0 ? (word.correctAnswers || 0) / inter * 100 : 0;
+      if (inter < 3) return 'rgba(255,255,255,0.2)';
+      if (acc > 90 && inter >= 10) return '#34d399';
+      if (acc >= 60) return '#E8A838';
+      return '#ef4444';
     }
 
     async function getWordImage(word) {
@@ -5661,6 +5932,12 @@ function exitSpeedTraining() {
       words.forEach(word => {
         const li = document.createElement('li');
         li.onclick = () => showWordInfo(word);
+
+        // Mastery dot
+        const dot = document.createElement('span');
+        dot.className = 'mastery-dot-inline';
+        dot.style.background = getMasteryColor(word);
+        li.appendChild(dot);
 
         const soundIcon = document.createElement('i');
         soundIcon.classList.add('fas', 'fa-volume-up');
@@ -5875,14 +6152,19 @@ function exitSpeedTraining() {
       wordsElement.innerHTML = '';
       words.forEach(async (word) => {
         const li = document.createElement('li');
-        // Добавляем обработчик клика на элемент списка
         li.onclick = () => showWordInfo(word);
+
+        // Mastery dot
+        const dot = document.createElement('span');
+        dot.className = 'mastery-dot-inline';
+        dot.style.background = getMasteryColor(word);
+        li.appendChild(dot);
 
         // Иконка озвучивания
         const soundIcon = document.createElement('i');
         soundIcon.classList.add('fas', 'fa-volume-up');
         soundIcon.onclick = (e) => {
-          e.stopPropagation(); // Останавливаем всплытие события
+          e.stopPropagation();
           responsiveVoice.speak(word.english, "UK English Female");
         };
         li.appendChild(soundIcon);
@@ -6639,7 +6921,7 @@ function copyStory() {
         .limit(50)
         .get()
         .then(querySnapshot => {
-          if (querySnapshot.size < 10) {
+          if (querySnapshot.size < 30) {
             document.getElementById('quiz-container').innerHTML =
               '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
             hideLoading();
@@ -6651,7 +6933,7 @@ function copyStory() {
             interactions: doc.data().interactions || 0,
             correctAnswers: doc.data().correctAnswers || 0
           }));
-          quizWords = wordsArray.slice(0, 10);
+          quizWords = wordsArray.slice(0, 30);
           quizOptionsPool = wordsArray; // Весь пул для варіантів
           currentQuestion = 0;
           correctAnswers = 0;
@@ -7417,6 +7699,8 @@ async function translateStory() {
             priority: priority,
           });
         }
+        // Нараховуємо XP
+        addXP(correct ? 10 : 2);
       } catch (error) {
         console.error('Помилка оновлення статистики слова:', error);
       }
