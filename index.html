@@ -8018,21 +8018,29 @@ async function translateStory() {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(correct) {
       try {
-        const osc = audioCtx.createOscillator();
+        const t = audioCtx.currentTime;
         const gain = audioCtx.createGain();
-        osc.connect(gain);
         gain.connect(audioCtx.destination);
-        gain.gain.value = 0.15;
         if (correct) {
-          osc.frequency.value = 880;
-          osc.type = 'sine';
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.12);
+          gain.gain.setValueAtTime(0.12, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+          const o = audioCtx.createOscillator();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(523, t);
+          o.frequency.setValueAtTime(659, t + 0.1);
+          o.connect(gain);
+          o.start(t);
+          o.stop(t + 0.25);
         } else {
-          osc.frequency.value = 280;
-          osc.type = 'square';
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.2);
+          gain.gain.setValueAtTime(0.1, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+          const o = audioCtx.createOscillator();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(330, t);
+          o.frequency.setValueAtTime(220, t + 0.08);
+          o.connect(gain);
+          o.start(t);
+          o.stop(t + 0.2);
         }
       } catch(e) {}
     }
