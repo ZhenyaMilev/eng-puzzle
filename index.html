@@ -1521,6 +1521,19 @@
     .acc-mastery-dot.learning { background: #ef4444; }
     .acc-mastery-dot.new-word { background: rgba(255, 255, 255, 0.2); }
 
+    .acc-mastery-decay-hint {
+      font-size: 11px;
+      color: rgba(240, 237, 232, 0.35);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    .decay-badge {
+      font-size: 10px;
+      margin-left: 4px;
+      opacity: 0.7;
+    }
+
     .mastery-dot-inline {
       display: inline-block;
       width: 6px;
@@ -6181,7 +6194,7 @@ function exitSpeedTraining() {
       try {
         const userId = auth.currentUser.uid;
         const snapshot = await db.collection('users').doc(userId).collection('words').get();
-        let mastered = 0, good = 0, learning = 0, newW = 0;
+        let mastered = 0, good = 0, learning = 0, newW = 0, decaying = 0;
 
         snapshot.docs.forEach(doc => {
           const d = doc.data();
@@ -6191,6 +6204,12 @@ function exitSpeedTraining() {
           else if (acc > 90 && inter >= 10) mastered++;
           else if (acc >= 60) good++;
           else learning++;
+          // Підраховуємо слова з активним загасанням
+          if (inter >= 3 && d.lastInteractionDate) {
+            const lastDate = d.lastInteractionDate.toDate ? d.lastInteractionDate.toDate() : new Date(d.lastInteractionDate);
+            const daysSince = Math.floor((Date.now() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+            if (daysSince >= 14) decaying++;
+          }
         });
 
         const el = document.getElementById('acc-mastery');
@@ -6200,6 +6219,8 @@ function exitSpeedTraining() {
             <div class="acc-mastery-item"><span class="acc-mastery-dot good"></span>${good} добре</div>
             <div class="acc-mastery-item"><span class="acc-mastery-dot learning"></span>${learning} вивчаю</div>
             <div class="acc-mastery-item"><span class="acc-mastery-dot new-word"></span>${newW} нових</div>
+            ${decaying > 0 ? `<div class="acc-mastery-decay-hint">⏳ ${decaying} слів втрачають прогрес — повтори їх, щоб зберегти рівень!</div>` : ''}
+            <div class="acc-mastery-decay-hint">Слова, які не повторювались 14+ днів, поступово втрачають рівень засвоєння. Повторюй регулярно!</div>
           `;
         }
       } catch (error) {
@@ -6758,6 +6779,14 @@ function exitSpeedTraining() {
     }
 
     // Рендер масиву слів у DOM
+    function isWordDecaying(word) {
+      const inter = word.interactions || 0;
+      if (inter < 3 || !word.lastInteractionDate) return false;
+      const lastDate = word.lastInteractionDate.toDate ? word.lastInteractionDate.toDate() : new Date(word.lastInteractionDate);
+      const daysSince = Math.floor((Date.now() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+      return daysSince >= 14;
+    }
+
     function renderWords(words) {
       const wordsElement = document.getElementById('words');
       words.forEach(word => {
@@ -6769,6 +6798,15 @@ function exitSpeedTraining() {
         dot.className = 'mastery-dot-inline';
         dot.style.background = getMasteryColor(word);
         li.appendChild(dot);
+
+        // Decay indicator
+        if (isWordDecaying(word)) {
+          const decay = document.createElement('span');
+          decay.className = 'decay-badge';
+          decay.textContent = '⏳';
+          decay.title = 'Слово втрачає прогрес — повтори!';
+          li.appendChild(decay);
+        }
 
         const soundIcon = document.createElement('i');
         soundIcon.classList.add('fas', 'fa-volume-up');
@@ -6805,6 +6843,25 @@ function exitSpeedTraining() {
       const interactions = word.interactions || 0;
       const correctAnswers = word.correctAnswers || 0;
       const percentage = interactions > 0 ? Math.round((correctAnswers / interactions) * 100) : 0;
+      const effAcc = Math.round(getEffectiveAccuracy(word));
+      const decaying = isWordDecaying(word);
+
+      // Mastery level name
+      let masteryLabel = 'Нове';
+      let masteryColor = 'rgba(255,255,255,0.4)';
+      if (interactions >= 3) {
+        if (effAcc > 90 && interactions >= 10) { masteryLabel = 'Освоєно'; masteryColor = '#34d399'; }
+        else if (effAcc >= 60) { masteryLabel = 'Добре'; masteryColor = '#E8A838'; }
+        else { masteryLabel = 'Вивчаю'; masteryColor = '#ef4444'; }
+      }
+
+      // Decay info
+      let decayHtml = '';
+      if (decaying) {
+        const lastDate = word.lastInteractionDate.toDate ? word.lastInteractionDate.toDate() : new Date(word.lastInteractionDate);
+        const daysSince = Math.floor((Date.now() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+        decayHtml = `<p style="color: #E8A838; font-size: 12px; margin-top: 8px;">⏳ Не повторювалось ${daysSince} днів — рівень знижується! Ефективна точність: ${effAcc}%</p>`;
+      }
 
       // Отримуємо картинку слова
       const imgUrl = await getWordImage(word.english);
@@ -6814,9 +6871,11 @@ function exitSpeedTraining() {
     <div class="popup-content">
       ${imageHtml}
       <h3>Інформація про слово "${word.english}"</h3>
+      <p style="margin-bottom: 4px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${masteryColor};margin-right:6px;"></span>${masteryLabel}</p>
       <p>Кількість взаємодій: ${interactions}</p>
       <p>Правильних відповідей: ${correctAnswers}</p>
       <p>Відсоток правильних відповідей: ${percentage}%</p>
+      ${decayHtml}
       <button style="margin-top: 20px; width: 100%; padding: 15px; background: #333; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600;" onclick="closePopupWord()">Закрити</button>
     </div>
   `;
@@ -6990,6 +7049,15 @@ function exitSpeedTraining() {
         dot.className = 'mastery-dot-inline';
         dot.style.background = getMasteryColor(word);
         li.appendChild(dot);
+
+        // Decay indicator
+        if (isWordDecaying(word)) {
+          const decay = document.createElement('span');
+          decay.className = 'decay-badge';
+          decay.textContent = '⏳';
+          decay.title = 'Слово втрачає прогрес — повтори!';
+          li.appendChild(decay);
+        }
 
         // Иконка озвучивания
         const soundIcon = document.createElement('i');
