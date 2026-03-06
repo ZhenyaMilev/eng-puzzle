@@ -82,6 +82,7 @@
       justify-content: center;
       align-items: center;
       z-index: 1000;
+      overflow: hidden;
     }
 
     .hidden {
@@ -709,10 +710,11 @@
     .overlay {
       width: 100vw;
       height: 100vh;
-      background: #00000096;
+      background: rgba(0, 0, 0, 0.6);
       position: absolute;
       z-index: 2;
-      backdrop-filter: blur(5px);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     .unique-letter-button {
@@ -908,7 +910,8 @@
       cursor: pointer;
     }
 
-    #word-list li:hover {
+    #word-list li:hover,
+    #word-list li:active {
       background-color: rgba(255, 255, 255, 0.1);
     }
 
@@ -2018,7 +2021,7 @@
     #quiz-section,
     #picture-quiz-section,
     #add-word-section,
-    #word-base-section,
+    #daily-words-section,
     #my-words-section,
     #account-screen,
     #payment-section,
@@ -2658,46 +2661,100 @@
       /* Снижение тени */
     }
 
-    /* Styles for the topics grid and tiles */
-    #word-base-section .title-and-btn {
-      padding: 0 10px;
-    }
-
-    .topics-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      padding: 0 10px;
-    }
-
-    .topic-tile {
-      background-color: rgba(255, 255, 255, 0.05);
-      height: 110px;
+    /* Styles for onboarding and daily words */
+    .onboarding-options {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 15px 10px;
-      border-radius: 12px;
-      font-size: 18px;
-      text-align: center;
-      font-weight: bold;
-      color: #F0EDE8;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: none;
-      cursor: pointer;
-      transition: background-color 0.3s, transform 0.2s ease-in-out;
+      flex-wrap: wrap;
       gap: 8px;
     }
-
-    .topic-icon {
-      font-size: 32px;
-      line-height: 1;
-    }
-
-    .topic-name {
+    .onboarding-opt {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #F0EDE8;
+      padding: 10px 16px;
+      border-radius: 10px;
       font-size: 14px;
-      line-height: 1.2;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .onboarding-opt:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .onboarding-opt.selected {
+      background: rgba(232, 168, 56, 0.2);
+      border-color: #E8A838;
+      color: #E8A838;
+    }
+    .daily-word-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 15px 22px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.2s;
+      cursor: pointer;
+    }
+    .daily-word-card:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .daily-word-card .fa-volume-up {
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .daily-word-info {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .daily-word-info span {
+      font-weight: 700;
+      color: #F0EDE8;
+    }
+    .daily-word-add {
+      margin-left: auto;
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      color: #F0EDE8;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 5px 10px;
+      transition: opacity 0.3s;
+    }
+    .daily-word-add:hover {
+      opacity: 0.7;
+    }
+    .daily-word-add.added {
+      color: #34d399;
+      pointer-events: none;
+    }
+    #regenerate-words-btn {
+      cursor: pointer;
+      transition: background-color 0.2s, opacity 0.2s;
+      opacity: 0.7;
+    }
+    #regenerate-words-btn:hover {
+      opacity: 1;
+    }
+    #regenerate-words-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .daily-word-card.fade-out {
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .daily-word-card.fade-in {
+      animation: dailyWordFadeIn 0.4s ease forwards;
+    }
+    @keyframes dailyWordFadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes slideUp {
@@ -2724,13 +2781,6 @@
       }
     }
 
-    #topic-words-list {
-      padding: 0;
-    }
-
-    .topic-tile:hover {
-      transform: translateY(-5px);
-    }
 
     /* 12) Стилі для зворотного зв'язку після слухання */
     .listening-feedback {
@@ -3500,6 +3550,14 @@
       width: 90%;
       margin: 0 auto;
       padding-top: 40px;
+      overflow-y: auto;
+      flex: 1;
+      padding-bottom: 40px;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .popup-content-wrapper::-webkit-scrollbar {
+      display: none;
     }
 
     @media only screen and (max-width: 768px) {
@@ -3589,8 +3647,10 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgba(0, 0, 0, 0.6);
       z-index: 1000;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     .hidden {
@@ -4406,9 +4466,9 @@
           </div>
         </div>
         <!-- XP Activity Chart -->
-        <div id="progress-xp-chart" style="margin-top: 16px;"></div>
+        <div id="progress-xp-chart" style="margin-top: 40px;"></div>
         <!-- Weekly Quest -->
-        <div class="acc-quest" id="acc-quest" style="margin-top: 16px;"></div>
+        <div class="acc-quest" id="acc-quest" style="margin-top: 40px;"></div>
       </div>
     </div>
   </div>
@@ -4519,9 +4579,9 @@
           <i class="fas fa-plus"></i>
           <span>Додати</span>
         </button>
-        <button class="acc-action-btn" onclick="showWordBase()">
-          <i class="fas fa-database"></i>
-          <span>База слів</span>
+        <button class="acc-action-btn" onclick="showDailyWords()">
+          <i class="fas fa-magic"></i>
+          <span>Слова дня</span>
         </button>
         <button class="acc-action-btn" onclick="loadUserProgress()">
           <i class="fa-solid fa-chart-line"></i>
@@ -4612,10 +4672,10 @@
         <ul id="words"></ul>
         <button id="load-more-words" class="long-button hidden" onclick="displayNextWords()">Показати ще</button>
       </div>
-      <button onclick="hideMyVocabulatyAndOpenAddWords()" id="add-word-from-my-vocabulary"
-        class="add-word-from-my-vocabulary hidden" id="add-word-from-my-vocabulary">
-        <i class="fas fa-database"></i>
-        База слів
+      <button onclick="hideMyVocabulatyAndOpenDailyWords()" id="add-word-from-my-vocabulary"
+        class="add-word-from-my-vocabulary hidden">
+        <i class="fas fa-magic"></i>
+        Слова дня
       </button>
     </div>
     <!-- Секція "Генеративний текст" -->
@@ -4708,33 +4768,119 @@
         <button class="finish-button" onclick="finishRepetition()">Завершити тренування</button>
       </div>
     </div>
-    <!-- Секція "База слів" -->
-    <div id="word-base-section" class="hidden">
+    <!-- Секція "Слова дня" -->
+    <div id="daily-words-section" class="hidden">
       <div class="title-and-btn">
-        <button id="word-base-back-button" class="button-with-icon back-button" onclick="backToAccount()">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
           <i class="fas fa-arrow-left"></i>
           <span>Назад</span>
         </button>
-        <h2 style="font-size: 28px;">База слів</h2>
-      </div>
-      <!-- Список тем -->
-      <div id="topics-list" class="topics-grid"></div>
-      <!-- Список слів обраної теми -->
-      <div id="topic-words" class="hidden">
-        <button id="back-to-topics-button" class="button-with-icon back-button" onclick="backToTopics()">
-          <i class="fas fa-arrow-left"></i>
-          <span>Назад до тем</span>
+        <h2 style="font-size: 28px;">Слова дня</h2>
+        <button class="button-with-icon small-button info-button" onclick="openDailyWordsSettings()" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);">
+          <i class="fas fa-info-circle"></i>
         </button>
-        <!-- Доданий заголовок для назви теми -->
-        <h2 id="topic-title" style="text-align: center; margin: 10px 0;"></h2>
-        <!-- Кнопка для додавання всіх слів з поточної теми -->
-        <button id="addAllButton" class="long-button" onclick="addAllWordsFromTopic(document.getElementById('topic-title').textContent)">
-          Додати всі слова з теми
-        </button>
-        <ul id="topic-words-list"></ul>
       </div>
-      <!-- Повідомлення про успішне додавання -->
-      <div id="success-message" class="success-message"></div>
+      <!-- Онбордінг (показується один раз) -->
+      <div id="onboarding-container" class="hidden" style="padding: 0 16px;">
+        <div style="text-align:center;margin:24px 0 16px;">
+          <div style="font-size:48px;margin-bottom:12px;">🎯</div>
+          <h3 style="font-size:20px;color:#F0EDE8;margin:0 0 8px;">Розкажи про себе</h3>
+          <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;">Щоб підбирати слова саме для тебе</p>
+        </div>
+        <div class="onboarding-question" style="margin-bottom:20px;">
+          <label style="font-size:15px;font-weight:600;color:#F0EDE8;display:block;margin-bottom:10px;">Який у тебе рівень англійської?</label>
+          <div id="onboarding-level" class="onboarding-options">
+            <button class="onboarding-opt" data-value="beginner" onclick="selectOnboardingOption(this)">🌱 Початківець</button>
+            <button class="onboarding-opt" data-value="elementary" onclick="selectOnboardingOption(this)">📗 Elementary</button>
+            <button class="onboarding-opt" data-value="intermediate" onclick="selectOnboardingOption(this)">📘 Intermediate</button>
+            <button class="onboarding-opt" data-value="upper" onclick="selectOnboardingOption(this)">📕 Upper+</button>
+          </div>
+        </div>
+        <div class="onboarding-question" style="margin-bottom:20px;">
+          <label style="font-size:15px;font-weight:600;color:#F0EDE8;display:block;margin-bottom:10px;">Для чого вчиш англійську? (обери кілька)</label>
+          <div id="onboarding-goal" class="onboarding-options onboarding-multi">
+            <button class="onboarding-opt" data-value="travel" onclick="toggleOnboardingMulti(this)">✈️ Подорожі</button>
+            <button class="onboarding-opt" data-value="work" onclick="toggleOnboardingMulti(this)">💼 Робота</button>
+            <button class="onboarding-opt" data-value="study" onclick="toggleOnboardingMulti(this)">🎓 Навчання</button>
+            <button class="onboarding-opt" data-value="general" onclick="toggleOnboardingMulti(this)">🌍 Загальний розвиток</button>
+          </div>
+        </div>
+        <div class="onboarding-question" style="margin-bottom:20px;">
+          <label style="font-size:15px;font-weight:600;color:#F0EDE8;display:block;margin-bottom:10px;">Які теми цікавлять? (обери кілька)</label>
+          <div id="onboarding-topics" class="onboarding-options onboarding-multi">
+            <button class="onboarding-opt" data-value="everyday" onclick="toggleOnboardingMulti(this)">🏠 Побут</button>
+            <button class="onboarding-opt" data-value="business" onclick="toggleOnboardingMulti(this)">📊 Бізнес</button>
+            <button class="onboarding-opt" data-value="technology" onclick="toggleOnboardingMulti(this)">💻 Технології</button>
+            <button class="onboarding-opt" data-value="food" onclick="toggleOnboardingMulti(this)">🍕 Їжа</button>
+            <button class="onboarding-opt" data-value="nature" onclick="toggleOnboardingMulti(this)">🌿 Природа</button>
+            <button class="onboarding-opt" data-value="sports" onclick="toggleOnboardingMulti(this)">⚽ Спорт</button>
+            <button class="onboarding-opt" data-value="culture" onclick="toggleOnboardingMulti(this)">🎭 Культура</button>
+            <button class="onboarding-opt" data-value="health" onclick="toggleOnboardingMulti(this)">🏥 Здоров'я</button>
+          </div>
+        </div>
+        <div class="onboarding-question" style="margin-bottom:20px;">
+          <label style="font-size:15px;font-weight:600;color:#F0EDE8;display:block;margin-bottom:10px;">Примітка (необов'язково)</label>
+          <textarea id="onboarding-note" placeholder="Наприклад: хочу слова про IT, фрази для співбесіди..." style="width:100%;min-height:60px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#F0EDE8;padding:12px;font-size:14px;resize:vertical;box-sizing:border-box;"></textarea>
+        </div>
+        <button class="finish-button" id="onboarding-submit" onclick="submitOnboarding()" style="width:100%;margin-top:12px;" disabled>Почати навчання</button>
+      </div>
+      <!-- Список слів дня -->
+      <div id="daily-words-list-container" class="hidden" style="padding: 0 16px;">
+        <div id="daily-words-header" style="text-align:center;margin:16px 0;">
+          <div style="font-size:36px;margin-bottom:8px;">✨</div>
+          <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;" id="daily-words-subtitle">Твої нові слова на сьогодні</p>
+        </div>
+        <ul id="daily-words-list" style="list-style:none;padding:0;"></ul>
+        <button class="finish-button" id="add-all-daily-words" onclick="addAllDailyWords()" style="width:100%;margin-top:8px;">
+          Додати всі до словника
+        </button>
+        <button class="long-button" id="regenerate-words-btn" onclick="regenerateDailyWords()" style="margin-top:8px;width:100%;">
+          🔄 Згенерувати інші слова
+        </button>
+      </div>
+    </div>
+    <!-- Попап налаштувань "Слова дня" -->
+    <div id="dailyWordsSettingsPopup" class="hidden" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:flex-end;justify-content:center;" onclick="if(event.target===this)closeDailyWordsSettings()">
+      <div id="dailyWordsSettingsSheet" style="background:#1a1a1a;border-radius:16px 16px 0 0;padding:24px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform 0.3s ease;">
+        <div style="width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin:0 auto 16px;"></div>
+        <h3 style="font-size:18px;color:#F0EDE8;margin:0 0 16px;text-align:center;">Налаштування генерації</h3>
+        <div style="margin-bottom:20px;">
+          <label style="font-size:14px;font-weight:600;color:#F0EDE8;display:block;margin-bottom:10px;">Рівень англійської</label>
+          <div id="settings-level" class="onboarding-options">
+            <button class="onboarding-opt" data-value="beginner" onclick="selectOnboardingOption(this)">🌱 Початківець</button>
+            <button class="onboarding-opt" data-value="elementary" onclick="selectOnboardingOption(this)">📗 Elementary</button>
+            <button class="onboarding-opt" data-value="intermediate" onclick="selectOnboardingOption(this)">📘 Intermediate</button>
+            <button class="onboarding-opt" data-value="upper" onclick="selectOnboardingOption(this)">📕 Upper+</button>
+          </div>
+        </div>
+        <div style="margin-bottom:20px;">
+          <label style="font-size:14px;font-weight:600;color:#F0EDE8;display:block;margin-bottom:10px;">Мета вивчення (обери кілька)</label>
+          <div id="settings-goal" class="onboarding-options onboarding-multi">
+            <button class="onboarding-opt" data-value="travel" onclick="toggleOnboardingMulti(this)">✈️ Подорожі</button>
+            <button class="onboarding-opt" data-value="work" onclick="toggleOnboardingMulti(this)">💼 Робота</button>
+            <button class="onboarding-opt" data-value="study" onclick="toggleOnboardingMulti(this)">🎓 Навчання</button>
+            <button class="onboarding-opt" data-value="general" onclick="toggleOnboardingMulti(this)">🌍 Загальний розвиток</button>
+          </div>
+        </div>
+        <div style="margin-bottom:20px;">
+          <label style="font-size:14px;font-weight:600;color:#F0EDE8;display:block;margin-bottom:10px;">Теми (обери кілька)</label>
+          <div id="settings-topics" class="onboarding-options onboarding-multi">
+            <button class="onboarding-opt" data-value="everyday" onclick="toggleOnboardingMulti(this)">🏠 Побут</button>
+            <button class="onboarding-opt" data-value="business" onclick="toggleOnboardingMulti(this)">📊 Бізнес</button>
+            <button class="onboarding-opt" data-value="technology" onclick="toggleOnboardingMulti(this)">💻 Технології</button>
+            <button class="onboarding-opt" data-value="food" onclick="toggleOnboardingMulti(this)">🍕 Їжа</button>
+            <button class="onboarding-opt" data-value="nature" onclick="toggleOnboardingMulti(this)">🌿 Природа</button>
+            <button class="onboarding-opt" data-value="sports" onclick="toggleOnboardingMulti(this)">⚽ Спорт</button>
+            <button class="onboarding-opt" data-value="culture" onclick="toggleOnboardingMulti(this)">🎭 Культура</button>
+            <button class="onboarding-opt" data-value="health" onclick="toggleOnboardingMulti(this)">🏥 Здоров'я</button>
+          </div>
+        </div>
+        <div style="margin-bottom:20px;">
+          <label style="font-size:14px;font-weight:600;color:#F0EDE8;display:block;margin-bottom:10px;">Примітка</label>
+          <textarea id="settings-note" placeholder="Наприклад: хочу слова про IT, фрази для співбесіди, сленг..." style="width:100%;min-height:60px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#F0EDE8;padding:12px;font-size:14px;resize:vertical;box-sizing:border-box;"></textarea>
+        </div>
+        <button class="finish-button" onclick="saveDailyWordsSettings()" style="width:100%;">Зберегти</button>
+      </div>
     </div>
     <!-- Секція "Додати слово" -->
     <div id="add-word-section" class="hidden">
@@ -5578,7 +5724,7 @@
   toggleMainTitle();
   document.getElementById('account-screen').classList.remove('hidden');
   document.getElementById('my-words-section').classList.add('hidden');
-  document.getElementById('word-base-section').classList.add('hidden');
+  document.getElementById('daily-words-section').classList.add('hidden');
   document.getElementById('add-word-section').classList.add('hidden');
   document.getElementById('quiz-section').classList.add('hidden');
   document.getElementById('picture-quiz-section').classList.add('hidden');
@@ -5616,9 +5762,9 @@ function exitSpeedTraining() {
 }
 
 
-    function hideMyVocabulatyAndOpenAddWords() {
+    function hideMyVocabulatyAndOpenDailyWords() {
       backToAccount();
-      showWordBase();
+      showDailyWords();
     }
     // Ініціалізація Firebase
     firebase.initializeApp(firebaseConfig);
@@ -5784,7 +5930,7 @@ function exitSpeedTraining() {
         document.getElementById('login-form').classList.remove('hidden');
         document.getElementById('account-screen').classList.add('hidden');
         document.getElementById('my-words-section').classList.add('hidden');
-        document.getElementById('word-base-section').classList.add('hidden');
+        document.getElementById('daily-words-section').classList.add('hidden');
         document.getElementById('add-word-section').classList.add('hidden');
         document.getElementById('quiz-section').classList.add('hidden');
         document.getElementById('picture-quiz-section').classList.add('hidden');
@@ -5855,14 +6001,362 @@ function exitSpeedTraining() {
       if (buttonsCorner) buttonsCorner.classList.toggle('hidden');
     }
 
-    function showWordBase() {
+    function showDailyWords() {
       toggleMainTitle();
       document.getElementById('account-screen').classList.add('hidden');
-      document.getElementById('word-base-section').classList.remove('hidden');
-      document.getElementById('topics-list').classList.remove('hidden');
-      document.getElementById('topic-words').classList.add('hidden');
-      fetchTopics();
+      document.getElementById('daily-words-section').classList.remove('hidden');
+      loadDailyWordsScreen();
     }
+
+    // === Daily Words System ===
+    let userLearningProfile = null;
+    let currentDailyWords = [];
+
+    async function loadDailyWordsScreen() {
+      const userId = auth.currentUser.uid;
+      const userDoc = await db.collection('users').doc(userId).get();
+      const data = userDoc.data() || {};
+      userLearningProfile = data.learningProfile || null;
+
+      if (!userLearningProfile) {
+        document.getElementById('onboarding-container').classList.remove('hidden');
+        document.getElementById('daily-words-list-container').classList.add('hidden');
+      } else {
+        document.getElementById('onboarding-container').classList.add('hidden');
+        document.getElementById('daily-words-list-container').classList.remove('hidden');
+        await loadOrGenerateDailyWords();
+      }
+    }
+
+    function selectOnboardingOption(btn) {
+      const parent = btn.parentElement;
+      parent.querySelectorAll('.onboarding-opt').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      checkOnboardingComplete();
+    }
+
+    function toggleOnboardingMulti(btn) {
+      btn.classList.toggle('selected');
+      checkOnboardingComplete();
+    }
+
+    function checkOnboardingComplete() {
+      const level = document.querySelector('#onboarding-level .onboarding-opt.selected');
+      const goals = document.querySelectorAll('#onboarding-goal .onboarding-opt.selected');
+      const topics = document.querySelectorAll('#onboarding-topics .onboarding-opt.selected');
+      document.getElementById('onboarding-submit').disabled = !(level && goals.length > 0 && topics.length > 0);
+    }
+
+    async function submitOnboarding() {
+      const level = document.querySelector('#onboarding-level .onboarding-opt.selected').dataset.value;
+      const goals = Array.from(document.querySelectorAll('#onboarding-goal .onboarding-opt.selected')).map(b => b.dataset.value);
+      const topics = Array.from(document.querySelectorAll('#onboarding-topics .onboarding-opt.selected')).map(b => b.dataset.value);
+      const note = (document.getElementById('onboarding-note').value || '').trim();
+
+      userLearningProfile = { level, goals, topics, note };
+      const userId = auth.currentUser.uid;
+      await db.collection('users').doc(userId).update({ learningProfile: userLearningProfile });
+
+      document.getElementById('onboarding-container').classList.add('hidden');
+      document.getElementById('daily-words-list-container').classList.remove('hidden');
+      await loadOrGenerateDailyWords();
+    }
+
+    async function loadOrGenerateDailyWords() {
+      const userId = auth.currentUser.uid;
+      const today = new Date().toISOString().split('T')[0];
+
+      const userDoc = await db.collection('users').doc(userId).get();
+      const data = userDoc.data() || {};
+      const dailyWordsData = data.dailyWords || {};
+
+      const cachedValid = dailyWordsData.date === today && dailyWordsData.words && dailyWordsData.words.length > 0 && dailyWordsData.words[0].word;
+      if (cachedValid) {
+        currentDailyWords = dailyWordsData.words;
+        renderDailyWords();
+      } else {
+        await generateDailyWords();
+      }
+    }
+
+    async function generateDailyWords() {
+      showLoading();
+      const userId = auth.currentUser.uid;
+
+      const existingSnap = await db.collection('users').doc(userId).collection('words').get();
+      const existingSet = new Set(existingSnap.docs.map(d => d.id.toLowerCase()));
+
+      const profile = userLearningProfile;
+      const levelMap = {
+        beginner: 'A1-A2 (basic everyday words)',
+        elementary: 'A2-B1 (simple but useful words)',
+        intermediate: 'B1-B2 (more advanced vocabulary)',
+        upper: 'B2-C1 (sophisticated vocabulary)'
+      };
+      const goalMap = {
+        travel: 'travel and tourism situations',
+        work: 'professional and business contexts',
+        study: 'academic and educational contexts',
+        general: 'general everyday communication'
+      };
+      const topicNames = profile.topics.join(', ');
+      const levelDesc = levelMap[profile.level] || 'intermediate level';
+      const goals = profile.goals || (profile.goal ? [profile.goal] : ['general']);
+      const goalDesc = goals.map(g => goalMap[g] || g).join(', ');
+      const noteText = profile.note ? `\nAdditional user note: ${profile.note}` : '';
+
+      let newWords = [];
+
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const allExclude = [...existingSet, ...newWords.map(w => w.word.toLowerCase())];
+        const excludeSample = allExclude.slice(-300).join(', ');
+
+        const prompt = `Generate exactly 50 different English words for a Ukrainian-speaking learner.
+
+Level: ${levelDesc}
+Goals: ${goalDesc}
+Interested topics: ${topicNames}${noteText}
+
+IMPORTANT: Do NOT include these words: ${excludeSample}
+
+Return ONLY a valid JSON array with exactly 50 objects, each having:
+- "word": the English word
+- "translation": Ukrainian translation
+
+Example: [{"word":"negotiate","translation":"домовлятися"}]
+
+Return ONLY the JSON array, no other text.`;
+
+        try {
+          const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openaiApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              messages: [{ role: 'user', content: prompt }],
+              model: 'gpt-4o-mini',
+              temperature: 0.9,
+              max_tokens: 4000,
+            }),
+          });
+
+          if (!response.ok) throw new Error('OpenAI API error');
+          const result = await response.json();
+          const content = result.choices[0].message.content.trim();
+          const jsonStr = content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+          const generated = JSON.parse(jsonStr);
+
+          for (const w of generated) {
+            if (w && w.word && w.translation && !existingSet.has(w.word.toLowerCase())) {
+              if (!newWords.some(nw => nw.word.toLowerCase() === w.word.toLowerCase())) {
+                newWords.push(w);
+                if (newWords.length >= 5) break;
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Attempt ${attempt + 1} failed:`, error);
+        }
+
+        if (newWords.length >= 5) break;
+      }
+
+      hideLoading();
+
+      if (newWords.length === 0) {
+        currentDailyWords = [];
+        const list = document.getElementById('daily-words-list');
+        list.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.5);padding:20px;">На жаль, не вдалося знайти нові слова. Спробуйте ще раз.</p>';
+        return;
+      }
+
+      currentDailyWords = newWords.slice(0, 5);
+      const today = new Date().toISOString().split('T')[0];
+      await db.collection('users').doc(userId).update({
+        dailyWords: { date: today, words: currentDailyWords }
+      });
+
+      await renderDailyWords();
+    }
+
+    function renderDailyWords() {
+      const list = document.getElementById('daily-words-list');
+      list.innerHTML = '';
+      currentDailyWords = currentDailyWords.filter(w => w && w.word && w.translation);
+
+      if (currentDailyWords.length === 0) {
+        list.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.5);padding:20px;">Натисни "Згенерувати" щоб отримати слова</p>';
+        return;
+      }
+
+      currentDailyWords.forEach((w, i) => {
+        const li = document.createElement('li');
+        li.style.cssText = 'background:rgba(255,255,255,0.05);padding:15px 22px;margin-bottom:10px;border-radius:8px;display:flex;align-items:center;border:1px solid rgba(255,255,255,0.06);position:relative;cursor:pointer;list-style:none;animation:dailyWordFadeIn 0.4s ease forwards;animation-delay:' + (i * 0.06) + 's;opacity:0;';
+        const safeWord = w.word.replace(/'/g, "\\'");
+        li.innerHTML = `<i class="fas fa-volume-up" style="color:rgba(240,237,232,0.5);cursor:pointer;margin-right:12px;" onclick="responsiveVoice.speak('${safeWord}', 'UK English Female')"></i><strong>${w.word}</strong>&nbsp;- ${w.translation}<i class="fas fa-plus" onclick="addDailyWord(${i}, this)" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);color:#F0EDE8;cursor:pointer;padding:5px;"></i>`;
+        list.appendChild(li);
+      });
+    }
+
+    async function addDailyWord(index, btn) {
+      const w = currentDailyWords[index];
+      const userId = auth.currentUser.uid;
+      const ref = db.collection('users').doc(userId).collection('words').doc(w.word);
+
+      try {
+        const existing = await ref.get();
+        if (existing.exists) {
+          showNotification(`"${w.word}" вже у словнику`, 'warning');
+          btn.className = 'fas fa-check';
+          btn.style.color = '#34d399';
+          btn.onclick = null;
+          return;
+        }
+        await ref.set({
+          translation: w.translation,
+          example: '',
+          interactions: 0,
+          correctAnswers: 0,
+          priority: 0,
+          dateAdded: firebase.firestore.Timestamp.now(),
+        });
+        btn.className = 'fas fa-check';
+        btn.style.color = '#34d399';
+        btn.onclick = null;
+        playSound(true);
+        showNotification(`"${w.word}" додано!`);
+      } catch (e) {
+        console.error('Error adding word:', e);
+        showNotification('Помилка додавання', 'warning');
+      }
+    }
+
+    async function addAllDailyWords() {
+      const userId = auth.currentUser.uid;
+      const btn = document.getElementById('add-all-daily-words');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Додаємо...';
+
+      try {
+        const batch = db.batch();
+        let added = 0;
+        for (const w of currentDailyWords) {
+          const ref = db.collection('users').doc(userId).collection('words').doc(w.word);
+          const existing = await ref.get();
+          if (!existing.exists) {
+            batch.set(ref, {
+              translation: w.translation,
+              example: '',
+              interactions: 0,
+              correctAnswers: 0,
+              priority: 0,
+              dateAdded: firebase.firestore.Timestamp.now(),
+            });
+            added++;
+          }
+        }
+        if (added > 0) {
+          await batch.commit();
+          showNotification(`Додано ${added} нових слів!`);
+        } else {
+          showNotification('Всі слова вже у словнику', 'warning');
+        }
+        // Mark all plus icons as added
+        document.querySelectorAll('#daily-words-list .fa-plus').forEach(icon => {
+          icon.className = 'fas fa-check';
+          icon.style.color = '#34d399';
+          icon.onclick = null;
+        });
+      } catch (e) {
+        console.error('Error adding all words:', e);
+        showNotification('Помилка додавання', 'warning');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+      updateSadCatVisibility();
+    }
+
+    async function regenerateDailyWords() {
+      const btn = document.getElementById('regenerate-words-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Генеруємо...';
+
+      if (!openaiApiKey) await loadOpenAIKey();
+      if (!userLearningProfile) {
+        const userId = auth.currentUser.uid;
+        const userDoc = await db.collection('users').doc(userId).get();
+        userLearningProfile = (userDoc.data() || {}).learningProfile;
+      }
+
+      // Fade out old words
+      const cards = document.querySelectorAll('.daily-word-card');
+      cards.forEach(c => c.classList.add('fade-out'));
+      await new Promise(r => setTimeout(r, 350));
+
+      await generateDailyWords();
+
+      btn.disabled = false;
+      btn.textContent = '🔄 Згенерувати інші слова';
+    }
+    function closeDailyWordsSettings() {
+      const sheet = document.getElementById('dailyWordsSettingsSheet');
+      sheet.style.transform = 'translateY(100%)';
+      setTimeout(() => {
+        document.getElementById('dailyWordsSettingsPopup').classList.add('hidden');
+      }, 300);
+    }
+
+    function openDailyWordsSettings() {
+      const popup = document.getElementById('dailyWordsSettingsPopup');
+      popup.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        document.getElementById('dailyWordsSettingsSheet').style.transform = 'translateY(0)';
+      });
+
+      // Pre-select current values
+      if (userLearningProfile) {
+        // Level
+        document.querySelectorAll('#settings-level .onboarding-opt').forEach(b => {
+          b.classList.toggle('selected', b.dataset.value === userLearningProfile.level);
+        });
+        // Goals (multi) — support old single `goal` and new `goals` array
+        const goals = userLearningProfile.goals || (userLearningProfile.goal ? [userLearningProfile.goal] : []);
+        document.querySelectorAll('#settings-goal .onboarding-opt').forEach(b => {
+          b.classList.toggle('selected', goals.includes(b.dataset.value));
+        });
+        // Topics
+        const topics = userLearningProfile.topics || [];
+        document.querySelectorAll('#settings-topics .onboarding-opt').forEach(b => {
+          b.classList.toggle('selected', topics.includes(b.dataset.value));
+        });
+        // Note
+        document.getElementById('settings-note').value = userLearningProfile.note || '';
+      }
+    }
+
+    async function saveDailyWordsSettings() {
+      const level = document.querySelector('#settings-level .onboarding-opt.selected');
+      const goals = document.querySelectorAll('#settings-goal .onboarding-opt.selected');
+      const topics = Array.from(document.querySelectorAll('#settings-topics .onboarding-opt.selected')).map(b => b.dataset.value);
+      const note = (document.getElementById('settings-note').value || '').trim();
+
+      if (!level || goals.length === 0 || topics.length === 0) {
+        showNotification('Обери рівень, мету та хоча б одну тему', 'warning');
+        return;
+      }
+
+      userLearningProfile = { level: level.dataset.value, goals: Array.from(goals).map(b => b.dataset.value), topics, note };
+      const userId = auth.currentUser.uid;
+      await db.collection('users').doc(userId).update({ learningProfile: userLearningProfile });
+
+      closeDailyWordsSettings();
+      showNotification('Налаштування збережено!');
+    }
+
     // Змінні для зберігання слів та пагінації
     let allWords = [];
     let displayedWords = [];
@@ -6616,6 +7110,7 @@ function exitSpeedTraining() {
           document.getElementById('translation-suggestions').innerHTML = '';
 
           await loadWordsPool();
+          playSound(true);
           showNotification(`Слово "${englishWord}" успішно додано.`);
         }
       } catch (error) {
@@ -6693,102 +7188,7 @@ function exitSpeedTraining() {
       }
     }
 
-    function fetchTopics() {
-      const topicIcons = {
-        'Actions': '🏃',
-        'Animals': '🐾',
-        'Body Parts': '🦴',
-        'Clothing': '👕',
-        'Colors': '🎨',
-        'Countries': '🌍',
-        'Emotions': '😊',
-        'Family': '👨‍👩‍👧‍👦',
-        'Food': '🍔',
-        'Furniture': '🛋️',
-        'Jobs': '💼',
-        'Nature': '🌿',
-        'School': '📚',
-        'Sports': '⚽',
-        'Technology': '💻',
-        'Transport': '🚗',
-        'Vegetables': '🥕',
-        'Weather': '☀️'
-      };
-
-      showLoading();
-      db.collection('wordBase').get()
-        .then(querySnapshot => {
-          const topicsList = document.getElementById('topics-list');
-          topicsList.innerHTML = '';
-          querySnapshot.forEach(doc => {
-            const topicName = doc.id;
-            const tile = document.createElement('div');
-            tile.classList.add('topic-tile');
-            tile.onclick = () => showTopicWords(topicName);
-            const icon = topicIcons[topicName] || '📖';
-            tile.innerHTML = `<span class="topic-icon">${icon}</span><span class="topic-name">${topicName}</span>`;
-            topicsList.appendChild(tile);
-          });
-          hideLoading();
-        })
-        .catch(error => {
-          console.error('Помилка при отриманні тем:', error);
-          hideLoading();
-        });
-    }
     // Показати слова по темі
-    function showTopicWords(topic) {
-      console.log(`Выбрана тема: ${topic}`);
-      // Скрываем список тем
-      document.getElementById('topics-list').classList.add('hidden');
-      // Показываем секцию слов темы
-      document.getElementById('topic-words').classList.remove('hidden');
-      // Устанавливаем название темы
-      document.getElementById('topic-title').textContent = topic;
-      // Ховаємо кнопку "Назад" (залишаємо тільки "Назад до тем")
-      document.getElementById('word-base-back-button').classList.add('hidden');
-      // Показываем кнопки "Назад к темам" и "Добавить все слова"
-      const titleAndButton = document.querySelector('.title-and-btn');
-      titleAndButton.classList.remove('hidden');
-      // Показываем оверлей загрузки
-      showLoading();
-      // Получаем слова из выбранной темы из Firestore
-      db.collection('wordBase').doc(topic).collection('words').get()
-        .then(querySnapshot => {
-          const wordsList = document.getElementById('topic-words-list');
-          wordsList.innerHTML = ''; // Очищаем предыдущие слова
-          querySnapshot.forEach(doc => {
-            const wordData = doc.data();
-            const li = document.createElement('li');
-            li.classList.add('word-card');
-            // Иконка озвучивания
-            const soundIcon = document.createElement('i');
-            soundIcon.classList.add('fas', 'fa-volume-up');
-            soundIcon.onclick = () => {
-              responsiveVoice.speak(doc.id, "UK English Female");
-            };
-            li.appendChild(soundIcon);
-            // Информация о слове
-            const wordInfo = document.createElement('div');
-            wordInfo.innerHTML = `<strong>${doc.id}</strong> - ${wordData.translation}`;
-            li.appendChild(wordInfo);
-            // Иконка добавления в словарь
-            const addIcon = document.createElement('i');
-            addIcon.classList.add('fas', 'fa-plus');
-            addIcon.style.color = '#F0EDE8';
-            addIcon.style.cursor = 'pointer';
-            addIcon.onclick = () => addWordToMyDictionary(doc.id, wordData, li);
-            li.appendChild(addIcon);
-            wordsList.appendChild(li);
-          });
-          hideLoading();
-        })
-        .catch(error => {
-          console.error('Ошибка при получении слов темы:', error);
-          hideLoading();
-          showNotification('Произошла ошибка при загрузке слов темы. Попробуйте позже.', 'warning');
-        });
-    }
 
     // Функція для показу сповіщень
     function showNotification(message, type = 'success') {
@@ -7033,90 +7433,6 @@ function exitSpeedTraining() {
 
 
 
-    // Додавання слова з бази до особистого словника
-    async function addWordToMyDictionary(word, wordData, listItem) {
-      const userId = auth.currentUser.uid;
-      const userWordRef = db.collection('users').doc(userId).collection('words').doc(word);
-
-      try {
-        const docSnapshot = await userWordRef.get();
-        if (docSnapshot.exists) {
-          showNotification(`Слово "${word}" вже є у вашому словнику.`, 'warning');
-        } else {
-          await userWordRef.set({
-            translation: wordData.translation,
-            example: wordData.example || '',
-            interactions: 0,
-            correctAnswers: 0,
-            priority: 0,
-            dateAdded: firebase.firestore.Timestamp.now(),
-          });
-          showNotification(`Слово "${word}" додано до вашого словника.`);
-
-          // Добавляем анимацию
-          listItem.classList.add('added-word');
-          listItem.addEventListener('animationend', () => {
-            listItem.classList.remove('added-word');
-          });
-        }
-      } catch (error) {
-        console.error(`Помилка при додаванні слова "${word}":`, error);
-        showNotification('Сталася помилка при додаванні слова. Спробуйте пізніше.', 'warning');
-      }
-    }
-
-    async function addAllWordsFromTopic(topic) {
-  const addAllBtn = document.getElementById('addAllButton');
-  // Зберігаємо початковий вміст кнопки
-  const originalContent = addAllBtn.innerHTML;
-  // Встановлюємо HTML з прелоадером (можна задати inline-стилі або використовувати окремий CSS клас)
-  addAllBtn.innerHTML = '<div style="width:20px;height:20px;border:2px solid #000;border-top:2px solid white;border-radius:50%;animation: spin 1s linear infinite;margin:0 auto;"></div>';
-  
-  // (Опційно) можна відключити кнопку, щоб уникнути повторних кліків
-  addAllBtn.disabled = true;
-  
-  const userId = auth.currentUser.uid;
-  showLoading();
-  try {
-    const topicRef = db.collection('wordBase').doc(topic);
-    const wordsSnapshot = await topicRef.collection('words').get();
-    const batch = db.batch();
-    let wordsAdded = 0;
-
-    for (const wordDoc of wordsSnapshot.docs) {
-      const wordData = wordDoc.data();
-      const userWordRef = db.collection('users').doc(userId).collection('words').doc(wordDoc.id);
-      const docSnapshot = await userWordRef.get();
-      if (!docSnapshot.exists) {
-        batch.set(userWordRef, {
-          translation: wordData.translation,
-          example: wordData.example || '',
-          interactions: 0,
-          correctAnswers: 0,
-          priority: 0,
-          dateAdded: firebase.firestore.Timestamp.now(),
-        });
-        wordsAdded++;
-      }
-    }
-
-    if (wordsAdded > 0) {
-      await batch.commit();
-      showNotification(`Нові слова з цієї теми додано до вашого словника.`);
-    } else {
-      showNotification(`Усі слова з цієї теми вже є у вашому словнику.`, 'warning');
-    }
-  } catch (error) {
-    console.error('Помилка додавання слів з теми:', error);
-    showNotification('Сталася помилка при додаванні слів. Спробуйте пізніше.', 'warning');
-  } finally {
-    // Повертаємо початковий вміст кнопки і включаємо її
-    addAllBtn.innerHTML = originalContent;
-    addAllBtn.disabled = false;
-    hideLoading();
-  }
-  updateSadCatVisibility();
-}
 
 function copyStory() {
   const title = document.getElementById('story-title').innerText;
@@ -7156,47 +7472,6 @@ function copyStory() {
     }
 
 
-    // Додати всі слова з теми до словника
-    function addAllWords() {
-      const userId = auth.currentUser.uid;
-      showLoading();
-      db.collection('wordBase').get()
-        .then(querySnapshot => {
-          const batch = db.batch();
-          querySnapshot.forEach(topicDoc => {
-            topicDoc.ref.collection('words').get()
-              .then(wordsSnapshot => {
-                wordsSnapshot.forEach(wordDoc => {
-                  const wordData = wordDoc.data();
-                  const userWordRef = db.collection('users').doc(userId)
-                    .collection('words').doc(wordDoc
-                      .id);
-                  batch.set(userWordRef, {
-                    translation: wordData.translation,
-                    example: wordData.example || '',
-                    interactions: 0,
-                    correctAnswers: 0,
-                    priority: 0,
-                  });
-                });
-              });
-          });
-          return batch.commit();
-        })
-        .then(() => {
-          const successMessage = document.getElementById('success-message');
-          successMessage.textContent = `Всі слова додано до вашого словника.`;
-          setTimeout(() => {
-            successMessage.textContent = '';
-          }, 3000);
-          hideLoading();
-        })
-        .catch(error => {
-          console.error('Помилка додавання всіх слів:', error);
-          hideLoading();
-        });
-      updateSadCatVisibility();
-    }
 
     function openGenerativeTextInfoPopup() {
       document.getElementById('generativeTextInfoPopup').classList.remove('hidden');
@@ -7206,26 +7481,6 @@ function copyStory() {
       document.getElementById('generativeTextInfoPopup').classList.add('hidden');
     }
 
-    // Назад до списку тем
-    function backToTopics() {
-  console.log('Нажата кнопка "Назад до тем"');
-  // Показываем список тем
-  document.getElementById('topics-list').classList.remove('hidden');
-  console.log('Показана секция тем');
-  // Скрываем секцию слов темы
-  document.getElementById('topic-words').classList.add('hidden');
-  console.log('Скрыта секция слов темы');
-  // Показуємо кнопку "Назад"
-  document.getElementById('word-base-back-button').classList.remove('hidden');
-  
-  // Очищаем список слов
-  document.getElementById('topic-words-list').innerHTML = '';
-  console.log('Очищен список слов');
-  // Очищаем название темы
-  document.getElementById('topic-title').textContent = '';
-  // Очищаем сообщения об успехе
-  document.getElementById('success-message').textContent = '';
-}
     // Показати тарифні плани
     function showTariffs() {
       toggleMainTitle();
@@ -9842,12 +10097,14 @@ Return ONLY the JSON array, no other text.`;
           const chartEl = document.getElementById('progress-xp-chart');
           if (chartEl) {
             chartEl.innerHTML = `
-              <div style="font-size: 13px; font-weight: 600; color: rgba(240,237,232,0.9); margin-bottom: 10px;">Інтенсивність занять (XP за день)</div>
-              <div class="acc-xp-chart">
-                ${bars.map((v, i) => `<div class="xp-chart-col${i === 6 ? ' today' : ''}"><span class="xp-chart-val">${v}</span><div class="xp-chart-bar" style="height: ${Math.max(4, (v / maxXP) * 80)}px"></div></div>`).join('')}
-              </div>
-              <div class="acc-xp-chart-labels">
-                ${labels.map(l => `<span>${l}</span>`).join('')}
+              <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px 20px 28px;">
+                <div style="font-size: 13px; font-weight: 600; color: rgba(240,237,232,0.9); margin-bottom: 10px;">Інтенсивність занять (XP за день)</div>
+                <div class="acc-xp-chart">
+                  ${bars.map((v, i) => `<div class="xp-chart-col${i === 6 ? ' today' : ''}"><span class="xp-chart-val">${v}</span><div class="xp-chart-bar" style="height: ${Math.max(4, (v / maxXP) * 80)}px"></div></div>`).join('')}
+                </div>
+                <div class="acc-xp-chart-labels">
+                  ${labels.map(l => `<span>${l}</span>`).join('')}
+                </div>
               </div>
             `;
           }
