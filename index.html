@@ -8014,7 +8014,12 @@ async function translateStory() {
       showConstructorQuestion();
     }
 
+    function vibrate(pattern) {
+      if (navigator.vibrate) navigator.vibrate(pattern);
+    }
+
     async function updateWordStats(word, correct) {
+      vibrate(correct ? 30 : [40, 60, 40]);
       const userId = auth.currentUser.uid;
       const wordRef = db.collection('users').doc(userId).collection('words').doc(word);
 
