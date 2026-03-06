@@ -1653,80 +1653,6 @@
       margin-top: 6px;
     }
 
-    /* Badges */
-    .acc-badges {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
-
-    .badge {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 10px;
-      padding: 6px 10px;
-      font-size: 11px;
-      color: rgba(240, 237, 232, 0.5);
-    }
-
-    .badge.earned {
-      border-color: rgba(232, 168, 56, 0.2);
-      color: #E8A838;
-    }
-
-    .badge-icon {
-      font-size: 16px;
-    }
-
-    /* Badge Popup */
-    .badge-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.8);
-      background: #1e2030;
-      border: 2px solid #E8A838;
-      border-radius: 20px;
-      padding: 30px 40px;
-      text-align: center;
-      z-index: 10000;
-      animation: badge-pop 0.5s ease forwards;
-    }
-
-    .badge-popup-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-
-    .badge-popup-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #E8A838;
-      margin-bottom: 4px;
-    }
-
-    .badge-popup-desc {
-      font-size: 13px;
-      color: rgba(240, 237, 232, 0.6);
-    }
-
-    .badge-popup-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 9999;
-    }
-
-    @keyframes badge-pop {
-      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-      50% { transform: translate(-50%, -50%) scale(1.1); }
-      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-    }
-
     /* Exercise complete confetti */
     .confetti-container {
       position: fixed;
@@ -1876,42 +1802,6 @@
     .league-xp {
       font-size: 11px;
       color: rgba(240, 237, 232, 0.4);
-    }
-
-    /* Coins */
-    .acc-coins {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-
-    .coins-display {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #F2C94C;
-    }
-
-    .coin-toast {
-      position: fixed;
-      top: 60px;
-      right: 20px;
-      background: rgba(242, 201, 76, 0.15);
-      border: 1px solid rgba(242, 201, 76, 0.3);
-      color: #F2C94C;
-      padding: 8px 16px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      z-index: 9999;
-      animation: xp-toast-anim 1.5s ease forwards;
     }
 
     /* Override inherited styles inside account-screen */
@@ -4654,14 +4544,6 @@
       <div class="acc-email acc-animate acc-delay-2"><span class="user-email"></span></div>
       <div class="subscription-info acc-animate acc-delay-3" id="subscription-info"></div>
 
-      <!-- Coins -->
-      <div class="acc-coins acc-animate acc-delay-3">
-        <div class="coins-display">
-          <span>🪙</span>
-          <span id="coins-count">0</span>
-        </div>
-      </div>
-
       <!-- Gamification Stats -->
       <div class="acc-gamification acc-animate acc-delay-3">
         <div class="acc-streak" id="acc-streak">
@@ -4694,9 +4576,6 @@
 
       <!-- Weekly Quest -->
       <div class="acc-quest acc-animate acc-delay-4" id="acc-quest"></div>
-
-      <!-- Badges -->
-      <div class="acc-badges acc-animate acc-delay-4" id="acc-badges"></div>
 
       <!-- Statistics -->
       <div class="acc-stats acc-animate acc-delay-4" id="acc-stats"></div>
@@ -5723,7 +5602,7 @@
     function finishSpeedTrainingSession() {
       showConfetti();
       updateWeeklyQuestProgress('exercise_complete');
-      loadBadges();
+
       // Сброс переменных тренировки
       speedTrainingWords = [];
       currentSpeedQuestion = 0;
@@ -5921,7 +5800,7 @@ function exitSpeedTraining() {
       showConfetti();
       updateWeeklyQuestProgress('exercise_complete');
       updateWeeklyQuestProgress('repetition');
-      loadBadges();
+
       // Возвращаемся на главный экран
       backToAccount();
       // Сбрасываем переменные
@@ -6023,9 +5902,7 @@ function exitSpeedTraining() {
         loadUnsplashKey();
         loadGamificationData();
         loadDailyGoal();
-        loadBadges();
         loadWeeklyQuest();
-        loadCoins();
         loadStatistics();
         loadLeague();
       }
@@ -6126,32 +6003,20 @@ function exitSpeedTraining() {
     // Нарахування XP + оновлення стрику
     async function addXP(amount) {
       userXP += amount;
-      const oldLevel = userLevel;
       userLevel = Math.floor(userXP / 500) + 1;
 
       const today = new Date().toISOString().split('T')[0];
       let streakUpdate = {};
-      let coinReward = 0;
-
       if (userLastActiveDate !== today) {
         const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
         if (userLastActiveDate === yesterday) {
           userStreak += 1;
-          // Монети за серію: 5 за кожен день, бонус на кожний 7-й
-          coinReward = userStreak % 7 === 0 ? 25 : 5;
         } else if (userLastActiveDate !== today) {
           userStreak = 1;
-          coinReward = 5;
         }
         userLastActiveDate = today;
         streakUpdate = { streak: userStreak, lastActiveDate: today };
-        // Оновлюємо рекорд серії
-        streakUpdate.bestStreak = Math.max(userStreak, 0); // буде порівняно з поточним в Firestore
-      }
-
-      // Монети за новий рівень
-      if (userLevel > oldLevel) {
-        coinReward += 50;
+        streakUpdate.bestStreak = Math.max(userStreak, 0);
       }
 
       try {
@@ -6170,10 +6035,6 @@ function exitSpeedTraining() {
         await db.collection('users').doc(userId).update(updateData);
       } catch (error) {
         console.log('Помилка збереження XP:', error);
-      }
-
-      if (coinReward > 0) {
-        addCoins(coinReward, coinReward >= 50 ? 'новий рівень!' : 'серія');
       }
 
       updateGamificationUI();
@@ -6307,85 +6168,7 @@ function exitSpeedTraining() {
       if (wasBelowTarget && isNowComplete) {
         addXP(50);
         showXPToast(50);
-        addCoins(15, 'денна ціль');
       }
-    }
-
-    // ========== BADGES ==========
-    const BADGE_DEFINITIONS = [
-      { id: 'streak_7', icon: '🔥', name: '7 днів', desc: 'Стрік 7 днів підряд', check: (d) => (d.streak || 0) >= 7 },
-      { id: 'streak_30', icon: '💪', name: '30 днів', desc: 'Стрік 30 днів підряд', check: (d) => (d.streak || 0) >= 30 },
-      { id: 'xp_1000', icon: '⭐', name: '1000 XP', desc: 'Набрано 1000 XP', check: (d) => (d.xp || 0) >= 1000 },
-      { id: 'xp_5000', icon: '🌟', name: '5000 XP', desc: 'Набрано 5000 XP', check: (d) => (d.xp || 0) >= 5000 },
-      { id: 'words_50', icon: '📚', name: '50 слів', desc: '50 слів у словнику', check: (d, w) => w >= 50 },
-      { id: 'words_200', icon: '🏆', name: '200 слів', desc: '200 слів у словнику', check: (d, w) => w >= 200 },
-      { id: 'mastered_10', icon: '🎯', name: '10 освоєно', desc: '10 слів на рівні "Освоєно"', check: (d, w, m) => m >= 10 },
-      { id: 'mastered_50', icon: '👑', name: '50 освоєно', desc: '50 слів на рівні "Освоєно"', check: (d, w, m) => m >= 50 },
-    ];
-
-    let earnedBadges = [];
-
-    async function loadBadges() {
-      try {
-        const userId = auth.currentUser.uid;
-        const userDoc = await db.collection('users').doc(userId).get();
-        const userData = userDoc.data() || {};
-        earnedBadges = userData.badges || [];
-
-        const wordsSnap = await db.collection('users').doc(userId).collection('words').get();
-        const wordCount = wordsSnap.size;
-        let masteredCount = 0;
-        wordsSnap.docs.forEach(d => {
-          const data = d.data();
-          const inter = data.interactions || 0;
-          const acc = inter > 0 ? (data.correctAnswers || 0) / inter * 100 : 0;
-          if (acc > 90 && inter >= 10) masteredCount++;
-        });
-
-        let newBadgeEarned = false;
-        BADGE_DEFINITIONS.forEach(badge => {
-          if (!earnedBadges.includes(badge.id) && badge.check(userData, wordCount, masteredCount)) {
-            earnedBadges.push(badge.id);
-            newBadgeEarned = true;
-            showBadgePopup(badge);
-          }
-        });
-
-        if (newBadgeEarned) {
-          await db.collection('users').doc(userId).update({ badges: earnedBadges });
-        }
-
-        renderBadges();
-      } catch (e) { console.log('Badge load error:', e); }
-    }
-
-    function renderBadges() {
-      const el = document.getElementById('acc-badges');
-      if (!el) return;
-      el.innerHTML = BADGE_DEFINITIONS.map(b => {
-        const earned = earnedBadges.includes(b.id);
-        return `<div class="badge ${earned ? 'earned' : ''}" title="${b.desc}">
-          <span class="badge-icon">${earned ? b.icon : '🔒'}</span>
-          <span>${b.name}</span>
-        </div>`;
-      }).join('');
-    }
-
-    function showBadgePopup(badge) {
-      const overlay = document.createElement('div');
-      overlay.className = 'badge-popup-overlay';
-      const popup = document.createElement('div');
-      popup.className = 'badge-popup';
-      popup.innerHTML = `
-        <div class="badge-popup-icon">${badge.icon}</div>
-        <div class="badge-popup-title">${badge.name}</div>
-        <div class="badge-popup-desc">${badge.desc}</div>
-      `;
-      document.body.appendChild(overlay);
-      document.body.appendChild(popup);
-      showConfetti();
-      setTimeout(() => { overlay.remove(); popup.remove(); }, 3000);
-      overlay.onclick = () => { overlay.remove(); popup.remove(); };
     }
 
     // ========== WEEKLY QUEST ==========
@@ -6434,7 +6217,7 @@ function exitSpeedTraining() {
         <div class="quest-header"><i class="fas fa-scroll"></i> Тижневий квест</div>
         <div class="quest-task">${tpl.text.replace('{n}', tpl.target)} ${done ? '✅' : ''}</div>
         <div class="quest-progress"><div class="quest-progress-fill" style="width:${pct}%"></div></div>
-        <div class="quest-reward">${done ? 'Виконано! +' + tpl.reward + ' XP +30 🪙' : quest.progress + '/' + tpl.target + ' — Нагорода: +' + tpl.reward + ' XP +30 🪙'}</div>
+        <div class="quest-reward">${done ? 'Виконано! +' + tpl.reward + ' XP' : quest.progress + '/' + tpl.target + ' — Нагорода: +' + tpl.reward + ' XP'}</div>
       `;
     }
 
@@ -6458,7 +6241,6 @@ function exitSpeedTraining() {
           if (quest.progress >= tpl.target && !quest.completed) {
             quest.completed = true;
             addXP(tpl.reward);
-            addCoins(30, 'тижневий квест');
           }
           await db.collection('users').doc(userId).update({ weeklyQuest: quest });
         }
@@ -6609,49 +6391,6 @@ function exitSpeedTraining() {
       } catch (error) {
         console.log('Помилка завантаження ліги:', error);
       }
-    }
-
-    // ========== INTERNAL CURRENCY (COINS) ==========
-    let userCoins = 0;
-
-    async function loadCoins() {
-      try {
-        const userId = auth.currentUser.uid;
-        const doc = await db.collection('users').doc(userId).get();
-        if (doc.exists) {
-          userCoins = doc.data().coins || 0;
-        }
-        updateCoinsUI();
-      } catch (error) {
-        console.log('Помилка завантаження монет:', error);
-      }
-    }
-
-    function updateCoinsUI() {
-      const el = document.getElementById('coins-count');
-      if (el) el.textContent = userCoins;
-    }
-
-    async function addCoins(amount, reason) {
-      userCoins += amount;
-      updateCoinsUI();
-      showCoinToast(amount, reason);
-      try {
-        const userId = auth.currentUser.uid;
-        await db.collection('users').doc(userId).update({
-          coins: firebase.firestore.FieldValue.increment(amount)
-        });
-      } catch (error) {
-        console.log('Помилка нарахування монет:', error);
-      }
-    }
-
-    function showCoinToast(amount, reason) {
-      const toast = document.createElement('div');
-      toast.className = 'coin-toast';
-      toast.textContent = `+${amount} 🪙${reason ? ' ' + reason : ''}`;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 1600);
     }
 
     async function getWordImage(word) {
@@ -8646,7 +8385,7 @@ async function translateStory() {
     function finishQuiz() {
       showConfetti();
       updateWeeklyQuestProgress('exercise_complete');
-      loadBadges();
+
       // Перехід на головну сторінку
       backToAccount();
       // Скидання прогресу та результатів
@@ -9268,7 +9007,7 @@ async function translateStory() {
     function finishListening() {
       showConfetti();
       updateWeeklyQuestProgress('exercise_complete');
-      loadBadges();
+
       backToAccount();
       // Скидання результатів слухання
       listeningCorrectAnswers = 0;
@@ -9321,7 +9060,7 @@ async function translateStory() {
     function finishConstructor() {
       showConfetti();
       updateWeeklyQuestProgress('exercise_complete');
-      loadBadges();
+
       // Скрываем результаты и показываем главный экран
       document.getElementById('constructor-quiz-result').classList.add('hidden');
       document.getElementById('word-constructor-quiz-container').classList.add('hidden');
