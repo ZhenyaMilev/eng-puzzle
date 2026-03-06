@@ -8014,27 +8014,8 @@ async function translateStory() {
       showConstructorQuestion();
     }
 
-    // iOS haptic workaround: hidden switch checkbox triggers native haptic
-    let iosHapticEl = null;
-    function initIOSHaptic() {
-      if (iosHapticEl) return;
-      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-      if (!isIOS) return;
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.setAttribute('switch', '');
-      input.style.cssText = 'position:fixed;top:-100px;left:-100px;opacity:0;pointer-events:none;';
-      document.body.appendChild(input);
-      iosHapticEl = input;
-    }
-    document.addEventListener('DOMContentLoaded', initIOSHaptic);
-
     function vibrate(pattern) {
-      if (navigator.vibrate) {
-        navigator.vibrate(pattern);
-      } else if (iosHapticEl) {
-        iosHapticEl.checked = !iosHapticEl.checked;
-      }
+      try { if (navigator.vibrate) navigator.vibrate(pattern); } catch(e) {}
     }
 
     async function updateWordStats(word, correct) {
