@@ -1894,9 +1894,34 @@
       transition: background-color 0.3s, transform 0.2s;
     }
 
-    #quiz-emoji {
-      font-size: 60px;
-      color: #32708f;
+    #quiz-emoji, #picture-quiz-emoji, #definition-quiz-emoji {
+      font-size: 80px;
+      display: block;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .quiz-result-score {
+      font-size: 48px;
+      font-weight: 800;
+      margin: 10px 0 4px;
+    }
+
+    .quiz-result-score.great { color: #34d399; }
+    .quiz-result-score.good { color: #E8A838; }
+    .quiz-result-score.low { color: #ef4444; }
+
+    .quiz-result-xp {
+      font-size: 14px;
+      color: #E8A838;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .quiz-result-message {
+      font-size: 15px;
+      color: rgba(240, 237, 232, 0.6);
+      margin-bottom: 20px;
     }
 
     .letter-button:hover {
@@ -5200,33 +5225,35 @@
         const repetitionContainer = document.getElementById('repetition-quiz-container');
         const repetitionProgress = document.getElementById('repetition-progress');
         const repetitionResult = document.getElementById('repetition-result');
-        const repetitionEmoji = document.getElementById('repetition-emoji');
-        const repetitionResultText = document.getElementById('repetition-result-text');
 
-        // Скрываем контейнер и прогресс
         repetitionContainer.classList.add('hidden');
         repetitionProgress.classList.add('hidden');
-
-        // Показываем результат
         repetitionResult.classList.remove('hidden');
 
-        let iconClasses = '';
-        let resultText = '';
-        if (repetitionCorrectAnswers <= 4) {
-          iconClasses = 'fas fa-sad-tear text-red-500';
-          resultText = 'Не погано, але є місце для покращення.';
-        } else if (repetitionCorrectAnswers <= 7) {
-          iconClasses = 'fas fa-meh text-yellow-500';
-          resultText = 'Добре! Але можна краще.';
+        const total = repetitionWords.length;
+        const pct = Math.round((repetitionCorrectAnswers / total) * 100);
+        const xpEarned = repetitionCorrectAnswers * 10 + (total - repetitionCorrectAnswers) * 2;
+        let emoji = '', message = '', scoreClass = '';
+
+        if (pct >= 90) {
+          emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great';
+        } else if (pct >= 70) {
+          emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great';
+        } else if (pct >= 50) {
+          emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good';
+        } else if (pct >= 30) {
+          emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good';
         } else {
-          iconClasses = 'fas fa-grin-stars text-green-500';
-          resultText = 'Відмінно! Ви чудово знаєте ці слова!';
+          emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low';
         }
 
-        repetitionEmoji.className = '';
-        repetitionEmoji.classList.add(...iconClasses.split(' '));
-        repetitionResultText.textContent =
-          `Правильних відповідей: ${repetitionCorrectAnswers} з ${repetitionWords.length}`;
+        repetitionResult.innerHTML = `
+          <div style="font-size:80px;text-align:center;margin-bottom:8px;">${emoji}</div>
+          <div class="quiz-result-score ${scoreClass}">${repetitionCorrectAnswers}/${total}</div>
+          <div class="quiz-result-xp">+${xpEarned} XP</div>
+          <div class="quiz-result-message">${message}</div>
+          <button class="finish-button" onclick="finishRepetition()">Продовжити</button>
+        `;
       }
 
 
@@ -7322,33 +7349,34 @@ function copyStory() {
       const quizContainer = document.getElementById('quiz-container');
       const quizProgress = document.getElementById('quiz-progress');
       const quizResult = document.getElementById('quiz-result');
-      const quizEmoji = document.getElementById('quiz-emoji'); // Элемент <i>
-      const quizResultText = document.getElementById('quiz-result-text');
-      // Скрываем контейнер и прогресс
       quizContainer.classList.add('hidden');
       quizProgress.classList.add('hidden');
-      // Показываем результат
       quizResult.classList.remove('hidden');
-      let iconClasses = '';
-      let resultText = '';
-      if (correctAnswers <= 4) {
-        // Плохой результат
-        iconClasses = 'fas fa-sad-tear text-red-500'; // Пример: грустный смайлик
-        resultText = 'Не погано, але є місце для покращення.';
-      } else if (correctAnswers <= 7) {
-        // Средний результат
-        iconClasses = 'fas fa-meh text-yellow-500'; // Пример: нейтральный смайлик
-        resultText = 'Добре! Але можна краще.';
+
+      const total = quizWords.length;
+      const pct = Math.round((correctAnswers / total) * 100);
+      const xpEarned = correctAnswers * 10 + (total - correctAnswers) * 2;
+      let emoji = '', message = '', scoreClass = '';
+
+      if (pct >= 90) {
+        emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great';
+      } else if (pct >= 70) {
+        emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great';
+      } else if (pct >= 50) {
+        emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good';
+      } else if (pct >= 30) {
+        emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good';
       } else {
-        // Отличный результат
-        iconClasses = 'fas fa-grin-stars text-green-500'; // Пример: улыбающийся с солнцезащитными очками
-        resultText = 'Відмінно! Ви чудово знаєте ці слова!';
+        emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low';
       }
-      // Удаляем все предыдущие классы и добавляем новые
-      quizEmoji.className = ''; // Очищаем все классы
-      quizEmoji.classList.add(...iconClasses.split(' '));
-      // Обновляем текст результата
-      quizResultText.textContent = `Правильних відповідей: ${correctAnswers} з ${quizWords.length}`;
+
+      quizResult.innerHTML = `
+        <div style="font-size:80px;text-align:center;margin-bottom:8px;">${emoji}</div>
+        <div class="quiz-result-score ${scoreClass}">${correctAnswers}/${total}</div>
+        <div class="quiz-result-xp">+${xpEarned} XP</div>
+        <div class="quiz-result-message">${message}</div>
+        <button class="finish-button" onclick="finishQuiz()">Продовжити</button>
+      `;
     }
     // Перевірка відповіді
     function checkAnswer(selectedOption) {
@@ -8291,30 +8319,29 @@ async function translateStory() {
       const container = document.getElementById('picture-quiz-container');
       const progress = document.getElementById('picture-quiz-progress');
       const result = document.getElementById('picture-quiz-result');
-      const emoji = document.getElementById('picture-quiz-emoji');
-      const resultText = document.getElementById('picture-quiz-result-text');
 
       container.classList.add('hidden');
       progress.classList.add('hidden');
       result.classList.remove('hidden');
 
-      let iconClasses = '';
-      let text = '';
+      const total = pictureQuizWords.length;
+      const pct = Math.round((pictureCorrectAnswers / total) * 100);
+      const xpEarned = pictureCorrectAnswers * 10 + (total - pictureCorrectAnswers) * 2;
+      let emoji = '', message = '', scoreClass = '';
 
-      if (pictureCorrectAnswers <= 4) {
-        iconClasses = 'fas fa-sad-tear';
-        text = 'Не погано, але є місце для покращення.';
-      } else if (pictureCorrectAnswers <= 7) {
-        iconClasses = 'fas fa-meh';
-        text = 'Добре! Але можна краще.';
-      } else {
-        iconClasses = 'fas fa-grin-stars';
-        text = 'Відмінно! Ви чудово знаєте ці слова!';
-      }
+      if (pct >= 90) { emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great'; }
+      else if (pct >= 70) { emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great'; }
+      else if (pct >= 50) { emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good'; }
+      else if (pct >= 30) { emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good'; }
+      else { emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low'; }
 
-      emoji.className = '';
-      emoji.classList.add(...iconClasses.split(' '));
-      resultText.textContent = `Ви відповіли правильно на ${pictureCorrectAnswers} з ${pictureQuizWords.length} питань. ${text}`;
+      result.innerHTML = `
+        <div style="font-size:80px;text-align:center;margin-bottom:8px;">${emoji}</div>
+        <div class="quiz-result-score ${scoreClass}">${pictureCorrectAnswers}/${total}</div>
+        <div class="quiz-result-xp">+${xpEarned} XP</div>
+        <div class="quiz-result-message">${message}</div>
+        <button class="finish-button" onclick="finishPictureQuiz()">Продовжити</button>
+      `;
     }
 
     async function skipPictureQuestion() {
@@ -8720,22 +8747,33 @@ async function translateStory() {
 
     function showListeningResult() {
       const listeningContainer = document.getElementById('listening-quiz-container');
-      listeningContainer.innerHTML = `
-    <div class="quiz-result">
-      ${listeningCorrectFeedback()}
-      <button onclick="finishListening()">Завершити тренування</button>
-    </div>
-  `;
-    }
+      const listeningProgress = document.getElementById('listening-progress');
+      if (listeningProgress) listeningProgress.classList.add('hidden');
 
-    function listeningCorrectFeedback() {
-      if (listeningCorrectAnswers <= 4) {
-        return `<img src="https://img.icons8.com/emoji/96/000000/sad-emoji.png" alt="Сумний емодзі"><p>Не погано, але є місце для покращення.</p>`;
-      } else if (listeningCorrectAnswers <= 7) {
-        return `<img src="https://img.icons8.com/emoji/96/000000/neutral-emoji.png" alt="Нейтральний емодзі"><p>Добре! Але можна краще.</p>`;
+      const total = listeningWords.length;
+      const pct = Math.round((listeningCorrectAnswers / total) * 100);
+      const xpEarned = listeningCorrectAnswers * 10 + (total - listeningCorrectAnswers) * 2;
+      let emoji = '', message = '', scoreClass = '';
+
+      if (pct >= 90) {
+        emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great';
+      } else if (pct >= 70) {
+        emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great';
+      } else if (pct >= 50) {
+        emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good';
+      } else if (pct >= 30) {
+        emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good';
       } else {
-        return `<img src="https://img.icons8.com/emoji/96/000000/smiling-face-with-sunglasses.png" alt="Щасливий емодзі"><p>Відмінно! Ви чудово знаєте ці слова.</p>`;
+        emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low';
       }
+
+      listeningContainer.innerHTML = `
+        <div style="font-size:80px;text-align:center;margin-bottom:8px;">${emoji}</div>
+        <div class="quiz-result-score ${scoreClass}">${listeningCorrectAnswers}/${total}</div>
+        <div class="quiz-result-xp">+${xpEarned} XP</div>
+        <div class="quiz-result-message">${message}</div>
+        <button class="finish-button" onclick="finishListening()">Продовжити</button>
+      `;
     }
 
     function finishListening() {
@@ -8771,24 +8809,32 @@ async function translateStory() {
     function showConstructorResult() {
       const constructorContainer = document.getElementById('word-constructor-quiz-container');
       const constructorProgress = document.getElementById('constructor-progress');
-      const constructorResult = `
-    <div class="constructor-quiz-result">
-      ${constructorCorrectFeedback()}
-      <button class="finish-button" onclick="finishConstructor()">Завершити тренування</button>
-    </div>
-  `;
-      constructorContainer.innerHTML = constructorResult;
       constructorProgress.classList.add('hidden');
-    }
 
-    function constructorCorrectFeedback() {
-      if (constructorCorrectAnswers <= 4) {
-        return `<img src="https://img.icons8.com/emoji/96/000000/sad-emoji.png" alt="Сумний емодзі"><p>Не погано, але є місце для покращення.</p>`;
-      } else if (constructorCorrectAnswers <= 7) {
-        return `<img src="https://img.icons8.com/emoji/96/000000/neutral-emoji.png" alt="Нейтральний емодзі"><p>Добре! Але можна краще.</p>`;
+      const total = constructorWords.length;
+      const pct = Math.round((constructorCorrectAnswers / total) * 100);
+      const xpEarned = constructorCorrectAnswers * 10 + (total - constructorCorrectAnswers) * 2;
+      let emoji = '', message = '', scoreClass = '';
+
+      if (pct >= 90) {
+        emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great';
+      } else if (pct >= 70) {
+        emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great';
+      } else if (pct >= 50) {
+        emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good';
+      } else if (pct >= 30) {
+        emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good';
       } else {
-        return `<img src="https://img.icons8.com/emoji/96/000000/smiling-face-with-sunglasses.png" alt="Щасливий емодзі"><p>Відмінно! Ви чудово створюєте слова.</p>`;
+        emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low';
       }
+
+      constructorContainer.innerHTML = `
+        <div style="font-size:80px;text-align:center;margin-bottom:8px;">${emoji}</div>
+        <div class="quiz-result-score ${scoreClass}">${constructorCorrectAnswers}/${total}</div>
+        <div class="quiz-result-xp">+${xpEarned} XP</div>
+        <div class="quiz-result-message">${message}</div>
+        <button class="finish-button" onclick="finishConstructor()">Продовжити</button>
+      `;
     }
 
     function finishConstructor() {
@@ -9654,33 +9700,27 @@ Return ONLY the JSON array, no other text.`;
     function showDefinitionQuizResult() {
       document.getElementById('definition-quiz-training').classList.add('hidden');
       document.getElementById('definition-quiz-progress').classList.add('hidden');
-      document.getElementById('definition-quiz-result').classList.remove('hidden');
+      const result = document.getElementById('definition-quiz-result');
+      result.classList.remove('hidden');
 
-      const percentage = (definitionCorrectAnswers / definitionQuizData.length) * 100;
-      const emoji = document.getElementById('definition-quiz-emoji');
-      const resultText = document.getElementById('definition-quiz-result-text');
+      const total = definitionQuizData.length;
+      const pct = Math.round((definitionCorrectAnswers / total) * 100);
+      const xpEarned = definitionCorrectAnswers * 10 + (total - definitionCorrectAnswers) * 2;
+      let emoji = '', message = '', scoreClass = '';
 
-      let iconClasses, text;
-      if (percentage >= 90) {
-        iconClasses = 'fas fa-trophy';
-        emoji.style.color = '#FFD700';
-        text = 'Чудово! Ви відмінно знаєте слова!';
-      } else if (percentage >= 70) {
-        iconClasses = 'fas fa-smile';
-        emoji.style.color = '#4CAF50';
-        text = 'Добре! Продовжуйте в тому ж дусі!';
-      } else if (percentage >= 50) {
-        iconClasses = 'fas fa-meh';
-        emoji.style.color = '#FF9800';
-        text = 'Непогано, але є над чим працювати.';
-      } else {
-        iconClasses = 'fas fa-frown';
-        emoji.style.color = '#F44336';
-        text = 'Потрібно більше практики!';
-      }
+      if (pct >= 90) { emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great'; }
+      else if (pct >= 70) { emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great'; }
+      else if (pct >= 50) { emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good'; }
+      else if (pct >= 30) { emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good'; }
+      else { emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low'; }
 
-      emoji.className = iconClasses;
-      resultText.textContent = `Правильних відповідей: ${definitionCorrectAnswers} з ${definitionQuizData.length}. ${text}`;
+      result.innerHTML = `
+        <div style="font-size:80px;text-align:center;margin-bottom:8px;">${emoji}</div>
+        <div class="quiz-result-score ${scoreClass}">${definitionCorrectAnswers}/${total}</div>
+        <div class="quiz-result-xp">+${xpEarned} XP</div>
+        <div class="quiz-result-message">${message}</div>
+        <button class="finish-button" onclick="finishDefinitionQuiz()">Продовжити</button>
+      `;
     }
 
     function finishDefinitionQuiz() {
