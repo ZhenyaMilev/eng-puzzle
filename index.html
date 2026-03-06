@@ -1660,47 +1660,6 @@
       100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
     }
 
-    /* Statistics */
-    .acc-stats {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin-bottom: 10px;
-    }
-
-    .acc-stats-header {
-      font-size: 13px;
-      font-weight: 600;
-      color: rgba(240, 237, 232, 0.9);
-      margin-bottom: 12px;
-    }
-
-    .acc-stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .acc-stat-card {
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 10px;
-      padding: 10px 12px;
-      text-align: center;
-    }
-
-    .acc-stat-value {
-      font-size: 20px;
-      font-weight: 700;
-      color: #E8A838;
-    }
-
-    .acc-stat-label {
-      font-size: 10px;
-      color: rgba(240, 237, 232, 0.5);
-      margin-top: 2px;
-    }
-
     .acc-xp-chart {
       display: flex;
       align-items: flex-end;
@@ -1729,64 +1688,6 @@
       color: rgba(240, 237, 232, 0.3);
       margin-top: 4px;
       padding: 0 4px;
-    }
-
-    /* Leagues */
-    .acc-league {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin-bottom: 10px;
-    }
-
-    .league-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .league-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: rgba(240, 237, 232, 0.9);
-    }
-
-    .league-name {
-      font-size: 12px;
-      color: #E8A838;
-      font-weight: 600;
-    }
-
-    .league-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 6px 0;
-      font-size: 13px;
-      color: rgba(240, 237, 232, 0.7);
-    }
-
-    .league-item.current-user {
-      color: #E8A838;
-      font-weight: 600;
-    }
-
-    .league-rank {
-      width: 22px;
-      text-align: center;
-      font-weight: 700;
-      font-size: 12px;
-    }
-
-    .league-user {
-      flex: 1;
-    }
-
-    .league-xp {
-      font-size: 11px;
-      color: rgba(240, 237, 232, 0.4);
     }
 
     /* Override inherited styles inside account-screen */
@@ -4452,6 +4353,8 @@
             <p>Погані знання</p>
             <span id="poorKnowledge">0</span>
           </div>
+        <!-- XP Activity Chart -->
+        <div id="progress-xp-chart" style="margin-top: 16px;"></div>
         </div>
       </div>
     </div>
@@ -4558,12 +4461,6 @@
 
       <!-- Weekly Quest -->
       <div class="acc-quest acc-animate acc-delay-4" id="acc-quest"></div>
-
-      <!-- Statistics -->
-      <div class="acc-stats acc-animate acc-delay-4" id="acc-stats"></div>
-
-      <!-- League -->
-      <div class="acc-league acc-animate acc-delay-4" id="acc-league"></div>
 
       <!-- Quick Actions -->
       <div class="acc-actions acc-animate acc-delay-4">
@@ -5885,8 +5782,6 @@ function exitSpeedTraining() {
         loadGamificationData();
         loadDailyGoal();
         loadWeeklyQuest();
-        loadStatistics();
-        loadLeague();
       }
       // Ховаємо прелоадер після завантаження
       const preloader = document.getElementById('page-preloader');
@@ -6223,133 +6118,6 @@ function exitSpeedTraining() {
     }
 
     // ========== STATISTICS ==========
-    async function loadStatistics() {
-      try {
-        const userId = auth.currentUser.uid;
-        const userDoc = await db.collection('users').doc(userId).get();
-        const userData = userDoc.exists ? userDoc.data() : {};
-        const wordsSnapshot = await db.collection('users').doc(userId).collection('words').get();
-
-        const totalWords = wordsSnapshot.size;
-        const totalXP = userData.xp || 0;
-        const bestStreak = userData.bestStreak || userData.streak || 0;
-        const totalCorrect = wordsSnapshot.docs.reduce((sum, doc) => sum + (doc.data().correctAnswers || 0), 0);
-
-        // XP history for chart (last 7 days)
-        const xpHistory = userData.xpHistory || {};
-        const today = new Date();
-        const bars = [];
-        const labels = [];
-        let maxXP = 1;
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date(today);
-          d.setDate(d.getDate() - i);
-          const key = d.toISOString().split('T')[0];
-          const val = xpHistory[key] || 0;
-          if (val > maxXP) maxXP = val;
-          bars.push(val);
-          labels.push(['Нд','Пн','Вт','Ср','Чт','Пт','Сб'][d.getDay()]);
-        }
-
-        const el = document.getElementById('acc-stats');
-        if (el) {
-          el.innerHTML = `
-            <div class="acc-stats-header">Статистика</div>
-            <div class="acc-stats-grid">
-              <div class="acc-stat-card">
-                <div class="acc-stat-value">${totalWords}</div>
-                <div class="acc-stat-label">слів</div>
-              </div>
-              <div class="acc-stat-card">
-                <div class="acc-stat-value">${totalCorrect}</div>
-                <div class="acc-stat-label">правильних</div>
-              </div>
-              <div class="acc-stat-card">
-                <div class="acc-stat-value">${bestStreak}</div>
-                <div class="acc-stat-label">рекорд серії</div>
-              </div>
-              <div class="acc-stat-card">
-                <div class="acc-stat-value">${totalXP}</div>
-                <div class="acc-stat-label">XP всього</div>
-              </div>
-            </div>
-            <div class="acc-xp-chart">
-              ${bars.map((v, i) => `<div class="xp-chart-bar${i === 6 ? ' today' : ''}" style="height: ${Math.max(4, (v / maxXP) * 60)}px"></div>`).join('')}
-            </div>
-            <div class="acc-xp-chart-labels">
-              ${labels.map(l => `<span>${l}</span>`).join('')}
-            </div>
-          `;
-        }
-      } catch (error) {
-        console.log('Помилка завантаження статистики:', error);
-      }
-    }
-
-    // ========== LEAGUES ==========
-    const LEAGUE_TIERS = [
-      { name: 'Бронза', minXP: 0, icon: '🥉' },
-      { name: 'Срібло', minXP: 2000, icon: '🥈' },
-      { name: 'Золото', minXP: 5000, icon: '🥇' },
-      { name: 'Діамант', minXP: 15000, icon: '💎' },
-      { name: 'Легенда', minXP: 50000, icon: '👑' },
-    ];
-
-    function getLeagueTier(xp) {
-      for (let i = LEAGUE_TIERS.length - 1; i >= 0; i--) {
-        if (xp >= LEAGUE_TIERS[i].minXP) return LEAGUE_TIERS[i];
-      }
-      return LEAGUE_TIERS[0];
-    }
-
-    async function loadLeague() {
-      try {
-        const userId = auth.currentUser.uid;
-        // Завантажуємо топ-10 користувачів за XP
-        const usersSnapshot = await db.collection('users')
-          .orderBy('xp', 'desc')
-          .limit(10)
-          .get();
-
-        const currentUserDoc = await db.collection('users').doc(userId).get();
-        const currentXP = currentUserDoc.exists ? (currentUserDoc.data().xp || 0) : 0;
-        const league = getLeagueTier(currentXP);
-
-        let leaderboard = [];
-        usersSnapshot.docs.forEach(doc => {
-          const d = doc.data();
-          leaderboard.push({
-            id: doc.id,
-            email: d.email || 'Гравець',
-            xp: d.xp || 0,
-          });
-        });
-
-        const el = document.getElementById('acc-league');
-        if (el) {
-          const listHTML = leaderboard.map((u, i) => {
-            const isMe = u.id === userId;
-            const displayName = isMe ? 'Ви' : (u.email.split('@')[0] || 'Гравець');
-            return `<div class="league-item${isMe ? ' current-user' : ''}">
-              <span class="league-rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1)}</span>
-              <span class="league-user">${displayName}</span>
-              <span class="league-xp">${u.xp} XP</span>
-            </div>`;
-          }).join('');
-
-          el.innerHTML = `
-            <div class="league-header">
-              <span class="league-title">Ліга</span>
-              <span class="league-name">${league.icon} ${league.name}</span>
-            </div>
-            ${listHTML}
-          `;
-        }
-      } catch (error) {
-        console.log('Помилка завантаження ліги:', error);
-      }
-    }
-
     async function getWordImage(word) {
       if (imageCache[word]) return imageCache[word];
       if (!UNSPLASH_ACCESS_KEY) return null;
@@ -9920,8 +9688,10 @@ Return ONLY the JSON array, no other text.`;
       let reportDate = new Date();
       const userId = auth.currentUser.uid;
 
-      db.collection("users").doc(userId).collection("words").get()
-        .then(snapshot => {
+      Promise.all([
+        db.collection("users").doc(userId).collection("words").get(),
+        db.collection("users").doc(userId).get()
+      ]).then(([snapshot, userDoc]) => {
           let newWords = 0;
           let goodKnowledge = 0;
           let averageKnowledge = 0;
@@ -9933,12 +9703,10 @@ Return ONLY the JSON array, no other text.`;
             const correctAnswers = word.correctAnswers || 0;
             const accuracy = iterations > 0 ? (correctAnswers / iterations) * 100 : 0;
 
-            // Выбираем диапазон дат
             if (!dateAdded || word.dateAdded.toDate() < dateAdded) {
               dateAdded = word.dateAdded.toDate();
             }
 
-            // Считаем статистику
             if (iterations < 3) {
               newWords++;
             } else if (iterations >= 3 && accuracy > 90) {
@@ -9950,17 +9718,44 @@ Return ONLY the JSON array, no other text.`;
             }
           });
 
-          // Вставляем значения в плитки
           document.getElementById("newWords").innerText = newWords;
           document.getElementById("goodKnowledge").innerText = goodKnowledge;
           document.getElementById("averageKnowledge").innerText = averageKnowledge;
           document.getElementById("poorKnowledge").innerText = poorKnowledge;
 
-          // Вставляем диапазон дат
           document.getElementById("dateRange").innerText =
             `Звіт за період: ${dateAdded.toLocaleDateString()} - ${reportDate.toLocaleDateString()}`;
 
-          // Открываем попап
+          // XP activity chart
+          const userData = userDoc.exists ? userDoc.data() : {};
+          const xpHistory = userData.xpHistory || {};
+          const today = new Date();
+          const bars = [];
+          const labels = [];
+          let maxXP = 1;
+          for (let i = 6; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().split('T')[0];
+            const val = xpHistory[key] || 0;
+            if (val > maxXP) maxXP = val;
+            bars.push(val);
+            labels.push(['Нд','Пн','Вт','Ср','Чт','Пт','Сб'][d.getDay()]);
+          }
+
+          const chartEl = document.getElementById('progress-xp-chart');
+          if (chartEl) {
+            chartEl.innerHTML = `
+              <div style="font-size: 13px; font-weight: 600; color: rgba(240,237,232,0.9); margin-bottom: 10px;">Інтенсивність занять (XP за день)</div>
+              <div class="acc-xp-chart">
+                ${bars.map((v, i) => `<div class="xp-chart-bar${i === 6 ? ' today' : ''}" style="height: ${Math.max(4, (v / maxXP) * 60)}px" title="${labels[i]}: ${v} XP"></div>`).join('')}
+              </div>
+              <div class="acc-xp-chart-labels">
+                ${labels.map(l => `<span>${l}</span>`).join('')}
+              </div>
+            `;
+          }
+
           document.getElementById("progressPopup").classList.remove("hidden");
         })
         .catch(error => {
