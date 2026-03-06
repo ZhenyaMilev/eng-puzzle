@@ -8014,12 +8014,32 @@ async function translateStory() {
       showConstructorQuestion();
     }
 
-    function vibrate(pattern) {
-      try { if (navigator.vibrate) navigator.vibrate(pattern); } catch(e) {}
+    // Sound feedback
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(correct) {
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        gain.gain.value = 0.15;
+        if (correct) {
+          osc.frequency.value = 880;
+          osc.type = 'sine';
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.12);
+        } else {
+          osc.frequency.value = 280;
+          osc.type = 'square';
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.2);
+        }
+      } catch(e) {}
     }
 
     async function updateWordStats(word, correct) {
-      vibrate(correct ? 30 : [40, 60, 40]);
+      playSound(correct);
+      try { if (navigator.vibrate) navigator.vibrate(correct ? 30 : [40, 60, 40]); } catch(e) {}
       const userId = auth.currentUser.uid;
       const wordRef = db.collection('users').doc(userId).collection('words').doc(word);
 
