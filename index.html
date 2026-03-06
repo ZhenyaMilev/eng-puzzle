@@ -4460,9 +4460,6 @@
         </div>
       </div>
 
-      <!-- Word Mastery Summary -->
-      <div class="acc-mastery acc-animate acc-delay-4" id="acc-mastery"></div>
-
       <!-- Quick Actions -->
       <div class="acc-actions acc-animate acc-delay-4">
         <button class="acc-action-btn" onclick="showMyWords()">
@@ -4561,6 +4558,7 @@
           <i class="fas fa-info-circle"></i>
         </button>
       </div>
+      <div class="acc-mastery" id="acc-mastery" style="margin-bottom: 10px;"></div>
       <div id="word-list">
         <ul id="words"></ul>
         <button id="load-more-words" class="long-button hidden" onclick="displayNextWords()">Показати ще</button>
@@ -5796,6 +5794,7 @@ function exitSpeedTraining() {
       document.getElementById('account-screen').classList.add('hidden');
       document.getElementById('my-words-section').classList.remove('hidden');
       fetchWordsPaged();
+      loadMasterySummary();
     }
 
     function toggleMainTitle() {
