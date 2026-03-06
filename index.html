@@ -6603,6 +6603,16 @@ function exitSpeedTraining() {
       `;
       if (algorithm) {
         html += `
+          <div style="display:flex;gap:12px;justify-content:center;margin:12px 0;">
+            <div style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.2);border-radius:8px;padding:8px 14px;text-align:center;">
+              <div style="font-size:16px;font-weight:700;color:#34d399;">+10 XP</div>
+              <div style="font-size:10px;color:rgba(240,237,232,0.5);">правильна</div>
+            </div>
+            <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:8px 14px;text-align:center;">
+              <div style="font-size:16px;font-weight:700;color:#ef4444;">+2 XP</div>
+              <div style="font-size:10px;color:rgba(240,237,232,0.5);">неправильна</div>
+            </div>
+          </div>
           <div class="algorithm-block" onclick="toggleAlgorithm(this)">
             <div class="algorithm-header">
               <p>Як підбираються слова</p>
