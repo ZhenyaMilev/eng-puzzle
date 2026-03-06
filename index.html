@@ -4453,7 +4453,7 @@
       <div class="acc-daily-goal acc-animate acc-delay-3" id="acc-daily-goal">
         <div class="daily-goal-header">
           <span>Денна ціль</span>
-          <span class="daily-goal-count" id="daily-goal-count">0/30</span>
+          <span class="daily-goal-count" id="daily-goal-count">0/200 XP</span>
         </div>
         <div class="daily-goal-bar">
           <div class="daily-goal-fill" id="daily-goal-fill" style="width: 0%"></div>
@@ -5916,6 +5916,7 @@ function exitSpeedTraining() {
 
       updateGamificationUI();
       showXPToast(amount);
+      incrementDailyGoal(amount);
     }
 
     // Тост з нарахуванням XP
@@ -5968,19 +5969,20 @@ function exitSpeedTraining() {
       return '#ef4444';
     }
 
-    // ========== DAILY GOAL ==========
-    let dailyCorrectAnswers = 0;
-    const DAILY_GOAL_TARGET = 30;
+    // ========== DAILY GOAL (XP-based) ==========
+    let dailyXP = 0;
+    const DAILY_GOAL_TARGET = 200;
 
     function updateDailyGoalUI() {
-      const count = Math.min(dailyCorrectAnswers, DAILY_GOAL_TARGET);
+      const count = Math.min(dailyXP, DAILY_GOAL_TARGET);
       const pct = (count / DAILY_GOAL_TARGET) * 100;
       const countEl = document.getElementById('daily-goal-count');
       const fillEl = document.getElementById('daily-goal-fill');
-      if (countEl) countEl.textContent = `${count}/${DAILY_GOAL_TARGET}`;
+      if (countEl) countEl.textContent = `${count}/${DAILY_GOAL_TARGET} XP`;
       if (fillEl) {
         fillEl.style.width = `${pct}%`;
         if (count >= DAILY_GOAL_TARGET) fillEl.classList.add('completed');
+        else fillEl.classList.remove('completed');
       }
     }
 
@@ -5991,29 +5993,17 @@ function exitSpeedTraining() {
         if (doc.exists) {
           const data = doc.data();
           const today = new Date().toISOString().split('T')[0];
-          if (data.dailyGoalDate === today) {
-            dailyCorrectAnswers = data.dailyGoalProgress || 0;
-          } else {
-            dailyCorrectAnswers = 0;
-          }
+          const xpHistory = data.xpHistory || {};
+          dailyXP = xpHistory[today] || 0;
         }
         updateDailyGoalUI();
       } catch (e) { console.log('Daily goal load error:', e); }
     }
 
-    async function incrementDailyGoal() {
-      dailyCorrectAnswers++;
-      const today = new Date().toISOString().split('T')[0];
-      const wasBelowTarget = (dailyCorrectAnswers - 1) < DAILY_GOAL_TARGET;
-      const isNowComplete = dailyCorrectAnswers >= DAILY_GOAL_TARGET;
-
-      try {
-        const userId = auth.currentUser.uid;
-        await db.collection('users').doc(userId).update({
-          dailyGoalProgress: dailyCorrectAnswers,
-          dailyGoalDate: today
-        });
-      } catch (e) { console.log('Daily goal save error:', e); }
+    function incrementDailyGoal(xpAmount) {
+      dailyXP += xpAmount;
+      const wasBelowTarget = (dailyXP - xpAmount) < DAILY_GOAL_TARGET;
+      const isNowComplete = dailyXP >= DAILY_GOAL_TARGET;
 
       updateDailyGoalUI();
 
@@ -8017,9 +8007,8 @@ async function translateStory() {
         }
         // Нараховуємо XP
         addXP(correct ? 10 : 2);
-        // Денна ціль + тижневий квест
+        // Тижневий квест
         if (correct) {
-          incrementDailyGoal();
           updateWeeklyQuestProgress('correct');
         }
       } catch (error) {
