@@ -1663,10 +1663,11 @@
     .acc-xp-chart {
       display: flex;
       align-items: flex-end;
-      gap: 3px;
-      height: 60px;
+      gap: 6px;
+      height: 80px;
       margin-top: 12px;
-      padding: 0 4px;
+      padding: 0;
+      width: 100%;
     }
 
     .xp-chart-bar {
@@ -1684,10 +1685,11 @@
     .acc-xp-chart-labels {
       display: flex;
       justify-content: space-between;
-      font-size: 9px;
-      color: rgba(240, 237, 232, 0.3);
-      margin-top: 4px;
-      padding: 0 4px;
+      font-size: 10px;
+      color: rgba(240, 237, 232, 0.4);
+      margin-top: 6px;
+      padding: 0;
+      width: 100%;
     }
 
     /* Override inherited styles inside account-screen */
@@ -9748,7 +9750,7 @@ Return ONLY the JSON array, no other text.`;
             chartEl.innerHTML = `
               <div style="font-size: 13px; font-weight: 600; color: rgba(240,237,232,0.9); margin-bottom: 10px;">Інтенсивність занять (XP за день)</div>
               <div class="acc-xp-chart">
-                ${bars.map((v, i) => `<div class="xp-chart-bar${i === 6 ? ' today' : ''}" style="height: ${Math.max(4, (v / maxXP) * 60)}px" title="${labels[i]}: ${v} XP"></div>`).join('')}
+                ${bars.map((v, i) => `<div class="xp-chart-bar${i === 6 ? ' today' : ''}" style="height: ${Math.max(4, (v / maxXP) * 80)}px" title="${labels[i]}: ${v} XP"></div>`).join('')}
               </div>
               <div class="acc-xp-chart-labels">
                 ${labels.map(l => `<span>${l}</span>`).join('')}
