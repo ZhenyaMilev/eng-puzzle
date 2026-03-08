@@ -626,7 +626,10 @@
     /* Фідбек часу +1/-2 сек */
     #speed-training-timer {
       position: relative;
-      display: inline-block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
     .speed-time-feedback {
@@ -720,20 +723,16 @@
     .unique-letter-button {
       position: relative;
       font-weight: bold;
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       background-color: rgba(255, 255, 255, 0.08);
-      /* Пастельный голубой */
       border-radius: 12px;
-      /* Единые скруглённые углы */
       font-size: 24px;
       color: #F0EDE8;
-      /* Спокойный зелёный текст */
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 5px;
-      /* Пространство между кнопками */
     }
 
     .unique-letter-button:hover {
@@ -756,7 +755,8 @@
       opacity: 0.4;
     }
 
-    #word-list #words i {
+    #word-list #words i,
+    #phrase-list #phrases i {
       margin-right: 10px;
     }
 
@@ -890,13 +890,15 @@
       }
     }
 
-    /* Стилі для списку слів */
-    #word-list ul {
+    /* Стилі для списку слів і фраз */
+    #word-list ul,
+    #phrase-list ul {
       list-style-type: none;
       padding: 0;
     }
 
-    #word-list li {
+    #word-list li,
+    #phrase-list li {
       background-color: rgba(255, 255, 255, 0.05);
       padding: 15px 22px;
       margin-bottom: 10px;
@@ -911,11 +913,14 @@
     }
 
     #word-list li:hover,
-    #word-list li:active {
+    #word-list li:active,
+    #phrase-list li:hover,
+    #phrase-list li:active {
       background-color: rgba(255, 255, 255, 0.1);
     }
 
-    #word-list .fa-trash {
+    #word-list .fa-trash,
+    #phrase-list .fa-trash {
       position: absolute;
       top: 50%;
       right: 10px;
@@ -932,7 +937,8 @@
       flex-shrink: 0;
     }
 
-    #word-list li.removed {
+    #word-list li.removed,
+    #phrase-list li.removed {
       opacity: 0;
       transform: scale(0);
       height: 0;
@@ -940,7 +946,8 @@
       padding: 0;
     }
 
-    #word-list li button {
+    #word-list li button,
+    #phrase-list li button {
       width: auto;
       margin-left: auto;
       padding: 5px 10px;
@@ -951,7 +958,8 @@
       transition: opacity 0.3s;
     }
 
-    #word-list li button:hover {
+    #word-list li button:hover,
+    #phrase-list li button:hover {
       opacity: 0.7;
     }
 
@@ -980,10 +988,14 @@
     .back-button {
       background-color: rgba(255, 255, 255, 0.06);
       box-shadow: none;
-      padding: 10px 12px;
+      padding: 14px 16px;
       margin: 0;
       width: auto;
       border-radius: 8px;
+    }
+
+    .back-button i {
+      font-size: 26px;
     }
 
     .back-button h2 {
@@ -994,29 +1006,6 @@
 
     .back-button span {
       display: none;
-    }
-
-    /* Більша кнопка назад в тренуваннях */
-    #quiz-section .back-button,
-    #picture-quiz-section .back-button,
-    #listening-training-section .back-button,
-    #word-constructor-training-section .back-button,
-    #speed-training-section .back-button,
-    #repetition-training-section .back-button,
-    #definition-quiz-section .back-button,
-    #fill-blanks-section .back-button {
-      padding: 14px 16px;
-    }
-
-    #quiz-section .back-button i,
-    #picture-quiz-section .back-button i,
-    #listening-training-section .back-button i,
-    #word-constructor-training-section .back-button i,
-    #speed-training-section .back-button i,
-    #repetition-training-section .back-button i,
-    #definition-quiz-section .back-button i,
-    #fill-blanks-section .back-button i {
-      font-size: 26px;
     }
 
     .buttons-right-corner {
@@ -1053,11 +1042,11 @@
       }
 
       .back-button {
-        padding: 10px 12px;
+        padding: 14px 16px;
       }
 
       .back-button i {
-        font-size: 22px;
+        font-size: 26px;
       }
 
       .title-main {
@@ -1599,6 +1588,415 @@
 
     .daily-goal-fill.completed {
       background: linear-gradient(90deg, #34d399, #a7f3d0);
+    }
+
+    .daily-goal-picker {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .daily-goal-picker.hidden {
+      display: none;
+    }
+
+    .daily-goal-opt {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 10px 6px;
+      color: rgba(240, 237, 232, 0.7);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: none;
+      width: auto;
+      margin: 0;
+    }
+
+    .daily-goal-opt span {
+      font-weight: 400;
+      font-size: 11px;
+      opacity: 0.6;
+    }
+
+    .daily-goal-opt.selected {
+      background: rgba(52, 211, 153, 0.15);
+      border-color: #34d399;
+      color: #34d399;
+    }
+
+    /* Leaderboard */
+    .leaderboard-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .leaderboard-tab {
+      flex: 1;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: rgba(240, 237, 232, 0.6);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: none;
+      width: auto;
+      margin: 0;
+    }
+
+    .leaderboard-tab.active {
+      background: rgba(232, 168, 56, 0.15);
+      border-color: #E8A838;
+      color: #E8A838;
+    }
+
+    .leaderboard-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .leaderboard-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .leaderboard-row.is-me {
+      background: rgba(232, 168, 56, 0.08);
+      border-color: rgba(232, 168, 56, 0.3);
+    }
+
+    .leaderboard-rank {
+      font-size: 18px;
+      font-weight: 700;
+      min-width: 32px;
+      text-align: center;
+      color: rgba(240, 237, 232, 0.5);
+    }
+
+    .leaderboard-row:nth-child(1) .leaderboard-rank { color: #E8A838; }
+    .leaderboard-row:nth-child(2) .leaderboard-rank { color: #C0C0C0; }
+    .leaderboard-row:nth-child(3) .leaderboard-rank { color: #CD7F32; }
+
+    .leaderboard-name {
+      flex: 1;
+      font-size: 15px;
+      color: #F0EDE8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .leaderboard-xp {
+      font-size: 14px;
+      font-weight: 600;
+      color: #E8A838;
+      white-space: nowrap;
+    }
+
+    .leaderboard-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: rgba(240, 237, 232, 0.4);
+      font-size: 15px;
+    }
+
+    /* Words/Phrases tab switcher */
+    .vocab-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .vocab-tab {
+      flex: 1;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: rgba(240, 237, 232, 0.6);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: none;
+      width: auto;
+      margin: 0;
+    }
+
+    .vocab-tab.active {
+      background: rgba(232, 168, 56, 0.15);
+      border-color: #E8A838;
+      color: #E8A838;
+    }
+
+    /* Phrase constructor */
+    .phrase-constructor-blocks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin: 16px 0;
+    }
+
+    .phrase-block {
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      color: #F0EDE8;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: none;
+      width: auto;
+      margin: 0;
+    }
+
+    .phrase-block:active {
+      transform: scale(0.95);
+    }
+
+    .phrase-block.used {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .phrase-answer-area {
+      min-height: 50px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 12px 0;
+      justify-content: center;
+    }
+
+    .phrase-answer-block {
+      padding: 8px 14px;
+      background: rgba(232, 168, 56, 0.2);
+      border: 1px solid #E8A838;
+      border-radius: 8px;
+      color: #E8A838;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: none;
+      width: auto;
+      margin: 0;
+    }
+
+    /* Grammar */
+    .grammar-level-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      justify-content: center;
+    }
+
+    .grammar-level-tab {
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(240,237,232,0.6);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .grammar-level-tab.active {
+      background: rgba(232,168,56,0.2);
+      border-color: #E8A838;
+      color: #E8A838;
+    }
+
+    .grammar-topic-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .grammar-topic {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #F0EDE8;
+      font-size: 15px;
+      font-weight: 500;
+      width: 100%;
+      text-align: left;
+      box-shadow: none;
+      margin: 0;
+    }
+
+    .grammar-topic:active {
+      transform: scale(0.98);
+    }
+
+    .grammar-topic .topic-icon {
+      font-size: 22px;
+      width: 36px;
+      text-align: center;
+    }
+
+    .grammar-topic .topic-info {
+      flex: 1;
+    }
+
+    .grammar-topic .topic-name {
+      font-weight: 600;
+      display: block;
+    }
+
+    .grammar-topic .topic-desc {
+      font-size: 12px;
+      color: rgba(240, 237, 232, 0.4);
+      display: block;
+    }
+
+    .grammar-topic .topic-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(52, 211, 153, 0.15);
+      color: #34d399;
+      font-weight: 600;
+    }
+
+    .grammar-lesson-block {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      color: #F0EDE8;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .grammar-lesson-block h3 {
+      font-size: 18px;
+      margin: 0 0 10px;
+      color: #E8A838;
+    }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* Ambient Music Button */
+    .ambient-music-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(30, 30, 40, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(240, 237, 232, 0.6);
+      font-size: 18px;
+      cursor: pointer;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      padding: 0;
+      margin: 0;
+      width: 48px;
+    }
+
+    .ambient-music-btn.playing {
+      color: #E8A838;
+      border-color: rgba(232, 168, 56, 0.3);
+      background: rgba(232, 168, 56, 0.1);
+    }
+
+    .ambient-music-btn.hidden {
+      display: none;
+    }
+
+    .grammar-lesson-block .example {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin: 8px 0;
+      font-style: italic;
+      border-left: 3px solid #E8A838;
+    }
+
+    .gq-chevron.gq-open {
+      transform: rotate(180deg);
+    }
+
+    .story-mode-btn.active {
+      background: rgba(232, 168, 56, 0.2) !important;
+      border-color: #E8A838 !important;
+      color: #E8A838 !important;
+    }
+
+    .story-mode-btn.active::after {
+      display: none;
+    }
+
+    .quiz-option-button {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: #F0EDE8;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .phrase-prompt {
+      text-align: center;
+      font-size: 18px;
+      color: #F0EDE8;
+      margin: 16px 0;
+      font-weight: 600;
+    }
+
+    .nickname-edit-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      align-items: center;
+    }
+
+    .nickname-edit-row input {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 15px;
+    }
+
+    .nickname-edit-row button {
+      padding: 10px 16px;
+      font-size: 14px;
+      white-space: nowrap;
+      margin: 0;
+      width: auto;
     }
 
     /* Weekly Quest */
@@ -3194,10 +3592,64 @@
       background: rgba(255, 255, 255, 0.08);
       margin: 0;
       margin-bottom: 20px;
+      position: relative;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .listening-sound-icon::before,
+    .listening-sound-icon::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 2px solid rgba(232, 168, 56, 0);
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .listening-sound-icon.playing {
+      background: rgba(232, 168, 56, 0.15);
+      transform: scale(1.05);
+    }
+
+    .listening-sound-icon.playing::before {
+      animation: sound-ripple 1.2s ease-out infinite;
+    }
+
+    .listening-sound-icon.playing::after {
+      animation: sound-ripple 1.2s ease-out 0.4s infinite;
+    }
+
+    .listening-sound-icon.playing i {
+      animation: sound-pulse 0.6s ease-in-out infinite alternate;
+    }
+
+    @keyframes sound-ripple {
+      0% { width: 100%; height: 100%; border-color: rgba(232, 168, 56, 0.6); opacity: 1; }
+      100% { width: 180%; height: 180%; border-color: rgba(232, 168, 56, 0); opacity: 0; }
+    }
+
+    @keyframes sound-pulse {
+      0% { transform: scale(1); color: #fffdfd; }
+      100% { transform: scale(1.15); color: #E8A838; }
     }
 
     .listening-sound-icon i {
       color: #fffdfd;
+      transition: color 0.3s, transform 0.2s;
+    }
+
+    /* Анімація для маленьких іконок звуку в словнику */
+    .fa-volume-up {
+      transition: color 0.3s, transform 0.2s;
+    }
+
+    .fa-volume-up.speaking {
+      color: #E8A838 !important;
+      animation: sound-pulse 0.6s ease-in-out infinite alternate;
     }
 
     #generated-story {
@@ -3244,7 +3696,7 @@
 
     /* Настройка кнопки удаления в конструкторе слова */
     .delete-constructor-button {
-      width: 10%;
+      width: 15%;
       min-height: 100%;
       margin: 0;
       padding: 0;
@@ -4443,6 +4895,10 @@
           </button>
         </div>
         <p id="dateRange" class="date-range"></p>
+        <div class="vocab-tabs" style="margin-bottom:16px;">
+          <button class="vocab-tab active" id="progress-tab-words" onclick="switchProgressTab('words')">Слова</button>
+          <button class="vocab-tab" id="progress-tab-phrases" onclick="switchProgressTab('phrases')">Фрази</button>
+        </div>
         <div id="progressData" class="tile-container">
           <div class="tile tile-new" onclick="showInfo('newWords')">
             <div class="tile-icon"><i class="fas fa-star"></i></div>
@@ -4464,6 +4920,13 @@
             <p>Погані знання</p>
             <span id="poorKnowledge">0</span>
           </div>
+        </div>
+        <!-- Streak -->
+        <div style="margin-top:20px;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;background:rgba(232,168,56,0.08);border:1px solid rgba(232,168,56,0.15);border-radius:12px;">
+          <span style="font-size:18px;">🔥</span>
+          <span style="font-size:14px;color:rgba(240,237,232,0.7);">Серія:</span>
+          <span id="progress-streak" style="font-size:16px;color:#E8A838;font-weight:700;"></span>
+          <span style="font-size:14px;color:rgba(240,237,232,0.5);">днів підряд</span>
         </div>
         <!-- XP Activity Chart -->
         <div id="progress-xp-chart" style="margin-top: 40px;"></div>
@@ -4489,6 +4952,9 @@
   </div>
   <!-- Overlay -->
   <div class="overlay hidden" onclick="closeAllPopups()"></div>
+  <button class="ambient-music-btn hidden" id="ambient-music-btn" onclick="toggleAmbientMusic()">
+    <i class="fas fa-music"></i>
+  </button>
 
   <!-- Оверлей завантаження -->
   <div id="loading-overlay">
@@ -4544,7 +5010,7 @@
 
       <!-- Gamification Stats -->
       <div class="acc-gamification acc-animate acc-delay-3">
-        <div class="acc-streak" id="acc-streak">
+        <div class="acc-streak" id="acc-streak" onclick="showInfoPopup('🔥 Серія днів', 'Серія показує скільки днів поспіль ти навчаєшся. Заходь щодня, щоб не втратити свій прогрес!\n\n• Кожен день, коли ти відкриваєш додаток — серія зростає.\n• Якщо пропустиш день — серія скидається до 1.\n• Намагайся утримати найдовшу серію!')" style="cursor:pointer;">
           <span class="acc-streak-icon">🔥</span>
           <span class="acc-streak-count" id="streak-count">0</span>
           <span class="acc-streak-label">днів</span>
@@ -4554,18 +5020,24 @@
           <div class="acc-xp-bar">
             <div class="acc-xp-fill" id="acc-xp-fill" style="width: 0%"></div>
           </div>
-          <div class="acc-xp-text" id="acc-xp-text">0 / 500 XP</div>
+          <div class="acc-xp-text" id="acc-xp-text">0 / 200 XP</div>
         </div>
       </div>
 
       <!-- Daily Goal -->
-      <div class="acc-daily-goal acc-animate acc-delay-3" id="acc-daily-goal">
+      <div class="acc-daily-goal acc-animate acc-delay-3" id="acc-daily-goal" onclick="toggleDailyGoalPicker()">
         <div class="daily-goal-header">
-          <span>Денна ціль</span>
+          <span>Денна ціль <i class="fas fa-pen" style="font-size:11px;opacity:0.5;margin-left:4px;"></i></span>
           <span class="daily-goal-count" id="daily-goal-count">0/200 XP</span>
         </div>
         <div class="daily-goal-bar">
           <div class="daily-goal-fill" id="daily-goal-fill" style="width: 0%"></div>
+        </div>
+        <div id="daily-goal-picker" class="daily-goal-picker hidden">
+          <button class="daily-goal-opt" data-target="100" onclick="setDailyGoal(event, 100)">Легко<br><span>100 XP</span></button>
+          <button class="daily-goal-opt" data-target="200" onclick="setDailyGoal(event, 200)">Нормально<br><span>200 XP</span></button>
+          <button class="daily-goal-opt" data-target="300" onclick="setDailyGoal(event, 300)">Серйозно<br><span>300 XP</span></button>
+          <button class="daily-goal-opt" data-target="500" onclick="setDailyGoal(event, 500)">Хардкор<br><span>500 XP</span></button>
         </div>
       </div>
 
@@ -4573,7 +5045,7 @@
       <div class="acc-actions acc-animate acc-delay-4">
         <button class="acc-action-btn" onclick="showMyWords()">
           <i class="fas fa-book"></i>
-          <span>Мої слова</span>
+          <span>Словник</span>
         </button>
         <button class="acc-action-btn" onclick="showAddWord()">
           <i class="fas fa-plus"></i>
@@ -4586,6 +5058,10 @@
         <button class="acc-action-btn" onclick="loadUserProgress()">
           <i class="fa-solid fa-chart-line"></i>
           <span>Прогрес</span>
+        </button>
+        <button class="acc-action-btn" onclick="showLeaderboard()">
+          <i class="fas fa-trophy"></i>
+          <span>Лідери</span>
         </button>
       </div>
 
@@ -4634,9 +5110,54 @@
           <div class="acc-tile-icon"><i class="fas fa-lightbulb"></i></div>
           Вгадай слово
         </button>
+        <button class="acc-tile acc-animate acc-delay-15" data-color="sky" onclick="startPhraseConstructor()">
+          <div class="acc-tile-icon"><i class="fas fa-layer-group"></i></div>
+          Фрази
+        </button>
+        <button class="acc-tile acc-animate acc-delay-16" data-color="violet" onclick="showGrammar()">
+          <div class="acc-tile-icon"><i class="fas fa-graduation-cap"></i></div>
+          Граматика
+        </button>
       </div>
 
     </div>
+
+    <!-- Секція "Таблиця лідерів" -->
+    <div id="leaderboard-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <h2 style="font-size:24px;">Таблиця лідерів</h2>
+      </div>
+      <div class="leaderboard-tabs">
+        <button class="leaderboard-tab active" id="lb-tab-weekly" onclick="switchLeaderboardTab('weekly')">За тиждень</button>
+        <button class="leaderboard-tab" id="lb-tab-total" onclick="switchLeaderboardTab('total')">Загальний</button>
+      </div>
+      <div id="leaderboard-list" class="leaderboard-list">
+        <div class="leaderboard-empty">Завантаження...</div>
+      </div>
+      <div style="margin-top:24px;padding:14px 16px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.06);">
+        <div id="nickname-display" style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <i class="fas fa-user-circle" style="font-size:18px;color:#E8A838;"></i>
+            <span style="font-size:13px;color:rgba(240,237,232,0.5);">Нік:</span>
+            <span id="nickname-label" style="font-size:15px;color:#F0EDE8;font-weight:600;"></span>
+          </div>
+          <button onclick="toggleNicknameEdit()" style="padding:6px 12px;font-size:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(240,237,232,0.6);cursor:pointer;width:auto;min-width:auto;margin:0;">
+            <i class="fas fa-pen" style="font-size:10px;"></i>
+          </button>
+        </div>
+        <div id="nickname-edit" class="hidden" style="margin-top:12px;">
+          <div class="nickname-edit-row" style="margin-top:0;">
+            <input type="text" id="nickname-input" placeholder="Введи нікнейм..." maxlength="20">
+            <button onclick="saveNickname()">Зберегти</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Попап для поділених слів -->
     <div id="sharedWordsPopup" class="popup hidden">
       <div class="popup-content">
@@ -4658,9 +5179,14 @@
           <i class="fas fa-arrow-left"></i>
           <span>Назад</span>
         </button>
-        <h2 style="font-size: 28px;">Мої слова</h2>
+        <h2 style="font-size: 28px;">Мій словник</h2>
       </div>
-      <input type="text" id="search-input" placeholder="Пошук слова...">
+      <div class="vocab-tabs">
+        <button class="vocab-tab active" id="vocab-tab-words" onclick="switchVocabTab('words')">Слова</button>
+        <button class="vocab-tab" id="vocab-tab-phrases" onclick="switchVocabTab('phrases')">Фрази</button>
+      </div>
+      <div id="vocab-words-content">
+        <input type="text" id="search-input" placeholder="Пошук слова...">
       <div class="word-count-row">
         <div id="word-count"></div>
         <button class="info-btn-small" onclick="showMyWordsInfo()">
@@ -4677,6 +5203,22 @@
         <i class="fas fa-magic"></i>
         Слова дня
       </button>
+      </div><!-- /vocab-words-content -->
+
+      <div id="vocab-phrases-content" class="hidden">
+        <input type="text" id="phrase-search-input" placeholder="Пошук фрази...">
+        <div class="word-count-row">
+          <div id="phrase-count"></div>
+          <button class="info-btn-small" onclick="showPhrasesInfo()">
+            <i class="fas fa-info-circle"></i>
+          </button>
+        </div>
+        <div class="acc-mastery" id="phrase-mastery" style="margin-bottom: 10px;"></div>
+        <div id="phrase-list">
+          <ul id="phrases"></ul>
+          <button id="load-more-phrases" class="long-button hidden" onclick="loadMorePhrases()">Показати ще</button>
+        </div>
+      </div>
     </div>
     <!-- Секція "Генеративний текст" -->
     <div id="generative-text-section" class="hidden">
@@ -4704,6 +5246,13 @@
         <label for="text-length">Довжина тексту:</label>
         <button class="option-button" onclick="openOptionMenu('text-length', this)">-- Виберіть довжину --</button>
       </div>
+      <div class="title-wrapper">
+        <label>Режим:</label>
+        <div style="display:flex;gap:8px;width:100%;">
+          <button class="option-button story-mode-btn active" data-mode="text" onclick="selectStoryMode('text', this)" style="flex:1;">Текст</button>
+          <button class="option-button story-mode-btn" data-mode="audio" onclick="selectStoryMode('audio', this)" style="flex:1;">Аудіо</button>
+        </div>
+      </div>
       <button class="generate" onclick="generateStory()">
         <div class="spinner hidden"></div>
         <span>Сгенерувати</span>
@@ -4729,7 +5278,27 @@
     <i class="fas fa-language"></i>
   </button>
   <!-- Більша кнопка для підтвердження "Прочитано" (залишаємо як є) -->
-  <button id="read-story-btn" class="large-btn" onclick="markStoryAsRead()">Прочитано</button>
+  <button id="read-story-btn" class="large-btn" onclick="startStoryQuiz()">Тест по історії</button>
+</div>
+
+<!-- Audio mode player -->
+<div id="story-audio-mode" class="hidden" style="text-align:center;padding:20px 0;">
+  <div style="font-size:60px;margin-bottom:16px;">🎧</div>
+  <p id="story-audio-title" style="font-size:18px;font-weight:600;color:#F0EDE8;margin-bottom:12px;"></p>
+  <p style="color:rgba(240,237,232,0.5);font-size:14px;margin-bottom:16px;">Прослухай історію уважно. Залишилось прослуховувань: <span id="audio-listens-left">2</span></p>
+  <button id="play-audio-story-btn" class="large-btn" onclick="playAudioStory()" style="margin-bottom:12px;">
+    <i class="fas fa-play" style="margin-right:8px;"></i>Прослухати
+  </button>
+  <button id="audio-to-quiz-btn" class="large-btn hidden" onclick="startStoryQuiz()" style="background:rgba(232,168,56,0.2);border:1px solid #E8A838;color:#E8A838;">
+    Перейти до тесту
+  </button>
+</div>
+
+<!-- Story quiz -->
+<div id="story-quiz" class="hidden">
+  <h3 style="text-align:center;font-size:18px;color:#F0EDE8;margin-bottom:16px;">Тест по історії</h3>
+  <div id="story-quiz-container"></div>
+  <div id="story-quiz-result" class="quiz-result hidden"></div>
 </div>
       <!-- Боковое меню -->
       <div id="option-menu" class="option-menu hidden">
@@ -4882,25 +5451,149 @@
         <button class="finish-button" onclick="saveDailyWordsSettings()" style="width:100%;">Зберегти</button>
       </div>
     </div>
-    <!-- Секція "Додати слово" -->
+    <!-- Секція "Додати слово/фразу" -->
     <div id="add-word-section" class="hidden">
       <div class="title-and-btn">
         <button class="button-with-icon back-button" onclick="backToAccount()">
           <i class="fas fa-arrow-left"></i>
           <span>Назад</span>
         </button>
-        <h2>Додати слово</h2>
+        <h2 id="add-section-title">Додати</h2>
       </div>
-      <input type="text" id="english-word" placeholder="Англійське слово"
-        onblur="getTranslationSuggestions(this.value)">
-      <div id="english-word-error" class="error-message"></div>
-      <input type="text" id="translation" placeholder="Переклад">
-      <div id="translation-error" class="error-message"></div>
-      <div id="translation-suggestions"></div>
-      <input type="text" id="example" placeholder="Приклад використання (необов'язково)">
-      <div id="example-error" class="error-message"></div>
-      <button onclick="addWord()">Додати</button>
+      <div class="vocab-tabs" style="margin-bottom:14px;">
+        <button class="vocab-tab active" id="add-tab-word" onclick="switchAddTab('word')">Слово</button>
+        <button class="vocab-tab" id="add-tab-phrase" onclick="switchAddTab('phrase')">Фразу</button>
+      </div>
+      <!-- Word form -->
+      <div id="add-word-form">
+        <div id="voice-status" class="hidden" style="text-align:center;padding:12px;margin-bottom:12px;background:rgba(232,168,56,0.1);border-radius:10px;color:#E8A838;font-size:14px;">
+          <i class="fas fa-circle" style="animation:blink 1s infinite;color:#ef4444;margin-right:6px;font-size:10px;"></i>Слухаю...
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin:5px 0 15px 0;">
+          <input type="text" id="english-word" placeholder="Англійське слово" style="flex:1;margin:0;height:52px;box-sizing:border-box;"
+            onblur="getTranslationSuggestions(this.value)">
+          <button onclick="startVoiceInput('en')" style="width:90px;min-width:90px;height:52px;padding:0;margin:0;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:28px;color:#E8A838;cursor:pointer;box-shadow:none;" title="Голосом (EN)">
+            <i class="fas fa-microphone"></i>
+          </button>
+        </div>
+        <div id="english-word-error" class="error-message"></div>
+        <div id="translation-suggestions"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin:5px 0 15px 0;">
+          <input type="text" id="translation" placeholder="Переклад" style="flex:1;margin:0;height:52px;box-sizing:border-box;"
+            onblur="getReverseTranslation(this.value)">
+          <button onclick="startVoiceInput('uk')" style="width:90px;min-width:90px;height:52px;padding:0;margin:0;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:28px;color:#60a5fa;cursor:pointer;box-shadow:none;" title="Голосом (УК)">
+            <i class="fas fa-microphone"></i>
+          </button>
+        </div>
+        <div id="translation-error" class="error-message"></div>
+        <div id="reverse-translation-suggestions"></div>
+        <input type="text" id="example" placeholder="Приклад використання (необов'язково)">
+        <div id="example-error" class="error-message"></div>
+        <button onclick="addWord()">Додати</button>
+        <!-- Photo / Camera -->
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);">
+          <label id="photo-upload-label" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(240,237,232,0.6);font-size:15px;cursor:pointer;margin:0;">
+            <span id="photo-upload-text"><i class="fas fa-camera" style="font-size:18px;"></i> Додати слова з фото</span>
+            <span id="photo-upload-loading" class="hidden"><i class="fas fa-spinner fa-spin" style="font-size:18px;"></i> Аналізую фото...</span>
+            <input type="file" accept="image/*" capture="environment" onchange="handlePhotoInput(event)" style="display:none;">
+          </label>
+        </div>
+        <div id="photo-words-preview" class="hidden" style="margin-top:12px;padding:14px;background:rgba(255,255,255,0.04);border-radius:12px;">
+          <p style="font-size:13px;color:rgba(240,237,232,0.5);margin-bottom:8px;">Слова з фото (обери для додавання):</p>
+          <div id="photo-words-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+          <button id="bulk-add-photo-words" onclick="bulkAddPhotoWords()" class="hidden" style="margin-top:12px;width:100%;padding:12px;background:rgba(52,211,153,0.2);border:1px solid rgba(52,211,153,0.4);color:#34d399;border-radius:10px;font-weight:600;cursor:pointer;">
+            <i class="fas fa-plus" style="margin-right:6px;"></i>Додати обрані (<span id="photo-selected-count">0</span>)
+          </button>
+        </div>
+      </div>
+      <!-- Phrase form -->
+      <div id="add-phrase-form" class="hidden">
+        <input type="text" id="phrase-english-inline" placeholder="Фраза англійською"
+          onblur="getPhraseTranslationSuggestionsInline(this.value)">
+        <div id="phrase-english-inline-error" class="error-message"></div>
+        <input type="text" id="phrase-translation-inline" placeholder="Переклад українською">
+        <div id="phrase-translation-inline-error" class="error-message"></div>
+        <div id="phrase-translation-suggestions-inline"></div>
+        <button onclick="addPhraseInline()">Додати</button>
+      </div>
     </div>
+    <!-- Секція "Додати фразу" -->
+    <div id="add-phrase-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backFromAddPhrase()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <h2>Додати фразу</h2>
+      </div>
+      <input type="text" id="phrase-english" placeholder="Фраза англійською"
+        onblur="getPhraseTranslationSuggestions(this.value)">
+      <div id="phrase-english-error" class="error-message"></div>
+      <input type="text" id="phrase-translation" placeholder="Переклад українською">
+      <div id="phrase-translation-error" class="error-message"></div>
+      <div id="phrase-translation-suggestions"></div>
+      <button onclick="addPhrase()">Додати</button>
+    </div>
+
+    <!-- Секція "Конструктор фраз" -->
+    <div id="phrase-constructor-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <button class="button-with-icon small-button info-button" onclick="showInfoPopup('Конструктор фраз', 'Побач фразу українською та зберіть її англійською з блоків-слів. За правильну відповідь +20 XP, за неправильну +5 XP.', ['Алгоритм обирає 10 фраз зі словника.', 'Спочатку використовуються нові фрази (менше 3 взаємодій).', 'Якщо нових фраз недостатньо, додаються фрази від складних до простих.', 'Складність визначається відсотком правильних відповідей.'])">
+          <i class="fas fa-info-circle"></i>
+        </button>
+      </div>
+      <div id="phrase-constructor-progress" class="constructor-quiz-progress">
+        <div id="phrase-constructor-progress-bar" class="constructor-quiz-progress-bar" style="width:0%"></div>
+      </div>
+      <div id="phrase-constructor-container"></div>
+      <div id="phrase-constructor-result" class="quiz-result hidden"></div>
+    </div>
+
+    <!-- Секція "Граматика" -->
+    <div id="grammar-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <h2 style="font-size:24px;">Граматика</h2>
+      </div>
+      <div id="grammar-topics">
+        <div class="grammar-level-tabs">
+          <button class="grammar-level-tab active" onclick="filterGrammarLevel('all')">Всі</button>
+          <button class="grammar-level-tab" onclick="filterGrammarLevel('A1')">A1</button>
+          <button class="grammar-level-tab" onclick="filterGrammarLevel('A2')">A2</button>
+          <button class="grammar-level-tab" onclick="filterGrammarLevel('B1')">B1</button>
+          <button class="grammar-level-tab" onclick="filterGrammarLevel('B2')">B2</button>
+        </div>
+        <div id="grammar-topic-list" class="grammar-topic-list"></div>
+      </div>
+      <div id="grammar-choice" class="hidden" style="display:none;flex-direction:column;align-items:center;gap:16px;padding:24px 0;">
+        <h3 id="grammar-choice-title" style="font-size:20px;color:#E8A838;margin-bottom:8px;text-align:center;"></h3>
+        <p style="font-size:14px;color:rgba(240,237,232,0.5);text-align:center;">Теорію вже пройдено. Що хочеш зробити?</p>
+        <button class="large-btn" onclick="grammarChoiceQuiz()" style="width:100%;background:rgba(232,168,56,0.2);border:1px solid #E8A838;color:#E8A838;">
+          <i class="fas fa-pencil-alt" style="margin-right:8px;"></i>Перевірити знання
+        </button>
+        <button class="large-btn" onclick="grammarChoiceTheory()" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:rgba(240,237,232,0.7);">
+          <i class="fas fa-book-open" style="margin-right:8px;"></i>Переглянути теорію
+        </button>
+      </div>
+      <div id="grammar-lesson" class="hidden">
+        <div id="grammar-lesson-content"></div>
+        <button class="large-btn" onclick="startGrammarQuiz()" style="margin-top:16px;width:100%;background:rgba(232,168,56,0.2);border:1px solid #E8A838;color:#E8A838;">
+          Перевірити знання
+        </button>
+      </div>
+      <div id="grammar-quiz" class="hidden">
+        <div id="grammar-quiz-container"></div>
+        <div id="grammar-quiz-result" class="quiz-result hidden"></div>
+      </div>
+    </div>
+
     <!-- Секція "Тренування знань" -->
     <div id="quiz-section" class="hidden">
       <div class="title-and-btn">
@@ -5080,6 +5773,9 @@
       </div>
       <div id="speed-training-info">
         <!-- Контент для выбора режима тренировки -->
+        <div id="speed-record-display" style="text-align:center;margin-bottom:16px;padding:14px 18px;background:rgba(255,255,255,0.06);border-radius:12px;display:none;">
+          <span style="color:#E8A838;font-size:20px;font-weight:700;"><i class="fas fa-trophy" style="margin-right:6px;"></i>Рекорд: <span id="speed-record-value">0</span></span>
+        </div>
         <p>Оберіть режим тренування:</p>
         <button id="ukr-to-eng-button" onclick="selectSpeedTrainingMode('ukr_to_eng')">З української на
           англійську</button>
@@ -5087,7 +5783,7 @@
           українську</button>
       </div>
       <div id="speed-training-quiz" class="hidden">
-        <div id="speed-training-timer">Час: 60 сек</div>
+        <div id="speed-training-timer"><i class="fas fa-clock" style="color:#E8A838;"></i> 60 сек</div>
         <div id="speed-training-question"></div>
       </div>
       <div id="speed-training-result" class="hidden">
@@ -5311,6 +6007,7 @@
     let speedTimer = 60; // 60 секунд
     let speedTrainingMode = ''; // 'ukr_to_eng' або 'eng_to_ukr'
     let speedTimerInterval;
+    let speedRecord = 0; // Рекорд правильних відповідей
     let repetitionWords = [];
     let currentRepetitionQuestion = 0;
     let repetitionCorrectAnswers = 0;
@@ -5368,6 +6065,7 @@
       }
 
       function showRepetitionResult() {
+        checkAndShowDailyRecord();
         const repetitionContainer = document.getElementById('repetition-quiz-container');
         const repetitionProgress = document.getElementById('repetition-progress');
         const repetitionResult = document.getElementById('repetition-result');
@@ -5467,6 +6165,16 @@
       document.getElementById('account-screen').classList.add('hidden');
       document.getElementById('speed-training-section').classList.remove('hidden');
 
+      // Показати рекорд
+      const recordDisplay = document.getElementById('speed-record-display');
+      const recordValue = document.getElementById('speed-record-value');
+      if (speedRecord > 0) {
+        recordValue.textContent = speedRecord;
+        recordDisplay.style.display = 'block';
+      } else {
+        recordDisplay.style.display = 'none';
+      }
+
       const speedTrainingInfo = document.getElementById('speed-training-info');
       const errorClass = 'training-error'; // Класс для ошибки
 
@@ -5541,7 +6249,7 @@
 
     function updateSpeedTimerDisplay() {
       const timerElement = document.getElementById('speed-training-timer');
-      timerElement.textContent = `Час: ${speedTimer} сек`;
+      timerElement.innerHTML = `<i class="fas fa-clock" style="color:#E8A838;"></i> ${speedTimer} сек`;
       if (speedTimer <= 10) {
         timerElement.style.color = 'red';
       } else {
@@ -5584,20 +6292,23 @@
       options.sort(() => 0.5 - Math.random());
       // Отображаем вопрос и варианты
       let questionHTML = `
-    <button onclick="playSpeedWordSound()" class="listening-sound-icon"><i class="fas fa-volume-up"></i></button>
+    <button onclick="playSpeedWordSound(this)" class="listening-sound-icon"><i class="fas fa-volume-up"></i></button>
     <h3>${questionText}</h3>
     ${options.map(option => `<button onclick="checkSpeedAnswer('${option.replace(/'/g, "\\'")}', this)">${option}</button>`).join('')}
   `;
       document.getElementById('speed-training-question').innerHTML = questionHTML;
     }
 
-    function playSpeedWordSound() {
+    function playSpeedWordSound(btn) {
       const questionWord = speedTrainingWords[currentSpeedQuestion];
-      if (speedTrainingMode === 'ukr_to_eng') {
-        responsiveVoice.speak(questionWord.translation, "Ukrainian Female");
-      } else {
-        responsiveVoice.speak(questionWord.english, "UK English Female");
-      }
+      if (!btn) btn = document.querySelector('#speed-training-question .listening-sound-icon');
+      if (btn) btn.classList.add('playing');
+      const voice = speedTrainingMode === 'ukr_to_eng' ? "Ukrainian Female" : "UK English Female";
+      const text = speedTrainingMode === 'ukr_to_eng' ? questionWord.translation : questionWord.english;
+      responsiveVoice.speak(text, voice, {
+        onend: () => { if (btn) btn.classList.remove('playing'); }
+      });
+      setTimeout(() => { if (btn) btn.classList.remove('playing'); }, 3000);
     }
 
     function checkSpeedAnswer(selectedOption, buttonElement) {
@@ -5636,7 +6347,7 @@
 
       // Оновлюємо таймер з фідбеком
       const timerElement = document.getElementById('speed-training-timer');
-      timerElement.innerHTML = `Час: ${speedTimer} сек ${timeFeedback}`;
+      timerElement.innerHTML = `<i class="fas fa-clock" style="color:#E8A838;"></i> ${speedTimer} сек ${timeFeedback}`;
       timerElement.style.color = speedTimer <= 10 ? 'red' : '#F0EDE8';
 
       updateWordStats(questionWord.english, isCorrect);
@@ -5653,28 +6364,50 @@
       clearInterval(speedTimerInterval);
       document.getElementById('speed-training-quiz').classList.add('hidden');
       document.getElementById('speed-training-result').classList.remove('hidden');
-      let percentage = Math.round((speedCorrectAnswers / speedTotalAnswers) * 100);
-      let emojiUrl = '';
-      let resultText = '';
-      if (percentage <= 40) {
-        emojiUrl = 'https://img.icons8.com/emoji/96/000000/sad-emoji.png';
-        resultText = 'Не погано, але є місце для покращення.';
-      } else if (percentage <= 80) {
-        emojiUrl = 'https://img.icons8.com/emoji/96/000000/neutral-emoji.png';
-        resultText = 'Добре! Але можна краще.';
+
+      const total = speedTotalAnswers;
+      const pct = Math.round((speedCorrectAnswers / total) * 100);
+      const xpEarned = speedCorrectAnswers * 10 + (total - speedCorrectAnswers) * 2;
+      let emoji = '', message = '', scoreClass = '';
+
+      if (pct >= 90) {
+        emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great';
+      } else if (pct >= 70) {
+        emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great';
+      } else if (pct >= 50) {
+        emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good';
+      } else if (pct >= 30) {
+        emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good';
       } else {
-        emojiUrl = 'https://img.icons8.com/emoji/96/000000/smiling-face-with-sunglasses.png';
-        resultText = 'Відмінно! Ви чудово знаєте ці слова!';
+        emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low';
       }
+
+      // Перевірка рекорду
+      const isNewRecord = speedCorrectAnswers > speedRecord;
+      if (isNewRecord) {
+        speedRecord = speedCorrectAnswers;
+        try {
+          const userId = auth.currentUser.uid;
+          db.collection('users').doc(userId).update({ speedRecord: speedRecord });
+        } catch (e) { console.log('Помилка збереження рекорду:', e); }
+      }
+
+      const recordHTML = isNewRecord
+        ? `<div style="color:#E8A838;font-size:22px;font-weight:700;margin:10px 0;animation:xp-toast-anim 0.6s ease;"><i class="fas fa-trophy" style="margin-right:6px;"></i>Новий рекорд!</div>`
+        : (speedRecord > 0 ? `<div style="color:rgba(255,255,255,0.5);font-size:15px;margin:8px 0;"><i class="fas fa-trophy" style="margin-right:4px;"></i>Рекорд: ${speedRecord}</div>` : '');
+
       document.getElementById('speed-training-result').innerHTML = `
-    <img src="${emojiUrl}" alt="Результат">
-    <p>Правильних відповідей: ${speedCorrectAnswers} з ${speedTotalAnswers}</p>
-    <p>${resultText}</p>
-    <button class="finishSpeedButton" onclick="finishSpeedTrainingSession()">Завершити тренування</button>
-  `;
+        <div style="font-size:80px;text-align:center;margin-bottom:8px;">${emoji}</div>
+        <div class="quiz-result-score ${scoreClass}">${speedCorrectAnswers}/${total}</div>
+        ${recordHTML}
+        <div class="quiz-result-xp">+${xpEarned} XP</div>
+        <div class="quiz-result-message">${message}</div>
+        <button class="finish-button" onclick="finishSpeedTrainingSession()">Продовжити</button>
+      `;
     }
 
     function finishSpeedTrainingSession() {
+      checkAndShowDailyRecord();
       showConfetti();
       updateWeeklyQuestProgress('exercise_complete');
 
@@ -5738,6 +6471,10 @@
   document.getElementById('crossword-section').classList.add('hidden');
   document.getElementById('fill-blanks-section').classList.add('hidden');
   document.getElementById('definition-quiz-section').classList.add('hidden');
+  document.getElementById('leaderboard-section').classList.add('hidden');
+  document.getElementById('add-phrase-section').classList.add('hidden');
+  document.getElementById('phrase-constructor-section').classList.add('hidden');
+  document.getElementById('grammar-section').classList.add('hidden');
 }
 
 
@@ -5978,6 +6715,7 @@ function exitSpeedTraining() {
         loadGamificationData();
         loadDailyGoal();
         loadWeeklyQuest();
+        showAmbientButton();
       }
       // Ховаємо прелоадер після завантаження
       const preloader = document.getElementById('page-preloader');
@@ -6386,6 +7124,35 @@ Return ONLY the JSON array, no other text.`;
     let userStreak = 0;
     let userLastActiveDate = '';
 
+    // Progressive leveling: each level requires more XP than the previous
+    // Level 1: 200 XP, Level 2: 350 XP, Level 3: 500 XP, Level 4: 650 XP, ...
+    function xpForLevel(level) {
+      return 200 + (level - 1) * 150;
+    }
+
+    // Total XP needed to reach a given level (cumulative)
+    function totalXPForLevel(level) {
+      let total = 0;
+      for (let i = 1; i < level; i++) total += xpForLevel(i);
+      return total;
+    }
+
+    // Get current level from total XP
+    function getLevelFromXP(xp) {
+      let level = 1;
+      let cumulative = 0;
+      while (cumulative + xpForLevel(level) <= xp) {
+        cumulative += xpForLevel(level);
+        level++;
+      }
+      return level;
+    }
+
+    // Get XP progress within current level
+    function getXPInCurrentLevel(xp) {
+      return xp - totalXPForLevel(getLevelFromXP(xp));
+    }
+
     // Завантаження даних геймификації при логіні
     async function loadGamificationData() {
       try {
@@ -6396,8 +7163,10 @@ Return ONLY the JSON array, no other text.`;
           userXP = data.xp || 0;
           userStreak = data.streak || 0;
           userLastActiveDate = data.lastActiveDate || '';
+          speedRecord = data.speedRecord || 0;
+          userNickname = data.nickname || '';
         }
-        userLevel = Math.floor(userXP / 500) + 1;
+        userLevel = getLevelFromXP(userXP);
         updateGamificationUI();
         loadMasterySummary();
       } catch (error) {
@@ -6407,9 +7176,10 @@ Return ONLY the JSON array, no other text.`;
 
     // Оновлення UI геймификації на екрані акаунту
     function updateGamificationUI() {
-      const xpInLevel = userXP % 500;
-      const xpPercent = (xpInLevel / 500) * 100;
-      userLevel = Math.floor(userXP / 500) + 1;
+      userLevel = getLevelFromXP(userXP);
+      const xpInLevel = getXPInCurrentLevel(userXP);
+      const xpNeeded = xpForLevel(userLevel);
+      const xpPercent = (xpInLevel / xpNeeded) * 100;
 
       const levelEl = document.getElementById('acc-level');
       const fillEl = document.getElementById('acc-xp-fill');
@@ -6418,14 +7188,16 @@ Return ONLY the JSON array, no other text.`;
 
       if (levelEl) levelEl.textContent = `Рівень ${userLevel}`;
       if (fillEl) fillEl.style.width = `${xpPercent}%`;
-      if (textEl) textEl.textContent = `${xpInLevel} / 500 XP`;
+      if (textEl) textEl.textContent = `${xpInLevel} / ${xpNeeded} XP`;
       if (streakEl) streakEl.textContent = userStreak;
+      const progressStreakEl = document.getElementById('progress-streak');
+      if (progressStreakEl) progressStreakEl.textContent = userStreak;
     }
 
     // Нарахування XP + оновлення стрику
     async function addXP(amount) {
       userXP += amount;
-      userLevel = Math.floor(userXP / 500) + 1;
+      userLevel = getLevelFromXP(userXP);
 
       const today = new Date().toISOString().split('T')[0];
       let streakUpdate = {};
@@ -6516,17 +7288,17 @@ Return ONLY the JSON array, no other text.`;
 
     // ========== DAILY GOAL (XP-based) ==========
     let dailyXP = 0;
-    const DAILY_GOAL_TARGET = 200;
+    let DAILY_GOAL_TARGET = 200;
+    let bestDailyXP = 0;
 
     function updateDailyGoalUI() {
-      const count = Math.min(dailyXP, DAILY_GOAL_TARGET);
-      const pct = (count / DAILY_GOAL_TARGET) * 100;
+      const pct = Math.min((dailyXP / DAILY_GOAL_TARGET) * 100, 100);
       const countEl = document.getElementById('daily-goal-count');
       const fillEl = document.getElementById('daily-goal-fill');
-      if (countEl) countEl.textContent = count >= DAILY_GOAL_TARGET ? `🏆 ${DAILY_GOAL_TARGET}/${DAILY_GOAL_TARGET} XP` : `${count}/${DAILY_GOAL_TARGET} XP`;
+      if (countEl) countEl.textContent = dailyXP >= DAILY_GOAL_TARGET ? `🏆 ${dailyXP}/${DAILY_GOAL_TARGET} XP` : `${dailyXP}/${DAILY_GOAL_TARGET} XP`;
       if (fillEl) {
         fillEl.style.width = `${pct}%`;
-        if (count >= DAILY_GOAL_TARGET) fillEl.classList.add('completed');
+        if (dailyXP >= DAILY_GOAL_TARGET) fillEl.classList.add('completed');
         else fillEl.classList.remove('completed');
       }
     }
@@ -6540,8 +7312,12 @@ Return ONLY the JSON array, no other text.`;
           const today = new Date().toISOString().split('T')[0];
           const xpHistory = data.xpHistory || {};
           dailyXP = xpHistory[today] || 0;
+          if (data.dailyGoalTarget) DAILY_GOAL_TARGET = data.dailyGoalTarget;
+          bestDailyXP = data.bestDailyXP || 0;
         }
         updateDailyGoalUI();
+        updateDailyGoalPresetUI();
+        updateBestDailyXPUI();
       } catch (e) { console.log('Daily goal load error:', e); }
     }
 
@@ -6556,6 +7332,1820 @@ Return ONLY the JSON array, no other text.`;
         addXP(50);
         showXPToast(50);
       }
+
+      // Рекорд XP за день — тихо оновлюємо, нотифікація в кінці вправи
+      if (dailyXP > bestDailyXP) {
+        bestDailyXP = dailyXP;
+        dailyRecordBroken = true;
+        updateBestDailyXPUI();
+        try {
+          const userId = auth.currentUser.uid;
+          db.collection('users').doc(userId).update({ bestDailyXP: bestDailyXP });
+        } catch (e) { console.log('Error saving bestDailyXP:', e); }
+      }
+    }
+
+    let dailyRecordBroken = false;
+
+    function checkAndShowDailyRecord() {
+      if (dailyRecordBroken) {
+        dailyRecordBroken = false;
+        showNotification('Новий рекорд дня! ' + bestDailyXP + ' XP', 'success');
+      }
+    }
+
+    function updateBestDailyXPUI() {
+      const el = document.getElementById('best-daily-xp');
+      if (el) el.textContent = bestDailyXP > 0 ? bestDailyXP + ' XP' : '—';
+    }
+
+    function toggleDailyGoalPicker() {
+      document.getElementById('daily-goal-picker').classList.toggle('hidden');
+    }
+
+    function updateDailyGoalPresetUI() {
+      document.querySelectorAll('.daily-goal-opt').forEach(btn => {
+        btn.classList.toggle('selected', parseInt(btn.dataset.target) === DAILY_GOAL_TARGET);
+      });
+    }
+
+    async function setDailyGoal(event, target) {
+      event.stopPropagation();
+      DAILY_GOAL_TARGET = target;
+      updateDailyGoalUI();
+      updateDailyGoalPresetUI();
+      document.getElementById('daily-goal-picker').classList.add('hidden');
+      try {
+        const userId = auth.currentUser.uid;
+        await db.collection('users').doc(userId).update({ dailyGoalTarget: target });
+      } catch (e) { console.log('Error saving daily goal:', e); }
+    }
+
+    // ========== VOICE & PHOTO INPUT ==========
+    let speechRecognition = null;
+
+    function startVoiceInput(lang) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        showNotification('Браузер не підтримує розпізнавання мови', 'warning');
+        return;
+      }
+
+      if (speechRecognition) { speechRecognition.stop(); return; }
+
+      speechRecognition = new SpeechRecognition();
+      speechRecognition.lang = lang === 'uk' ? 'uk-UA' : 'en-US';
+      speechRecognition.interimResults = false;
+      speechRecognition.maxAlternatives = 1;
+
+      document.getElementById('voice-status').classList.remove('hidden');
+
+      speechRecognition.onresult = (event) => {
+        const text = event.results[0][0].transcript.trim().toLowerCase();
+        if (lang === 'uk') {
+          document.getElementById('translation').value = text;
+          getReverseTranslation(text);
+        } else {
+          document.getElementById('english-word').value = text;
+          getTranslationSuggestions(text);
+        }
+        document.getElementById('voice-status').classList.add('hidden');
+        speechRecognition = null;
+      };
+
+      speechRecognition.onerror = (event) => {
+        console.log('Speech error:', event.error);
+        document.getElementById('voice-status').classList.add('hidden');
+        if (event.error !== 'no-speech') showNotification('Помилка розпізнавання', 'warning');
+        speechRecognition = null;
+      };
+
+      speechRecognition.onend = () => {
+        document.getElementById('voice-status').classList.add('hidden');
+        speechRecognition = null;
+      };
+
+      speechRecognition.start();
+    }
+
+    // Зворотній переклад: UK → EN
+    function getReverseTranslation(text) {
+      if (!text || text.length < 2) return;
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=uk|en`;
+      axios.get(url)
+        .then(response => {
+          const suggestions = response.data.matches.slice(0, 3).map(m => m.translation);
+          const container = document.getElementById('reverse-translation-suggestions');
+          container.innerHTML = '';
+          suggestions.forEach(s => {
+            const div = document.createElement('div');
+            div.classList.add('suggestion');
+            div.textContent = s;
+            div.onclick = () => {
+              document.getElementById('english-word').value = s;
+              container.innerHTML = '';
+            };
+            container.appendChild(div);
+          });
+        })
+        .catch(e => console.log('Reverse translation error:', e));
+    }
+
+    let photoWordsData = [];
+    let selectedPhotoWords = new Set();
+
+    async function handlePhotoInput(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      showLoading();
+      document.getElementById('photo-upload-text').classList.add('hidden');
+      document.getElementById('photo-upload-loading').classList.remove('hidden');
+      try {
+        const base64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.readAsDataURL(file);
+        });
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'text', text: 'Extract all words from this image (any language). For each word provide English version and Ukrainian translation. Return ONLY valid JSON array: [{"english":"word","translation":"переклад"}]. If the word is already English, translate to Ukrainian. If Ukrainian or other language, translate to English. Max 20 words. If no words found, return [].' },
+                { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64}` } }
+              ]
+            }],
+            max_tokens: 500,
+          }),
+        });
+
+        const result = await response.json();
+        const content = result.choices[0].message.content.trim();
+        photoWordsData = JSON.parse(content.replace(/```json\n?/g, '').replace(/```/g, '').trim());
+        selectedPhotoWords = new Set();
+
+        if (photoWordsData.length === 0) {
+          showNotification('Слова не знайдено на фото', 'warning');
+        } else {
+          // Перевірити які слова вже є в словнику
+          const userId = auth.currentUser.uid;
+          const existingSnapshot = await db.collection('users').doc(userId).collection('words').get();
+          const existingWords = new Set(existingSnapshot.docs.map(d => d.id.toLowerCase()));
+          photoWordsData.forEach(w => { w.exists = existingWords.has(w.english.toLowerCase().trim()); });
+          renderPhotoWords();
+        }
+      } catch (e) {
+        console.log('Photo input error:', e);
+        showNotification('Помилка обробки фото', 'warning');
+      } finally {
+        hideLoading();
+        document.getElementById('photo-upload-text').classList.remove('hidden');
+        document.getElementById('photo-upload-loading').classList.add('hidden');
+        event.target.value = '';
+      }
+    }
+
+    function renderPhotoWords() {
+      const preview = document.getElementById('photo-words-preview');
+      const list = document.getElementById('photo-words-list');
+      preview.classList.remove('hidden');
+
+      list.innerHTML = photoWordsData.map((w, i) => {
+        const selected = selectedPhotoWords.has(i);
+        const exists = w.exists;
+        if (exists) {
+          return `<button disabled style="padding:8px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;color:rgba(240,237,232,0.3);font-size:13px;margin:0;width:auto;box-shadow:none;text-align:left;line-height:1.4;cursor:default;opacity:0.6;">
+            <i class="fas fa-check" style="color:#34d399;font-size:10px;margin-right:4px;"></i><strong>${escapeHtml(w.english)}</strong><br><span style="font-size:11px;color:rgba(240,237,232,0.3);">${escapeHtml(w.translation)}</span>
+          </button>`;
+        }
+        return `<button onclick="togglePhotoWord(${i})" style="padding:8px 14px;background:${selected ? 'rgba(52,211,153,0.2)' : 'rgba(255,255,255,0.06)'};border:1px solid ${selected ? 'rgba(52,211,153,0.5)' : 'rgba(255,255,255,0.12)'};border-radius:10px;color:#F0EDE8;font-size:13px;cursor:pointer;margin:0;width:auto;box-shadow:none;text-align:left;line-height:1.4;">
+          <strong>${escapeHtml(w.english)}</strong><br><span style="font-size:11px;color:rgba(240,237,232,0.5);">${escapeHtml(w.translation)}</span>
+        </button>`;
+      }).join('');
+
+      const bulkBtn = document.getElementById('bulk-add-photo-words');
+      const countEl = document.getElementById('photo-selected-count');
+      if (selectedPhotoWords.size > 0) {
+        bulkBtn.classList.remove('hidden');
+        countEl.textContent = selectedPhotoWords.size;
+      } else {
+        bulkBtn.classList.add('hidden');
+      }
+    }
+
+    function togglePhotoWord(index) {
+      if (selectedPhotoWords.has(index)) {
+        selectedPhotoWords.delete(index);
+      } else {
+        selectedPhotoWords.add(index);
+      }
+      renderPhotoWords();
+    }
+
+    async function bulkAddPhotoWords() {
+      if (selectedPhotoWords.size === 0) return;
+      showLoading();
+      try {
+        const userId = auth.currentUser.uid;
+        let added = 0;
+        for (const idx of selectedPhotoWords) {
+          const w = photoWordsData[idx];
+          const wordId = w.english.toLowerCase().trim();
+          const existing = await db.collection('users').doc(userId).collection('words').doc(wordId).get();
+          if (!existing.exists) {
+            await db.collection('users').doc(userId).collection('words').doc(wordId).set({
+              translation: w.translation,
+              example: '',
+              interactions: 0,
+              correctAnswers: 0,
+              priority: 0,
+              dateAdded: firebase.firestore.Timestamp.now(),
+            });
+            added++;
+          }
+        }
+        playSound(true);
+        showNotification(`Додано ${added} слів!`);
+        document.getElementById('photo-words-preview').classList.add('hidden');
+        selectedPhotoWords = new Set();
+        photoWordsData = [];
+      } catch (e) {
+        console.log('Bulk add error:', e);
+        showNotification('Помилка додавання', 'warning');
+      } finally { hideLoading(); }
+    }
+
+    // ========== AMBIENT MUSIC ==========
+    let ambientCtx = null;
+    let ambientPlaying = false;
+    let ambientNodes = [];
+
+    function showAmbientButton() {
+      document.getElementById('ambient-music-btn').classList.remove('hidden');
+    }
+
+    function toggleAmbientMusic() {
+      if (ambientPlaying) {
+        stopAmbientMusic();
+      } else {
+        startAmbientMusic();
+      }
+    }
+
+    function startAmbientMusic() {
+      if (!ambientCtx) ambientCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ambientCtx.state === 'suspended') ambientCtx.resume();
+
+      // Brown noise (warm, deep ambient)
+      const bufferSize = 2 * ambientCtx.sampleRate;
+      const buffer = ambientCtx.createBuffer(1, bufferSize, ambientCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      let lastOut = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        data[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = data[i];
+        data[i] *= 3.5;
+      }
+      const noiseSource = ambientCtx.createBufferSource();
+      noiseSource.buffer = buffer;
+      noiseSource.loop = true;
+
+      const noiseGain = ambientCtx.createGain();
+      noiseGain.gain.value = 0.06;
+
+      const noiseFilter = ambientCtx.createBiquadFilter();
+      noiseFilter.type = 'lowpass';
+      noiseFilter.frequency.value = 300;
+
+      noiseSource.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(ambientCtx.destination);
+      noiseSource.start();
+
+      // Soft pad oscillators (ethereal chords)
+      const padFreqs = [130.81, 164.81, 196.00, 261.63]; // C3, E3, G3, C4
+      const padNodes = padFreqs.map(freq => {
+        const osc = ambientCtx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+
+        const gain = ambientCtx.createGain();
+        gain.gain.value = 0.008;
+
+        const filter = ambientCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 800;
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ambientCtx.destination);
+        osc.start();
+
+        // Slow volume oscillation for movement
+        const lfo = ambientCtx.createOscillator();
+        lfo.frequency.value = 0.05 + Math.random() * 0.1;
+        const lfoGain = ambientCtx.createGain();
+        lfoGain.gain.value = 0.004;
+        lfo.connect(lfoGain);
+        lfoGain.connect(gain.gain);
+        lfo.start();
+
+        return { osc, gain, filter, lfo, lfoGain };
+      });
+
+      ambientNodes = [{ source: noiseSource, gain: noiseGain, filter: noiseFilter }, ...padNodes];
+      ambientPlaying = true;
+      document.getElementById('ambient-music-btn').classList.add('playing');
+    }
+
+    function stopAmbientMusic() {
+      ambientNodes.forEach(node => {
+        try {
+          if (node.source) node.source.stop();
+          if (node.osc) node.osc.stop();
+          if (node.lfo) node.lfo.stop();
+        } catch (e) {}
+      });
+      ambientNodes = [];
+      ambientPlaying = false;
+      document.getElementById('ambient-music-btn').classList.remove('playing');
+    }
+
+    // ========== GRAMMAR ==========
+    const grammarTopics = [
+      { id: 'present_simple', name: 'Present Simple', desc: 'I go, She likes...', icon: '🟢', level: 'A1' },
+      { id: 'present_continuous', name: 'Present Continuous', desc: 'I am going, She is reading...', icon: '🔵', level: 'A1' },
+      { id: 'past_simple', name: 'Past Simple', desc: 'I went, She liked...', icon: '🟡', level: 'A1' },
+      { id: 'future_simple', name: 'Future Simple', desc: 'I will go, She will like...', icon: '🟠', level: 'A1' },
+      { id: 'present_perfect', name: 'Present Perfect', desc: 'I have gone, She has liked...', icon: '🟣', level: 'A2' },
+      { id: 'past_continuous', name: 'Past Continuous', desc: 'I was going, She was reading...', icon: '🔴', level: 'A2' },
+      { id: 'conditionals', name: 'Conditionals (0, 1, 2)', desc: 'If I go... If I went...', icon: '💎', level: 'B1' },
+      { id: 'passive_voice', name: 'Passive Voice', desc: 'The book was written...', icon: '🪞', level: 'B1' },
+      { id: 'modal_verbs', name: 'Modal Verbs', desc: 'can, could, must, should...', icon: '🔑', level: 'A2' },
+      { id: 'articles', name: 'Articles', desc: 'a, an, the — when to use', icon: '📐', level: 'A1' },
+      { id: 'prepositions', name: 'Prepositions', desc: 'in, on, at, by, for...', icon: '📍', level: 'A2' },
+      { id: 'reported_speech', name: 'Reported Speech', desc: 'He said that...', icon: '💬', level: 'B2' },
+    ];
+
+    let grammarCompletedTopics = {};
+    let currentGrammarTopic = null;
+    let grammarQuizQuestions = [];
+    let currentGrammarQuizQ = 0;
+    let grammarQuizCorrect = 0;
+
+    function showGrammar() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('grammar-section').classList.remove('hidden');
+      document.getElementById('grammar-topics').classList.remove('hidden');
+      document.getElementById('grammar-lesson').classList.add('hidden');
+      document.getElementById('grammar-quiz').classList.add('hidden');
+      const choiceEl = document.getElementById('grammar-choice');
+      choiceEl.classList.add('hidden');
+      choiceEl.style.display = 'none';
+      loadGrammarProgress();
+      renderGrammarTopics();
+    }
+
+    let grammarTheoryRead = {};
+
+    async function loadGrammarProgress() {
+      try {
+        const userId = auth.currentUser.uid;
+        const doc = await db.collection('users').doc(userId).get();
+        if (doc.exists) {
+          grammarCompletedTopics = doc.data().grammarProgress || {};
+          grammarTheoryRead = doc.data().grammarTheoryRead || {};
+        }
+      } catch (e) { console.log('Grammar progress load error:', e); }
+    }
+
+    let currentGrammarLevel = 'all';
+
+    function filterGrammarLevel(level) {
+      currentGrammarLevel = level;
+      document.querySelectorAll('.grammar-level-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.textContent.trim() === (level === 'all' ? 'Всі' : level));
+      });
+      renderGrammarTopics();
+    }
+
+    function renderGrammarTopics() {
+      const list = document.getElementById('grammar-topic-list');
+      const filtered = currentGrammarLevel === 'all'
+        ? grammarTopics
+        : grammarTopics.filter(t => t.level === currentGrammarLevel);
+
+      list.innerHTML = filtered.map(t => {
+        const quizDone = grammarCompletedTopics[t.id];
+        const theoryDone = grammarTheoryRead[t.id];
+        let badge;
+        if (quizDone) {
+          badge = `<span class="topic-badge">Пройдено ✓</span>`;
+        } else if (theoryDone) {
+          badge = `<span class="topic-badge" style="background:rgba(96,165,250,0.15);color:#60a5fa;">Теорія ✓</span>`;
+        } else {
+          badge = `<span class="topic-badge" style="background:rgba(255,255,255,0.08);color:rgba(240,237,232,0.5);">${t.level}</span>`;
+        }
+        return `<button class="grammar-topic" onclick="loadGrammarLesson('${t.id}')">
+          <div class="topic-icon">${t.icon}</div>
+          <div class="topic-info">
+            <span class="topic-name">${t.name}</span>
+            <span class="topic-desc">${t.desc}</span>
+          </div>
+          ${badge}
+        </button>`;
+      }).join('');
+    }
+
+    const grammarLessons = {
+      present_simple: [
+        `<div class="grammar-lesson-block">
+          <h3>Present Simple</h3>
+          <p>Описує те, що ти робиш <b>регулярно</b>, або те, що є <b>фактом</b>.</p>
+          <p>Уяви: ти розповідаєш другу про свій типовий день або звички. Це Present Simple.</p>
+          <div class="example">I <b>wake up</b> at 7 AM. — Я прокидаюсь о 7 ранку.</div>
+          <div class="example">She <b>likes</b> chocolate. — Вона любить шоколад.</div>
+          <div class="example">Water <b>boils</b> at 100°C. — Вода кипить при 100°C.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Як будувати речення</h3>
+          <p><span style="color:#E8A838;">+</span> I/You/We/They <b>work</b>. He/She/It <b>works</b>.</p>
+          <p><span style="color:#ef4444;">−</span> I <b>don't work</b>. He <b>doesn't work</b>.</p>
+          <p><span style="color:#60a5fa;">?</span> <b>Do</b> you work? <b>Does</b> he work?</p>
+          <p style="margin-top:12px;padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;font-size:13px;"><b>He/She/It</b> — додаємо <b>-s</b> або <b>-es</b> до дієслова: work→works, go→goes, watch→watches</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;font-size:13px;">У запереченні та питанні <b>-s зникає</b>: He <b>doesn't work</b> (не works!)</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Слова-підказки</h3>
+          <p>Якщо бачиш ці слова — швидше за все це Present Simple:</p>
+          <p style="font-size:16px;text-align:center;padding:8px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>always · usually · often · sometimes · never · every day · every week</b></p>
+          <div class="example">I <b>always drink</b> coffee in the morning. — Я завжди п'ю каву вранці.</div>
+          <div class="example">She <b>never eats</b> fast food. — Вона ніколи не їсть фаст-фуд.</div>
+          <div class="example">We <b>usually go</b> to the gym on Mondays. — Ми зазвичай ходимо в зал по понеділках.</div>
+          <div class="example">He <b>sometimes forgets</b> his keys. — Він іноді забуває ключі.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Типові помилки</h3>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ He <b>don't</b> like pizza.<br>✅ He <b>doesn't</b> like pizza.</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ She <b>work</b> in a bank.<br>✅ She <b>works</b> in a bank.</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ Does he <b>works</b> here?<br>✅ Does he <b>work</b> here?</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Запам'ятай: після <b>does/doesn't</b> дієслово завжди без -s!</p>
+        </div>`
+      ],
+      present_continuous: [
+        `<div class="grammar-lesson-block">
+          <h3>Present Continuous</h3>
+          <p>Описує те, що відбувається <b>прямо зараз</b>, у цю мить. Або тимчасову ситуацію.</p>
+          <p>Уяви: ти по відеодзвінку і описуєш, що бачиш навколо. Це Present Continuous.</p>
+          <div class="example">I <b>am reading</b> a book right now. — Я зараз читаю книгу.</div>
+          <div class="example">Look! It <b>is raining</b>! — Дивись! Іде дощ!</div>
+          <div class="example">She <b>is studying</b> for her exam this week. — Вона цього тижня готується до іспиту.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Як будувати речення</h3>
+          <p><span style="color:#E8A838;">+</span> I <b>am working</b>. He/She <b>is working</b>. We/They <b>are working</b>.</p>
+          <p><span style="color:#ef4444;">−</span> I <b>am not working</b>. He <b>isn't working</b>. They <b>aren't working</b>.</p>
+          <p><span style="color:#60a5fa;">?</span> <b>Are</b> you working? <b>Is</b> he working?</p>
+          <p style="margin-top:12px;padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;font-size:13px;">Формула проста: <b>am/is/are + дієслово + ing</b></p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;font-size:13px;">Дієслово <b>e</b> на кінці — прибираємо: make → mak<b>ing</b>, write → writ<b>ing</b></p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Слова-підказки + Плани</h3>
+          <p style="font-size:16px;text-align:center;padding:8px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>now · right now · at the moment · currently · Look! · Listen!</b></p>
+          <p style="margin-top:10px;">Present Continuous також використовують для <b>запланованих дій</b>:</p>
+          <div class="example">We <b>are flying</b> to London tomorrow. — Ми летимо до Лондона завтра.</div>
+          <div class="example">I <b>am meeting</b> my friend tonight. — Я зустрічаюся з другом сьогодні ввечері.</div>
+          <div class="example"><b>Are</b> you <b>coming</b> to the party? — Ти прийдеш на вечірку?</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Present Simple vs Continuous</h3>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-bottom:8px;"><b>Simple</b> — звичка, завжди: I <b>drink</b> coffee every morning.</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:8px;"><b>Continuous</b> — зараз, тимчасово: I <b>am drinking</b> tea right now.</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">⚠️ Деякі дієслова <b>не вживаються</b> з -ing: know, like, love, want, need, believe, understand</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-top:4px;">❌ I <b>am knowing</b> him. → ✅ I <b>know</b> him.</p>
+        </div>`
+      ],
+      past_simple: [
+        `<div class="grammar-lesson-block">
+          <h3>Past Simple</h3>
+          <p>Описує дії, які <b>вже сталися і закінчилися</b>. Ти точно знаєш коли це було.</p>
+          <p>Уяви: ти розказуєш другу про вчорашній день або минулу подорож. Це Past Simple.</p>
+          <div class="example">I <b>visited</b> Paris last summer. — Я відвідав Париж минулого літа.</div>
+          <div class="example">She <b>called</b> me yesterday. — Вона зателефонувала мені вчора.</div>
+          <div class="example">We <b>watched</b> a movie last night. — Ми дивилися фільм вчора ввечері.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Як будувати речення</h3>
+          <p><span style="color:#E8A838;">+</span> I/He/They <b>worked</b> (правильні) / <b>went</b> (неправильні)</p>
+          <p><span style="color:#ef4444;">−</span> I <b>didn't work</b>. He <b>didn't go</b>.</p>
+          <p><span style="color:#60a5fa;">?</span> <b>Did</b> you work? <b>Did</b> he go?</p>
+          <p style="margin-top:12px;padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;font-size:13px;">Правильні дієслова: додай <b>-ed</b> (worked, played, watched)</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;font-size:13px;">Неправильні треба вчити: go→<b>went</b>, see→<b>saw</b>, buy→<b>bought</b>, eat→<b>ate</b></p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Слова-підказки</h3>
+          <p style="font-size:16px;text-align:center;padding:8px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>yesterday · last week · ago · in 2020 · when I was young</b></p>
+          <div class="example">He <b>bought</b> a car two days <b>ago</b>. — Він купив машину два дні тому.</div>
+          <div class="example">We <b>lived</b> in London <b>last year</b>. — Ми жили в Лондоні минулого року.</div>
+          <div class="example">I <b>didn't see</b> him <b>yesterday</b>. — Я його не бачив вчора.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Типові помилки</h3>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ Did you <b>went</b> there?<br>✅ Did you <b>go</b> there?</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ He <b>didn't went</b> home.<br>✅ He <b>didn't go</b> home.</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Після <b>did/didn't</b> — завжди інфінітив (без -ed, без зміни форми)!</p>
+        </div>`
+      ],
+      future_simple: [
+        `<div class="grammar-lesson-block">
+          <h3>Future Simple</h3>
+          <p>Описує дії в <b>майбутньому</b>: спонтанні рішення, прогнози, обіцянки.</p>
+          <p>Уяви: хтось дзвонить у двері, і ти кажеш "Я відкрию!" — це спонтанне рішення. Future Simple.</p>
+          <div class="example">I <b>will help</b> you. — Я тобі допоможу.</div>
+          <div class="example">It <b>will rain</b> tomorrow. — Завтра буде дощ.</div>
+          <div class="example">She <b>will be</b> a great doctor. — Вона стане чудовим лікарем.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Як будувати речення</h3>
+          <p><span style="color:#E8A838;">+</span> I/He/They <b>will work</b>.</p>
+          <p><span style="color:#ef4444;">−</span> I <b>won't (will not) work</b>.</p>
+          <p><span style="color:#60a5fa;">?</span> <b>Will</b> you work?</p>
+          <p style="margin-top:12px;padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;font-size:13px;">Дуже просто: <b>will + дієслово</b> без змін. Для всіх осіб однаково!</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;font-size:13px;"><b>won't</b> = will not (скорочення для розмовної мови)</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Коли вживати + підказки</h3>
+          <p style="font-size:16px;text-align:center;padding:8px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>tomorrow · next week · soon · I think · probably · I promise</b></p>
+          <p style="margin-top:10px;"><b>Спонтанне рішення:</b></p>
+          <div class="example">— The phone is ringing! — I<b>'ll answer</b> it! — Я відповім!</div>
+          <p><b>Обіцянка:</b></p>
+          <div class="example">I <b>will always love</b> you. — Я завжди тебе любитиму.</div>
+          <p><b>Прогноз:</b></p>
+          <div class="example">I think she <b>will pass</b> the exam. — Думаю, вона здасть іспит.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Will vs Going to</h3>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-bottom:8px;"><b>will</b> — спонтанне рішення прямо зараз, прогноз</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:8px;"><b>going to</b> — заплановане заздалегідь, очевидний результат</p>
+          <div class="example"><b>Will:</b> Oh, we have no milk. I<b>'ll go</b> and buy some. (щойно вирішив)</div>
+          <div class="example"><b>Going to:</b> I<b>'m going to buy</b> a new phone next week. (вже запланував)</div>
+        </div>`
+      ],
+      present_perfect: [
+        `<div class="grammar-lesson-block">
+          <h3>Present Perfect</h3>
+          <p>Зв'язує <b>минуле з теперішнім</b>. Не важливо коли саме — важливий <b>результат</b>.</p>
+          <p>Уяви: ти хвалишся досвідом, або кажеш що щойно щось зробив. Це Present Perfect.</p>
+          <div class="example">I <b>have been</b> to Japan! — Я був у Японії! (є досвід)</div>
+          <div class="example">She <b>has just finished</b> her homework. — Вона щойно закінчила ДЗ. (результат зараз)</div>
+          <div class="example">We <b>have lived</b> here since 2015. — Ми живемо тут з 2015. (почали тоді, живемо досі)</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Як будувати речення</h3>
+          <p><span style="color:#E8A838;">+</span> I/You/They <b>have worked</b>. He/She <b>has worked</b>.</p>
+          <p><span style="color:#ef4444;">−</span> I <b>haven't worked</b>. He <b>hasn't worked</b>.</p>
+          <p><span style="color:#60a5fa;">?</span> <b>Have</b> you worked? <b>Has</b> he worked?</p>
+          <p style="margin-top:12px;padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;font-size:13px;">Формула: <b>have/has + V3</b> (третя форма дієслова)</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;font-size:13px;">Правильні: work→<b>worked</b>. Неправильні: go→<b>gone</b>, see→<b>seen</b>, eat→<b>eaten</b></p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Слова-підказки</h3>
+          <p style="font-size:16px;text-align:center;padding:8px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>already · yet · just · ever · never · since · for · recently · so far</b></p>
+          <div class="example">I have <b>already</b> done it. — Я це вже зробив.</div>
+          <div class="example">Have you finished <b>yet</b>? — Ти вже закінчив?</div>
+          <div class="example">She has <b>never</b> been abroad. — Вона ніколи не була за кордоном.</div>
+          <div class="example">Have you <b>ever</b> tried sushi? — Ти коли-небудь пробував суші?</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Present Perfect vs Past Simple</h3>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-bottom:8px;"><b>Past Simple</b> — знаєш КОЛИ: I <b>saw</b> him <b>yesterday</b>.</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:8px;"><b>Present Perfect</b> — не важливо КОЛИ: I <b>have seen</b> this movie. (колись)</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I <b>have seen</b> him <b>yesterday</b>.<br>✅ I <b>saw</b> him <b>yesterday</b>.<br>💡 З yesterday, last week, ago — тільки Past Simple!</p>
+        </div>`
+      ],
+      past_continuous: [
+        `<div class="grammar-lesson-block">
+          <h3>Past Continuous</h3>
+          <p>Описує <b>тривалу дію</b> в минулому — процес, який відбувався в певний момент.</p>
+          <p>Уяви: ти описуєш сцену з фільму — що відбувалося навколо. Це Past Continuous.</p>
+          <div class="example">I <b>was sleeping</b> when you called. — Я спав, коли ти зателефонував.</div>
+          <div class="example">It <b>was raining</b> all morning. — Весь ранок йшов дощ.</div>
+          <div class="example">They <b>were dancing</b> at the party. — Вони танцювали на вечірці.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Як будувати речення</h3>
+          <p><span style="color:#E8A838;">+</span> I/He <b>was working</b>. They/We <b>were working</b>.</p>
+          <p><span style="color:#ef4444;">−</span> I <b>wasn't working</b>. They <b>weren't working</b>.</p>
+          <p><span style="color:#60a5fa;">?</span> <b>Were</b> you working? <b>Was</b> he working?</p>
+          <p style="margin-top:12px;padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;font-size:13px;">Формула: <b>was/were + дієслово + ing</b></p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;font-size:13px;">I/He/She/It → <b>was</b>. You/We/They → <b>were</b>.</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Коли вживати</h3>
+          <p style="font-size:16px;text-align:center;padding:8px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>while · when · at that time · all day · at 5 PM yesterday</b></p>
+          <p style="margin-top:10px;"><b>Фон + подія (when):</b></p>
+          <div class="example">I <b>was cooking</b> <b>when</b> the phone rang. — Я готував, коли зазвонив телефон.</div>
+          <p><b>Дві одночасні дії (while):</b></p>
+          <div class="example">She <b>was reading</b> <b>while</b> he <b>was watching</b> TV. — Вона читала, поки він дивився ТБ.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Past Simple vs Past Continuous</h3>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-bottom:8px;"><b>Past Simple</b> — коротка дія, факт: The phone <b>rang</b>.</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:8px;"><b>Past Continuous</b> — тривалий процес, фон: I <b>was sleeping</b>.</p>
+          <div class="example">I <b>was walking</b> home when I <b>saw</b> a cat. — Я йшов додому, коли побачив кота.</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Довга дія (was walking) + коротка перервала (saw)</p>
+        </div>`
+      ],
+      conditionals: [
+        `<div class="grammar-lesson-block">
+          <h3>Умовні речення</h3>
+          <p>Описують <b>"якщо..., то..."</b> — ситуації та їх наслідки.</p>
+          <p>Є три типи, і кожен для своєї ситуації. Розберемо по черзі.</p>
+          <div class="example">If you heat water, it <b>boils</b>. — Якщо нагріти воду, вона закипить. (факт)</div>
+          <div class="example">If it rains, I <b>will</b> take an umbrella. — Якщо піде дощ, я візьму парасольку. (реально)</div>
+          <div class="example">If I were rich, I <b>would</b> travel. — Якби я був багатий, я б подорожував. (мрія)</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Zero Conditional — факти</h3>
+          <p>Те, що <b>завжди правда</b>. Закони природи, загальні істини.</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>If + Present Simple, Present Simple</b></p>
+          <div class="example">If you <b>mix</b> red and blue, you <b>get</b> purple.</div>
+          <div class="example">If you <b>don't eat</b>, you <b>get</b> hungry.</div>
+          <div class="example">If ice <b>melts</b>, it <b>becomes</b> water.</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Можна замінити "if" на "when" — сенс не зміниться.</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>First Conditional — реальне майбутнє</h3>
+          <p>Ситуація <b>може реально статися</b>. Плани, попередження, обіцянки.</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>If + Present Simple, will + verb</b></p>
+          <div class="example">If it <b>rains</b>, I <b>will stay</b> home. — Якщо піде дощ, я залишусь вдома.</div>
+          <div class="example">If you <b>study</b> hard, you <b>will pass</b>. — Якщо будеш вчитися, складеш.</div>
+          <div class="example">If I <b>see</b> her, I <b>will tell</b> her. — Якщо побачу її, скажу їй.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ If it <b>will rain</b>... → ✅ If it <b>rains</b>... (після if — без will!)</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Second Conditional — уявне</h3>
+          <p>Ситуація <b>нереальна зараз</b>. Мрії, фантазії, поради.</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>If + Past Simple, would + verb</b></p>
+          <div class="example">If I <b>had</b> a million, I <b>would buy</b> a house. — Якби у мене був мільйон, я б купив будинок.</div>
+          <div class="example">If I <b>were</b> you, I <b>would apologize</b>. — На твоєму місці, я б вибачився.</div>
+          <div class="example">If I <b>could fly</b>, I <b>would visit</b> every country. — Якби міг літати, відвідав би кожну країну.</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 "If I <b>were</b>" (не was) — формально правильно для всіх осіб.</p>
+        </div>`
+      ],
+      passive_voice: [
+        `<div class="grammar-lesson-block">
+          <h3>Passive Voice</h3>
+          <p>Коли важливіше <b>ЩО сталося</b>, а не хто це зробив. Фокус на дії або об'єкті.</p>
+          <p>Уяви новини: "Банк був пограбований" — не важливо ким, важливо що сталося.</p>
+          <div class="example">The book <b>was written</b> in 1984. — Книга була написана у 1984.</div>
+          <div class="example">English <b>is spoken</b> worldwide. — Англійською говорять по всьому світу.</div>
+          <div class="example">My phone <b>was stolen</b>! — Мій телефон вкрали!</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Як будувати</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>Subject + to be + V3</b> (третя форма дієслова)</p>
+          <p style="margin-top:8px;">Present: The letter <b>is written</b>.</p>
+          <p>Past: The letter <b>was written</b>.</p>
+          <p>Future: The letter <b>will be written</b>.</p>
+          <p style="margin-top:12px;"><b>Порівняй Active → Passive:</b></p>
+          <div class="example">Tom <b>wrote</b> the book. → The book <b>was written</b> by Tom.</div>
+          <div class="example">They <b>make</b> phones in China. → Phones <b>are made</b> in China.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Коли вживати + приклади</h3>
+          <p><b>Невідомо хто зробив:</b></p>
+          <div class="example">The window <b>was broken</b>. — Вікно розбили. (ким — невідомо)</div>
+          <p><b>Не важливо хто:</b></p>
+          <div class="example">The Eiffel Tower <b>was built</b> in 1889. — Ейфелеву вежу збудували у 1889.</div>
+          <p><b>Офіційний стиль:</b></p>
+          <div class="example">Smoking <b>is not allowed</b> here. — Тут не дозволено палити.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ The cake <b>was make</b> by mom.<br>✅ The cake <b>was made</b> by mom. (потрібна V3!)</p>
+        </div>`
+      ],
+      modal_verbs: [
+        `<div class="grammar-lesson-block">
+          <h3>Модальні дієслова</h3>
+          <p>Додають <b>відтінок</b>: можливість, обов'язок, порада, дозвіл. Після них <b>інфінітив без to</b>.</p>
+          <div class="example">I <b>can</b> swim. — Я вмію плавати. (здатність)</div>
+          <div class="example">You <b>must</b> stop. — Ти мусиш зупинитися. (обов'язок)</div>
+          <div class="example">You <b>should</b> rest. — Тобі варто відпочити. (порада)</div>
+          <div class="example">It <b>might</b> rain. — Можливо, буде дощ. (ймовірність)</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Can / Could</h3>
+          <p><b>can</b> — здатність або дозвіл зараз:</p>
+          <div class="example">I <b>can</b> drive. — Я вмію водити.</div>
+          <div class="example"><b>Can</b> I sit here? — Можна мені тут сісти?</div>
+          <p style="margin-top:10px;"><b>could</b> — здатність у минулому або ввічливе прохання:</p>
+          <div class="example">I <b>could</b> read at age 4. — Я вмів читати у 4 роки.</div>
+          <div class="example"><b>Could</b> you help me, please? — Чи могли б ви мені допомогти?</div>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">💡 <b>could</b> ввічливіше за <b>can</b> у проханнях</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Must / Should / May</h3>
+          <p><b>must</b> — сильний обов'язок, впевненість:</p>
+          <div class="example">You <b>must</b> wear a seatbelt. — Мусиш пристебнутися. (закон)</div>
+          <div class="example">She <b>must</b> be tired. — Вона напевно втомлена. (впевненість)</div>
+          <p style="margin-top:10px;"><b>should</b> — порада:</p>
+          <div class="example">You <b>should</b> see a doctor. — Тобі варто до лікаря.</div>
+          <p style="margin-top:10px;"><b>may/might</b> — ймовірність:</p>
+          <div class="example">It <b>may</b> rain later. — Можливо, буде дощ.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ You <b>must to</b> go. → ✅ You <b>must</b> go. (без to!)</p>
+        </div>`
+      ],
+      articles: [
+        `<div class="grammar-lesson-block">
+          <h3>Артиклі: a, an, the</h3>
+          <p>В українській артиклів немає, тому це одна з найскладніших тем. Але логіка проста!</p>
+          <p>Подумай: ти <b>вперше</b> згадуєш предмет чи вже <b>знаєш</b> який саме?</p>
+          <div class="example">I saw <b>a</b> dog. — Я побачив (якогось) собаку. (вперше)</div>
+          <div class="example"><b>The</b> dog was big. — (Той) собака був великий. (вже знаємо який)</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>A / An — невизначений</h3>
+          <p>Вживаємо коли згадуємо <b>вперше</b> або говоримо <b>загалом</b> про один предмет.</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>a</b> + приголосний ЗВУК: a cat, a house, a university (ju-)<br><b>an</b> + голосний ЗВУК: an apple, an hour (h- не читається!)</p>
+          <div class="example">She is <b>an</b> engineer. — Вона інженер.</div>
+          <div class="example">I need <b>a</b> new phone. — Мені потрібен новий телефон.</div>
+          <div class="example">It was <b>an</b> interesting movie. — Це був цікавий фільм.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ <b>a</b> hour → ✅ <b>an</b> hour (бо звук голосний!)</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>The — визначений</h3>
+          <p>Вживаємо коли <b>обидва знають</b> про що мова, або предмет <b>єдиний</b>.</p>
+          <div class="example"><b>The</b> sun is bright. — Сонце яскраве. (одне сонце)</div>
+          <div class="example">Can you close <b>the</b> door? — Зачини двері. (ось ці конкретні)</div>
+          <div class="example"><b>The</b> movie we watched was great. — Фільм, який ми дивились, був класний.</div>
+          <p style="margin-top:10px;"><b>Без артикля:</b></p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">Імена (John), країни (Ukraine), мови (English), їжа загалом (I love ∅ pizza)</p>
+        </div>`
+      ],
+      prepositions: [
+        `<div class="grammar-lesson-block">
+          <h3>Прийменники: in, on, at</h3>
+          <p>Не завжди збігаються з українськими. Але є чітка логіка!</p>
+          <p>Подумай про розмір: <b>at</b> — точка, <b>on</b> — поверхня, <b>in</b> — всередині.</p>
+          <div class="example">I am <b>at</b> the bus stop. — Я на зупинці. (точка)</div>
+          <div class="example">The book is <b>on</b> the table. — Книга на столі. (поверхня)</div>
+          <div class="example">She is <b>in</b> the car. — Вона в машині. (всередині)</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Час: at, on, in</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>at</b> — точний час: at 5 PM, at noon, at midnight, at night</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-bottom:6px;"><b>on</b> — дні та дати: on Monday, on my birthday, on June 5th</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;"><b>in</b> — довші періоди: in January, in 2024, in the morning, in summer</p>
+          <div class="example">I wake up <b>at</b> 7 AM. — Я прокидаюсь о 7 ранку.</div>
+          <div class="example">The meeting is <b>on</b> Friday. — Зустріч у п'ятницю.</div>
+          <div class="example">She was born <b>in</b> March. — Вона народилась у березні.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Місце: at, on, in</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>at</b> — точка, місце: at school, at home, at work, at the airport</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-bottom:6px;"><b>on</b> — поверхня: on the table, on the wall, on the 2nd floor</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;"><b>in</b> — всередині: in the room, in the car, in London, in Ukraine</p>
+          <div class="example">He is <b>at</b> work now. — Він зараз на роботі.</div>
+          <div class="example">There is a picture <b>on</b> the wall. — На стіні картина.</div>
+          <div class="example">I live <b>in</b> Kyiv. — Я живу в Києві.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I am <b>in</b> home. → ✅ I am <b>at</b> home. (home — як точка)</p>
+        </div>`
+      ],
+      reported_speech: [
+        `<div class="grammar-lesson-block">
+          <h3>Reported Speech</h3>
+          <p>Коли ти <b>переказуєш чиїсь слова</b>. Час дієслова зсувається на один крок у минуле.</p>
+          <p>Уяви: друг сказав "I am tired", а ти переказуєш: "He said he <b>was</b> tired."</p>
+          <div class="example">"I <b>like</b> pizza" → He said he <b>liked</b> pizza.</div>
+          <div class="example">"I <b>am</b> busy" → She said she <b>was</b> busy.</div>
+          <div class="example">"I <b>will</b> call" → He said he <b>would</b> call.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Зсув часів</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">
+          Present Simple → <b>Past Simple</b><br>
+          Present Continuous → <b>Past Continuous</b><br>
+          Past Simple → <b>Past Perfect</b><br>
+          will → <b>would</b><br>
+          can → <b>could</b></p>
+          <div class="example">"I <b>am working</b>" → He said he <b>was working</b>.</div>
+          <div class="example">"I <b>saw</b> her" → He said he <b>had seen</b> her.</div>
+          <div class="example">"I <b>can</b> help" → He said he <b>could</b> help.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Зміна слів + питання</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:8px;">this → <b>that</b>, here → <b>there</b>, today → <b>that day</b>, tomorrow → <b>the next day</b>, now → <b>then</b></p>
+          <p><b>Питання — say → ask, прямий порядок слів:</b></p>
+          <div class="example">"Where <b>do</b> you live?" → He asked where I <b>lived</b>. (без do!)</div>
+          <div class="example">"<b>Are</b> you happy?" → She asked if I <b>was</b> happy. (if замість ?)</div>
+          <div class="example">"<b>Can</b> you help?" → He asked if I <b>could</b> help.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ He asked where <b>did</b> I live.<br>✅ He asked where I <b>lived</b>.</p>
+        </div>`
+      ],
+    };
+    let currentGrammarPage = 0;
+
+    function loadGrammarLesson(topicId) {
+      const topic = grammarTopics.find(t => t.id === topicId);
+      if (!topic) return;
+      currentGrammarTopic = topic;
+      currentGrammarPage = 0;
+
+      document.getElementById('grammar-topics').classList.add('hidden');
+
+      // If theory already read, show choice screen
+      if (grammarTheoryRead[topicId]) {
+        document.getElementById('grammar-choice-title').textContent = topic.name;
+        const choiceEl = document.getElementById('grammar-choice');
+        choiceEl.classList.remove('hidden');
+        choiceEl.style.display = 'flex';
+        return;
+      }
+
+      document.getElementById('grammar-lesson').classList.remove('hidden');
+      showGrammarPage();
+    }
+
+    function grammarChoiceQuiz() {
+      const choiceEl = document.getElementById('grammar-choice');
+      choiceEl.classList.add('hidden');
+      choiceEl.style.display = 'none';
+      startGrammarQuiz();
+    }
+
+    function grammarChoiceTheory() {
+      const choiceEl = document.getElementById('grammar-choice');
+      choiceEl.classList.add('hidden');
+      choiceEl.style.display = 'none';
+      document.getElementById('grammar-lesson').classList.remove('hidden');
+      showGrammarPage();
+    }
+
+    function showGrammarPage() {
+      const pages = grammarLessons[currentGrammarTopic.id];
+      if (!pages || !pages.length) {
+        document.getElementById('grammar-lesson-content').innerHTML = '<p style="color:#ef4444;text-align:center;">Урок не знайдено</p>';
+        return;
+      }
+      const total = pages.length;
+      const current = currentGrammarPage;
+      const isLast = current >= total - 1;
+
+      let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-size:13px;color:rgba(240,237,232,0.4);">${currentGrammarTopic.name}</span>
+        <span style="font-size:13px;color:rgba(240,237,232,0.4);">${current + 1} / ${total}</span>
+      </div>`;
+      html += `<div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-bottom:16px;overflow:hidden;">
+        <div style="height:100%;width:${((current + 1) / total) * 100}%;background:#E8A838;border-radius:2px;transition:width 0.3s;"></div>
+      </div>`;
+      html += pages[current];
+
+      // Add "Ask a question" block on every page
+      html += `<div style="margin-top:20px;padding:16px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.06);">
+        <p style="font-size:14px;color:rgba(240,237,232,0.5);margin-bottom:10px;"><i class="fas fa-question-circle" style="color:#E8A838;margin-right:6px;"></i>Щось незрозуміло? Запитай:</p>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="grammar-question-input" placeholder="Напиши питання..." style="flex:1;margin:0;height:48px;box-sizing:border-box;font-size:14px;">
+          <button onclick="startGrammarVoiceQuestion()" id="grammar-voice-btn" style="width:48px;min-width:48px;height:48px;padding:0;margin:0;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;color:#E8A838;cursor:pointer;box-shadow:none;">
+            <i class="fas fa-microphone"></i>
+          </button>
+          <button onclick="askGrammarQuestion()" id="grammar-ask-btn" style="width:48px;min-width:48px;height:48px;padding:0;margin:0;border-radius:10px;background:rgba(232,168,56,0.15);border:1px solid rgba(232,168,56,0.3);display:flex;align-items:center;justify-content:center;font-size:18px;color:#E8A838;cursor:pointer;box-shadow:none;">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+        <div id="grammar-question-answer" style="margin-top:10px;"></div>
+        <div id="grammar-saved-questions"></div>
+      </div>`;
+
+      document.getElementById('grammar-lesson-content').innerHTML = html;
+
+      // Load saved questions
+      loadGrammarSavedQuestions();
+
+      // Mark theory as read when reaching last page
+      if (isLast && currentGrammarTopic && !grammarTheoryRead[currentGrammarTopic.id]) {
+        grammarTheoryRead[currentGrammarTopic.id] = true;
+        const userId = auth.currentUser?.uid;
+        if (userId) {
+          db.collection('users').doc(userId).update({
+            [`grammarTheoryRead.${currentGrammarTopic.id}`]: true
+          }).catch(e => console.log('Save theory read error:', e));
+        }
+      }
+
+      // Update button
+      const btn = document.querySelector('#grammar-lesson > button');
+      if (isLast) {
+        btn.innerHTML = '<i class="fas fa-pencil-alt" style="margin-right:8px;"></i>Перевірити знання';
+        btn.onclick = () => startGrammarQuiz();
+      } else {
+        btn.innerHTML = 'Далі <i class="fas fa-arrow-right" style="margin-left:8px;"></i>';
+        btn.onclick = () => { currentGrammarPage++; showGrammarPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+      }
+    }
+
+    function startGrammarVoiceQuestion() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) { showNotification('Браузер не підтримує голосовий ввід', 'error'); return; }
+
+      const btn = document.getElementById('grammar-voice-btn');
+      if (btn.classList.contains('recording')) {
+        if (window.grammarSpeechRec) window.grammarSpeechRec.stop();
+        return;
+      }
+
+      btn.classList.add('recording');
+      btn.style.background = 'rgba(239,68,68,0.2)';
+      btn.style.borderColor = 'rgba(239,68,68,0.5)';
+      btn.innerHTML = '<i class="fas fa-circle" style="animation:blink 1s infinite;color:#ef4444;font-size:14px;"></i>';
+
+      window.grammarSpeechRec = new SpeechRecognition();
+      window.grammarSpeechRec.lang = 'uk-UA';
+      window.grammarSpeechRec.interimResults = false;
+      window.grammarSpeechRec.maxAlternatives = 1;
+
+      window.grammarSpeechRec.onresult = (event) => {
+        const text = event.results[0][0].transcript.trim();
+        document.getElementById('grammar-question-input').value = text;
+        resetGrammarVoiceBtn();
+      };
+      window.grammarSpeechRec.onerror = () => resetGrammarVoiceBtn();
+      window.grammarSpeechRec.onend = () => resetGrammarVoiceBtn();
+      window.grammarSpeechRec.start();
+    }
+
+    function resetGrammarVoiceBtn() {
+      const btn = document.getElementById('grammar-voice-btn');
+      if (!btn) return;
+      btn.classList.remove('recording');
+      btn.style.background = 'rgba(255,255,255,0.06)';
+      btn.style.borderColor = 'rgba(255,255,255,0.1)';
+      btn.innerHTML = '<i class="fas fa-microphone"></i>';
+    }
+
+    async function askGrammarQuestion() {
+      const input = document.getElementById('grammar-question-input');
+      const question = input.value.trim();
+      if (!question) return;
+
+      const answerDiv = document.getElementById('grammar-question-answer');
+      answerDiv.innerHTML = '<div style="text-align:center;padding:12px;color:rgba(240,237,232,0.5);"><i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>Думаю...</div>';
+
+      const pages = grammarLessons[currentGrammarTopic.id];
+      const currentContent = pages[currentGrammarPage].replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
+      try {
+        const prompt = `You are a friendly English grammar tutor for Ukrainian speakers. The student is learning "${currentGrammarTopic.name}".
+
+Current lesson content:
+${currentContent}
+
+Student's question: "${question}"
+
+Answer in Ukrainian, simply and friendly (like explaining to a friend). Keep it short (2-4 sentences). If the question is not about grammar, politely redirect to the topic.`;
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: prompt }],
+            model: 'gpt-4o-mini',
+            temperature: 0.7,
+            max_tokens: 300,
+          }),
+        });
+
+        const result = await response.json();
+        const answer = result.choices[0].message.content.trim();
+
+        answerDiv.innerHTML = `<div style="padding:12px 14px;background:rgba(232,168,56,0.08);border:1px solid rgba(232,168,56,0.15);border-radius:10px;font-size:13px;line-height:1.5;color:rgba(240,237,232,0.85);">
+          <div style="font-size:12px;color:rgba(240,237,232,0.4);margin-bottom:6px;"><i class="fas fa-robot" style="margin-right:4px;"></i>Відповідь</div>
+          ${escapeHtml(answer)}
+        </div>`;
+
+        // Save to Firestore
+        input.value = '';
+        const userId = auth.currentUser?.uid;
+        if (userId) {
+          await db.collection('users').doc(userId).collection('grammarQuestions').add({
+            topicId: currentGrammarTopic.id,
+            question: question,
+            answer: answer,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          loadGrammarSavedQuestions();
+        }
+      } catch (e) {
+        console.log('Grammar question error:', e);
+        answerDiv.innerHTML = '<p style="color:#ef4444;font-size:13px;text-align:center;">Помилка. Спробуй ще раз.</p>';
+      }
+    }
+
+    async function loadGrammarSavedQuestions() {
+      const container = document.getElementById('grammar-saved-questions');
+      if (!container) return;
+      const userId = auth.currentUser?.uid;
+      if (!userId || !currentGrammarTopic) return;
+
+      try {
+        const snap = await db.collection('users').doc(userId).collection('grammarQuestions')
+          .where('topicId', '==', currentGrammarTopic.id)
+          .orderBy('createdAt', 'desc')
+          .limit(5)
+          .get();
+
+        if (snap.empty) { container.innerHTML = ''; return; }
+
+        let html = '<div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.06);padding-top:10px;"><p style="font-size:13px;color:rgba(240,237,232,0.4);margin-bottom:10px;">Твої попередні питання:</p>';
+        snap.docs.forEach(doc => {
+          const d = doc.data();
+          const docId = doc.id;
+          html += `<div style="margin-bottom:8px;background:rgba(255,255,255,0.03);border-radius:10px;overflow:hidden;">
+            <div onclick="var b=this.nextElementSibling;b.classList.toggle('hidden');this.querySelector('.gq-chevron').classList.toggle('gq-open');var s=this.querySelector('.gq-title');if(!b.classList.contains('hidden')){s.style.whiteSpace='normal'}else{s.style.whiteSpace='nowrap'}" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;">
+              <span class="gq-title" style="font-size:14px;color:rgba(240,237,232,0.7);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(d.question)}</span>
+              <i class="fas fa-chevron-down gq-chevron" style="color:rgba(240,237,232,0.3);font-size:12px;margin-left:8px;flex-shrink:0;transition:transform 0.2s;"></i>
+            </div>
+            <div class="hidden" style="padding:0 14px 12px;">
+              <div style="font-size:14px;line-height:1.6;color:rgba(240,237,232,0.6);margin-bottom:10px;">${escapeHtml(d.answer)}</div>
+              <button onclick="deleteGrammarQuestion('${docId}')" style="padding:6px 12px;font-size:12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#ef4444;border-radius:6px;cursor:pointer;"><i class="fas fa-trash" style="margin-right:4px;"></i>Видалити</button>
+            </div>
+          </div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+      } catch (e) { console.log('Load grammar questions error:', e); }
+    }
+
+    async function deleteGrammarQuestion(docId) {
+      const userId = auth.currentUser?.uid;
+      if (!userId) return;
+      try {
+        await db.collection('users').doc(userId).collection('grammarQuestions').doc(docId).delete();
+        loadGrammarSavedQuestions();
+      } catch (e) { console.log('Delete grammar question error:', e); }
+    }
+
+    async function startGrammarQuiz() {
+      document.getElementById('grammar-lesson').classList.add('hidden');
+      document.getElementById('grammar-quiz').classList.remove('hidden');
+      document.getElementById('grammar-quiz-container').innerHTML = '<div style="text-align:center;padding:30px;color:rgba(240,237,232,0.5);">Генерую тест...</div>';
+      document.getElementById('grammar-quiz-result').classList.add('hidden');
+
+      try {
+        const prompt = `Generate 5 multiple-choice grammar questions about "${currentGrammarTopic.name}" for English learners. Each question tests practical usage.
+
+Return ONLY valid JSON array:
+[{"question":"[Question in Ukrainian]","options":["A","B","C","D"],"correct":0,"optionExplanations":["why A is wrong/right","why B is wrong/right","why C is wrong/right","why D is wrong/right"]}]
+
+Where "correct" is the index (0-3) of the correct option. Options are English sentences or words. Questions in Ukrainian.
+
+IMPORTANT about optionExplanations:
+- Write in Ukrainian, MAX 5-7 words per explanation
+- NO grammar terms like "третя особа однини", "інфінітив", "допоміжне дієслово" etc
+- Explain like to a 10-year-old: "he/she/it — додаємо s", "після did — без змін", "тут потрібно was, бо I"
+- For correct answer: just say what the rule is simply
+- For wrong answers: just say what's wrong simply
+Examples: "goes — бо він (he)", "go — забрали s, а тут he", "після doesn't — без s"`;
+
+        const url = 'https://api.openai.com/v1/chat/completions';
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: prompt }],
+            model: 'gpt-4o-mini',
+            temperature: 0.7,
+            max_tokens: 1200,
+          }),
+        });
+
+        const result = await response.json();
+        const content = result.choices[0].message.content.trim();
+        const jsonStr = content.replace(/```json\n?/g, '').replace(/```/g, '').trim();
+        grammarQuizQuestions = JSON.parse(jsonStr);
+        currentGrammarQuizQ = 0;
+        grammarQuizCorrect = 0;
+        showGrammarQuizQuestion();
+      } catch (e) {
+        console.log('Grammar quiz error:', e);
+        document.getElementById('grammar-quiz-container').innerHTML = '<p style="color:#ef4444;text-align:center;">Помилка генерації тесту</p>';
+      }
+    }
+
+    function showGrammarQuizQuestion() {
+      if (currentGrammarQuizQ >= grammarQuizQuestions.length) {
+        showGrammarQuizResult();
+        return;
+      }
+      const q = grammarQuizQuestions[currentGrammarQuizQ];
+      document.getElementById('grammar-quiz-container').innerHTML = `
+        <p style="font-size:15px;color:rgba(240,237,232,0.5);margin-bottom:8px;">Питання ${currentGrammarQuizQ + 1}/${grammarQuizQuestions.length}</p>
+        <p style="font-size:17px;color:#F0EDE8;font-weight:600;margin-bottom:16px;">${escapeHtml(q.question)}</p>
+        ${q.options.map((opt, i) => `<button class="quiz-option-button" onclick="answerGrammarQuiz(${i}, ${q.correct})" style="display:block;width:100%;text-align:left;margin-bottom:8px;padding:14px 16px;">${escapeHtml(opt)}</button>`).join('')}
+      `;
+    }
+
+    function answerGrammarQuiz(selected, correct) {
+      const isCorrect = selected === correct;
+      if (isCorrect) grammarQuizCorrect++;
+      playSound(isCorrect);
+
+      // Award XP immediately per answer: +10 correct, +2 incorrect
+      const xpPerAnswer = isCorrect ? 10 : 2;
+      addXP(xpPerAnswer);
+
+      const q = grammarQuizQuestions[currentGrammarQuizQ];
+      const buttons = document.querySelectorAll('#grammar-quiz-container .quiz-option-button');
+      const container = document.getElementById('grammar-quiz-container');
+
+      buttons.forEach((btn, i) => {
+        btn.disabled = true;
+        btn.style.cursor = 'default';
+        if (i === correct) {
+          btn.style.background = 'rgba(52, 211, 153, 0.2)';
+          btn.style.borderColor = 'rgba(52, 211, 153, 0.5)';
+        }
+        if (i === selected && !isCorrect) {
+          btn.style.background = 'rgba(239, 68, 68, 0.2)';
+          btn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+        }
+
+        // Per-option explanation
+        if (q.optionExplanations && q.optionExplanations[i]) {
+          const expEl = document.createElement('div');
+          const isThisCorrect = i === correct;
+          expEl.style.cssText = `padding:8px 12px;margin:-4px 0 8px 0;border-radius:0 0 8px 8px;font-size:12px;line-height:1.4;color:rgba(240,237,232,0.7);background:${isThisCorrect ? 'rgba(52,211,153,0.08)' : 'rgba(255,255,255,0.03)'};`;
+          expEl.innerHTML = `<span style="color:${isThisCorrect ? '#34d399' : '#ef4444'};margin-right:4px;">${isThisCorrect ? '✓' : '✗'}</span> ${escapeHtml(q.optionExplanations[i])}`;
+          btn.parentNode.insertBefore(expEl, btn.nextSibling);
+        }
+      });
+
+      // Fallback for old format
+      if (!q.optionExplanations && q.explanation) {
+        const explanationEl = document.createElement('div');
+        explanationEl.style.cssText = 'margin-top:12px;padding:12px 16px;border-radius:10px;font-size:13px;line-height:1.5;background:rgba(232,168,56,0.1);border:1px solid rgba(232,168,56,0.2);color:rgba(240,237,232,0.8);';
+        explanationEl.innerHTML = `<i class="fas fa-lightbulb" style="color:#E8A838;margin-right:6px;"></i>${escapeHtml(q.explanation)}`;
+        container.appendChild(explanationEl);
+      }
+
+      // XP indicator
+      const xpEl = document.createElement('div');
+      xpEl.style.cssText = `text-align:center;margin-top:12px;font-size:18px;font-weight:700;color:${isCorrect ? '#34d399' : '#ef4444'};`;
+      xpEl.textContent = isCorrect ? '+10 XP' : '+2 XP';
+      container.appendChild(xpEl);
+
+      // Кнопка "Далі"
+      const nextBtn = document.createElement('button');
+      nextBtn.textContent = 'Далі';
+      nextBtn.style.cssText = 'margin-top:16px;width:100%;padding:14px;font-size:16px;font-weight:600;background:rgba(232,168,56,0.2);border:1px solid #E8A838;color:#E8A838;border-radius:12px;cursor:pointer;';
+      nextBtn.onclick = () => { currentGrammarQuizQ++; showGrammarQuizQuestion(); };
+      container.appendChild(nextBtn);
+    }
+
+    async function showGrammarQuizResult() {
+      document.getElementById('grammar-quiz-container').classList.add('hidden');
+      const result = document.getElementById('grammar-quiz-result');
+      result.classList.remove('hidden');
+
+      const total = grammarQuizQuestions.length;
+      const pct = Math.round((grammarQuizCorrect / total) * 100);
+      const wrongAnswers = total - grammarQuizCorrect;
+      const xpEarned = grammarQuizCorrect * 10 + wrongAnswers * 2;
+      let emoji = '', message = '', scoreClass = '';
+
+      if (pct >= 80) { emoji = '🔥'; message = 'Чудово!'; scoreClass = 'great'; }
+      else if (pct >= 60) { emoji = '💪'; message = 'Добре!'; scoreClass = 'good'; }
+      else { emoji = '📚'; message = 'Повтори урок!'; scoreClass = 'low'; }
+
+      // Mark topic as completed if >= 60%
+      if (pct >= 60 && currentGrammarTopic) {
+        grammarCompletedTopics[currentGrammarTopic.id] = true;
+        try {
+          const userId = auth.currentUser.uid;
+          await db.collection('users').doc(userId).update({
+            [`grammarProgress.${currentGrammarTopic.id}`]: true
+          });
+        } catch (e) { console.log('Grammar progress save error:', e); }
+      }
+
+      result.innerHTML = `
+        <div style="font-size:80px;text-align:center;margin-bottom:8px;">${emoji}</div>
+        <div class="quiz-result-score ${scoreClass}">${grammarQuizCorrect}/${total}</div>
+        <div class="quiz-result-xp">+${xpEarned} XP</div>
+        <div class="quiz-result-message">${message}</div>
+        <button class="finish-button" onclick="finishGrammarQuiz()">Продовжити</button>
+      `;
+    }
+
+    function finishGrammarQuiz() {
+      checkAndShowDailyRecord();
+      showConfetti();
+      updateWeeklyQuestProgress('exercise_complete');
+      document.getElementById('grammar-quiz').classList.add('hidden');
+      document.getElementById('grammar-quiz-container').classList.remove('hidden');
+      document.getElementById('grammar-quiz-result').classList.add('hidden');
+      showGrammar();
+    }
+
+    // ========== PHRASES ==========
+    let allPhrases = [];
+    let phraseConstructorPhrases = [];
+    let currentPhraseQuestion = 0;
+    let phraseCorrectAnswers = 0;
+    let phraseSelectedWords = [];
+
+    function switchVocabTab(tab) {
+      document.getElementById('vocab-tab-words').classList.toggle('active', tab === 'words');
+      document.getElementById('vocab-tab-phrases').classList.toggle('active', tab === 'phrases');
+      document.getElementById('vocab-words-content').classList.toggle('hidden', tab !== 'words');
+      document.getElementById('vocab-phrases-content').classList.toggle('hidden', tab !== 'phrases');
+      if (tab === 'phrases') loadPhrases();
+    }
+
+    let allPhrasesLoaded = false;
+    let lastPhraseDoc = null;
+    let phrasesPerPage = 20;
+
+    async function loadPhrases() {
+      try {
+        showLoading();
+        const userId = auth.currentUser.uid;
+
+        // Reset pagination
+        allPhrases = [];
+        lastPhraseDoc = null;
+        allPhrasesLoaded = false;
+        document.getElementById('phrases').innerHTML = '';
+
+        // Load mastery summary for phrases
+        await loadPhraseMastery();
+
+        // Load first page
+        await loadNextPhrasePage();
+        hideLoading();
+      } catch (e) {
+        console.log('Load phrases error:', e);
+        hideLoading();
+      }
+    }
+
+    async function loadNextPhrasePage() {
+      const userId = auth.currentUser.uid;
+      let query = db.collection('users').doc(userId).collection('phrases')
+        .orderBy('dateAdded', 'desc')
+        .limit(phrasesPerPage);
+
+      if (lastPhraseDoc) {
+        query = query.startAfter(lastPhraseDoc);
+      }
+
+      const snapshot = await query.get();
+
+      if (snapshot.empty || snapshot.docs.length < phrasesPerPage) {
+        allPhrasesLoaded = true;
+      }
+
+      if (!snapshot.empty) {
+        lastPhraseDoc = snapshot.docs[snapshot.docs.length - 1];
+        const newPhrases = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        allPhrases = allPhrases.concat(newPhrases);
+        renderPhrases(newPhrases);
+      }
+
+      document.getElementById('phrase-count').textContent =
+        `Загальна кількість фраз: ${allPhrases.length}${allPhrasesLoaded ? '' : '+'}`;
+
+      const loadMoreBtn = document.getElementById('load-more-phrases');
+      if (allPhrasesLoaded) {
+        loadMoreBtn.classList.add('hidden');
+      } else {
+        loadMoreBtn.classList.remove('hidden');
+      }
+    }
+
+    async function loadMorePhrases() {
+      showLoading();
+      await loadNextPhrasePage();
+      hideLoading();
+    }
+
+    function getPhraseMasteryColor(phrase) {
+      const inter = phrase.interactions || 0;
+      const acc = inter > 0 ? (phrase.correctAnswers || 0) / inter * 100 : 0;
+      if (inter < 3) return 'rgba(255, 255, 255, 0.2)';
+      if (acc > 90 && inter >= 10) return '#34d399';
+      if (acc >= 60) return '#E8A838';
+      return '#ef4444';
+    }
+
+    async function loadPhraseMastery() {
+      try {
+        const userId = auth.currentUser.uid;
+        const snapshot = await db.collection('users').doc(userId).collection('phrases').get();
+        let mastered = 0, good = 0, learning = 0, newP = 0;
+
+        snapshot.docs.forEach(doc => {
+          const d = doc.data();
+          const inter = d.interactions || 0;
+          const acc = inter > 0 ? (d.correctAnswers || 0) / inter * 100 : 0;
+          if (inter < 3) newP++;
+          else if (acc > 90 && inter >= 10) mastered++;
+          else if (acc >= 60) good++;
+          else learning++;
+        });
+
+        const el = document.getElementById('phrase-mastery');
+        if (el) {
+          el.innerHTML = `
+            <div class="acc-mastery-item"><span class="acc-mastery-dot mastered"></span>${mastered} освоєно</div>
+            <div class="acc-mastery-item"><span class="acc-mastery-dot good"></span>${good} добре</div>
+            <div class="acc-mastery-item"><span class="acc-mastery-dot learning"></span>${learning} вивчаю</div>
+            <div class="acc-mastery-item"><span class="acc-mastery-dot new-word"></span>${newP} нових</div>
+          `;
+        }
+      } catch (e) { console.log('Phrase mastery error:', e); }
+    }
+
+    function renderPhrases(phrases) {
+      const ul = document.getElementById('phrases');
+      const searchVal = document.getElementById('phrase-search-input').value.trim().toLowerCase();
+
+      const filtered = searchVal
+        ? phrases.filter(p => p.english.toLowerCase().includes(searchVal) || p.translation.toLowerCase().includes(searchVal))
+        : phrases;
+
+      if (allPhrases.length === 0) {
+        ul.innerHTML = '<li style="text-align:center;padding:30px;color:rgba(240,237,232,0.4);">Поки що немає фраз</li>';
+        return;
+      }
+
+      filtered.forEach(p => {
+        const li = document.createElement('li');
+        li.onclick = () => showPhraseInfo(p.id);
+
+        // Mastery dot
+        const dot = document.createElement('span');
+        dot.className = 'mastery-dot-inline';
+        dot.style.background = getPhraseMasteryColor(p);
+        li.appendChild(dot);
+
+        // Sound icon
+        const soundIcon = document.createElement('i');
+        soundIcon.classList.add('fas', 'fa-volume-up');
+        soundIcon.onclick = (e) => {
+          e.stopPropagation();
+          soundIcon.classList.add('speaking');
+          responsiveVoice.speak(p.english, "UK English Female", {
+            onend: () => soundIcon.classList.remove('speaking')
+          });
+          setTimeout(() => soundIcon.classList.remove('speaking'), 3000);
+        };
+        li.appendChild(soundIcon);
+
+        // Phrase info — phrase on first line, translation on second
+        const phraseInfo = document.createElement('div');
+        phraseInfo.style.flex = '1';
+        phraseInfo.innerHTML = `<strong>${escapeHtml(p.english)}</strong><br><span style="color:rgba(240,237,232,0.5);font-size:13px;">${escapeHtml(p.translation)}</span>`;
+        li.appendChild(phraseInfo);
+
+        // Delete button
+        const deleteBtn = document.createElement('i');
+        deleteBtn.classList.add('fas', 'fa-trash');
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          deletePhrase(p.id);
+        };
+        li.appendChild(deleteBtn);
+
+        ul.appendChild(li);
+      });
+    }
+
+    function showAddPhrase() {
+      document.getElementById('my-words-section').classList.add('hidden');
+      document.getElementById('add-phrase-section').classList.remove('hidden');
+    }
+
+    function backFromAddPhrase() {
+      document.getElementById('add-phrase-section').classList.add('hidden');
+      document.getElementById('my-words-section').classList.remove('hidden');
+      switchVocabTab('phrases');
+    }
+
+    function getPhraseTranslationSuggestions(phrase) {
+      if (!phrase) return;
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(phrase)}&langpair=en|uk`;
+      axios.get(url)
+        .then(response => {
+          const suggestions = response.data.matches.slice(0, 3).map(m => m.translation);
+          const container = document.getElementById('phrase-translation-suggestions');
+          container.innerHTML = '';
+          suggestions.forEach(t => {
+            const div = document.createElement('div');
+            div.classList.add('suggestion');
+            div.textContent = t;
+            div.onclick = () => { document.getElementById('phrase-translation').value = t; container.innerHTML = ''; };
+            container.appendChild(div);
+          });
+        })
+        .catch(e => console.log('Phrase translation error:', e));
+    }
+
+    async function addPhrase() {
+      const english = document.getElementById('phrase-english').value.trim();
+      const translation = document.getElementById('phrase-translation').value.trim();
+
+      document.getElementById('phrase-english-error').textContent = '';
+      document.getElementById('phrase-translation-error').textContent = '';
+
+      let valid = true;
+      if (!english || english.length < 2) {
+        document.getElementById('phrase-english-error').textContent = 'Введіть фразу англійською.';
+        valid = false;
+      }
+      if (!translation) {
+        document.getElementById('phrase-translation-error').textContent = 'Введіть переклад.';
+        valid = false;
+      }
+      if (!valid) return;
+
+      showLoading();
+      try {
+        const userId = auth.currentUser.uid;
+        const phraseId = english.toLowerCase().replace(/\s+/g, '_');
+        const existing = await db.collection('users').doc(userId).collection('phrases').doc(phraseId).get();
+        if (existing.exists) {
+          document.getElementById('phrase-english-error').textContent = 'Ця фраза вже існує.';
+        } else {
+          await db.collection('users').doc(userId).collection('phrases').doc(phraseId).set({
+            english: english,
+            translation: translation,
+            interactions: 0,
+            correctAnswers: 0,
+            priority: 0,
+            dateAdded: firebase.firestore.Timestamp.now(),
+          });
+          document.getElementById('phrase-english').value = '';
+          document.getElementById('phrase-translation').value = '';
+          document.getElementById('phrase-translation-suggestions').innerHTML = '';
+          playSound(true);
+          showNotification(`Фразу "${english}" додано!`);
+        }
+      } catch (e) {
+        console.log('Add phrase error:', e);
+        showNotification('Помилка при додаванні фрази.', 'warning');
+      } finally { hideLoading(); }
+    }
+
+    async function deletePhrase(phraseId) {
+      try {
+        const userId = auth.currentUser.uid;
+        await db.collection('users').doc(userId).collection('phrases').doc(phraseId).delete();
+        showNotification('Фразу видалено');
+        loadPhrases();
+      } catch (e) { console.log('Delete phrase error:', e); }
+    }
+
+    function showPhraseInfo(phraseId) {
+      const phrase = allPhrases.find(p => p.id === phraseId);
+      if (!phrase) return;
+      const interactions = phrase.interactions || 0;
+      const correctAnswers = phrase.correctAnswers || 0;
+      const percentage = interactions > 0 ? Math.round((correctAnswers / interactions) * 100) : 0;
+      showInfoPopup(phrase.english, `
+        <p style="font-size:15px;margin-bottom:12px;">${escapeHtml(phrase.translation)}</p>
+        <p>Кількість взаємодій: ${interactions}</p>
+        <p>Правильних відповідей: ${correctAnswers}</p>
+        <p>Відсоток правильних: ${percentage}%</p>
+      `);
+    }
+
+    // Phrase constructor training
+    function startPhraseConstructor() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('phrase-constructor-section').classList.remove('hidden');
+      initializePhraseConstructor();
+    }
+
+    async function initializePhraseConstructor() {
+      showLoading();
+      try {
+        const userId = auth.currentUser.uid;
+        const snapshot = await db.collection('users').doc(userId).collection('phrases').get();
+        const allPhrases = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Сортуємо на клієнті (бо старі фрази можуть не мати поля priority)
+        allPhrases.sort((a, b) => (a.priority || 0) - (b.priority || 0));
+
+        if (allPhrases.length < 5) {
+          document.getElementById('phrase-constructor-container').innerHTML =
+            '<p style="text-align:center;padding:30px;color:rgba(240,237,232,0.5);">Потрібно мінімум 5 фраз у словнику. Зараз: ' + allPhrases.length + '</p>';
+          hideLoading();
+          return;
+        }
+
+        // Алгоритм: спочатку нові (< 3 взаємодій), потім складні (менший priority)
+        const newPhrases = allPhrases.filter(p => (p.interactions || 0) < 3);
+        const oldPhrases = allPhrases.filter(p => (p.interactions || 0) >= 3);
+        // Нові — рандомно, старі вже відсортовані по priority asc (складніші першими)
+        newPhrases.sort(() => 0.5 - Math.random());
+        const combined = [...newPhrases, ...oldPhrases];
+        phraseConstructorPhrases = combined.slice(0, Math.min(10, combined.length));
+        currentPhraseQuestion = 0;
+        phraseCorrectAnswers = 0;
+        document.getElementById('phrase-constructor-result').classList.add('hidden');
+        document.getElementById('phrase-constructor-container').classList.remove('hidden');
+        showPhraseConstructorQuestion();
+      } catch (e) {
+        console.log('Phrase constructor init error:', e);
+      } finally { hideLoading(); }
+    }
+
+    function showPhraseConstructorQuestion() {
+      if (currentPhraseQuestion >= phraseConstructorPhrases.length) {
+        showPhraseConstructorResult();
+        return;
+      }
+
+      const phrase = phraseConstructorPhrases[currentPhraseQuestion];
+      const words = phrase.english.split(/\s+/);
+      const shuffled = [...words].sort(() => 0.5 - Math.random());
+      phraseSelectedWords = [];
+
+      const progressPct = (currentPhraseQuestion / phraseConstructorPhrases.length) * 100;
+      document.getElementById('phrase-constructor-progress-bar').style.width = `${progressPct}%`;
+
+      const container = document.getElementById('phrase-constructor-container');
+      container.innerHTML = `
+        <div class="phrase-prompt">${escapeHtml(phrase.translation)}</div>
+        <div class="phrase-answer-area" id="phrase-answer-area"></div>
+        <div class="phrase-constructor-blocks" id="phrase-blocks">
+          ${shuffled.map((w, i) => `<button class="phrase-block" data-idx="${i}" onclick="selectPhraseBlock(this, '${escapeHtml(w)}')">${escapeHtml(w)}</button>`).join('')}
+        </div>
+        <button class="check-button" onclick="checkPhraseAnswer()">Перевірити</button>
+        <button class="skip-button" onclick="skipPhraseQuestion()">Пропустити</button>
+        <div id="phrase-feedback" class="listening-feedback hidden"></div>
+      `;
+    }
+
+    function selectPhraseBlock(btn, word) {
+      btn.classList.add('used');
+      phraseSelectedWords.push({ word, btn });
+      renderPhraseAnswer();
+    }
+
+    function removePhraseWord(index) {
+      const removed = phraseSelectedWords.splice(index, 1)[0];
+      if (removed && removed.btn) removed.btn.classList.remove('used');
+      renderPhraseAnswer();
+    }
+
+    function renderPhraseAnswer() {
+      const area = document.getElementById('phrase-answer-area');
+      area.innerHTML = phraseSelectedWords.map((item, i) =>
+        `<button class="phrase-answer-block" onclick="removePhraseWord(${i})">${escapeHtml(item.word)}</button>`
+      ).join('');
+    }
+
+    async function checkPhraseAnswer() {
+      const phrase = phraseConstructorPhrases[currentPhraseQuestion];
+      const userAnswer = phraseSelectedWords.map(w => w.word).join(' ').toLowerCase();
+      const correct = phrase.english.toLowerCase();
+      const isCorrect = userAnswer === correct;
+      const xp = isCorrect ? 20 : 5;
+
+      if (isCorrect) {
+        phraseCorrectAnswers++;
+        playSound(true);
+      } else {
+        playSound(false);
+      }
+
+      // Update stats in Firestore
+      try {
+        const userId = auth.currentUser.uid;
+        const phraseRef = db.collection('users').doc(userId).collection('phrases').doc(phrase.id);
+        const phraseDoc = await phraseRef.get();
+        if (phraseDoc.exists) {
+          const data = phraseDoc.data();
+          const newInteractions = (data.interactions || 0) + 1;
+          const newCorrect = (data.correctAnswers || 0) + (isCorrect ? 1 : 0);
+          const priority = newCorrect / newInteractions;
+          await phraseRef.update({
+            interactions: newInteractions,
+            correctAnswers: newCorrect,
+            priority: priority,
+          });
+        }
+      } catch (e) { console.log('Phrase stats error:', e); }
+
+      addXP(xp);
+
+      const feedback = document.getElementById('phrase-feedback');
+      feedback.classList.remove('hidden');
+      feedback.innerHTML = isCorrect
+        ? `<span style="color:#34d399;">Правильно! +${xp} XP</span>`
+        : `<span style="color:#ef4444;">Неправильно. Відповідь: ${escapeHtml(phrase.english)}</span>`;
+
+      // Disable buttons
+      document.querySelectorAll('#phrase-blocks .phrase-block').forEach(b => b.disabled = true);
+      document.querySelector('#phrase-constructor-container .check-button').disabled = true;
+      document.querySelector('#phrase-constructor-container .skip-button').disabled = true;
+
+      setTimeout(() => {
+        currentPhraseQuestion++;
+        showPhraseConstructorQuestion();
+      }, 1500);
+    }
+
+    function skipPhraseQuestion() {
+      const phrase = phraseConstructorPhrases[currentPhraseQuestion];
+      addXP(5);
+
+      const feedback = document.getElementById('phrase-feedback');
+      feedback.classList.remove('hidden');
+      feedback.innerHTML = `<span style="color:rgba(240,237,232,0.5);">Відповідь: ${escapeHtml(phrase.english)}</span>`;
+
+      document.querySelectorAll('#phrase-blocks .phrase-block').forEach(b => b.disabled = true);
+      document.querySelector('#phrase-constructor-container .check-button').disabled = true;
+      document.querySelector('#phrase-constructor-container .skip-button').disabled = true;
+
+      setTimeout(() => {
+        currentPhraseQuestion++;
+        showPhraseConstructorQuestion();
+      }, 1500);
+    }
+
+    function showPhraseConstructorResult() {
+      checkAndShowDailyRecord();
+      document.getElementById('phrase-constructor-container').classList.add('hidden');
+      document.getElementById('phrase-constructor-progress').classList.add('hidden');
+      const result = document.getElementById('phrase-constructor-result');
+      result.classList.remove('hidden');
+
+      const total = phraseConstructorPhrases.length;
+      const pct = Math.round((phraseCorrectAnswers / total) * 100);
+      const xpEarned = phraseCorrectAnswers * 20 + (total - phraseCorrectAnswers) * 5;
+      let emoji = '', message = '', scoreClass = '';
+
+      if (pct >= 90) { emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great'; }
+      else if (pct >= 70) { emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great'; }
+      else if (pct >= 50) { emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good'; }
+      else if (pct >= 30) { emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good'; }
+      else { emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low'; }
+
+      result.innerHTML = `
+        <div style="font-size:80px;text-align:center;margin-bottom:8px;">${emoji}</div>
+        <div class="quiz-result-score ${scoreClass}">${phraseCorrectAnswers}/${total}</div>
+        <div class="quiz-result-xp">+${xpEarned} XP</div>
+        <div class="quiz-result-message">${message}</div>
+        <button class="finish-button" onclick="finishPhraseConstructor()">Продовжити</button>
+      `;
+    }
+
+    function finishPhraseConstructor() {
+      showConfetti();
+      updateWeeklyQuestProgress('exercise_complete');
+      backToAccount();
+      document.getElementById('phrase-constructor-result').classList.add('hidden');
+      document.getElementById('phrase-constructor-container').classList.remove('hidden');
+      document.getElementById('phrase-constructor-progress').classList.remove('hidden');
+    }
+
+    // Phrase search handler
+    document.addEventListener('DOMContentLoaded', () => {
+      const phraseSearch = document.getElementById('phrase-search-input');
+      if (phraseSearch) phraseSearch.addEventListener('input', () => loadPhrases());
+    });
+
+    // ========== LEADERBOARD ==========
+    let currentLeaderboardTab = 'weekly';
+    let userNickname = '';
+
+    function showLeaderboard() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('leaderboard-section').classList.remove('hidden');
+      document.getElementById('nickname-input').value = userNickname;
+      document.getElementById('nickname-label').textContent = userNickname || 'Анонім';
+      document.getElementById('nickname-edit').classList.add('hidden');
+      loadLeaderboard(currentLeaderboardTab);
+    }
+
+    function toggleNicknameEdit() {
+      document.getElementById('nickname-edit').classList.toggle('hidden');
+    }
+
+    function switchLeaderboardTab(tab) {
+      currentLeaderboardTab = tab;
+      document.getElementById('lb-tab-weekly').classList.toggle('active', tab === 'weekly');
+      document.getElementById('lb-tab-total').classList.toggle('active', tab === 'total');
+      loadLeaderboard(tab);
+    }
+
+    async function loadLeaderboard(tab) {
+      const listEl = document.getElementById('leaderboard-list');
+      listEl.innerHTML = '<div class="leaderboard-empty">Завантаження...</div>';
+
+      try {
+        const currentUserId = auth.currentUser.uid;
+        let query;
+
+        if (tab === 'weekly') {
+          // Get this week's XP from xpHistory
+          const today = new Date();
+          const dayOfWeek = today.getDay() || 7; // Monday = 1
+          const weekDates = [];
+          for (let i = 1; i <= 7; i++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - dayOfWeek + i);
+            weekDates.push(d.toISOString().split('T')[0]);
+          }
+
+          // Query all users, sort client-side for weekly
+          const snapshot = await db.collection('users').get();
+          const users = [];
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const xpHistory = data.xpHistory || {};
+            let weeklyXP = 0;
+            weekDates.forEach(date => { weeklyXP += (xpHistory[date] || 0); });
+            if (weeklyXP > 0) {
+              users.push({
+                id: doc.id,
+                name: data.nickname || data.email || 'Анонім',
+                xp: weeklyXP
+              });
+            }
+          });
+          users.sort((a, b) => b.xp - a.xp);
+          renderLeaderboard(users.slice(0, 20), currentUserId);
+        } else {
+          // Total XP — query top 20
+          const snapshot = await db.collection('users').orderBy('xp', 'desc').limit(20).get();
+          const users = [];
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            users.push({
+              id: doc.id,
+              name: data.nickname || data.email || 'Анонім',
+              xp: data.xp || 0
+            });
+          });
+          renderLeaderboard(users, currentUserId);
+        }
+      } catch (e) {
+        console.log('Leaderboard error:', e);
+        listEl.innerHTML = '<div class="leaderboard-empty">Помилка завантаження</div>';
+      }
+    }
+
+    function renderLeaderboard(users, currentUserId) {
+      const listEl = document.getElementById('leaderboard-list');
+      if (users.length === 0) {
+        listEl.innerHTML = '<div class="leaderboard-empty">Поки що нікого немає</div>';
+        return;
+      }
+
+      listEl.innerHTML = users.map((u, i) => {
+        const rank = i + 1;
+        const rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+        const isMe = u.id === currentUserId;
+        return `<div class="leaderboard-row ${isMe ? 'is-me' : ''}">
+          <div class="leaderboard-rank">${rankIcon}</div>
+          <div class="leaderboard-name">${escapeHtml(u.name)}${isMe ? ' (ти)' : ''}</div>
+          <div class="leaderboard-xp">${u.xp} XP</div>
+        </div>`;
+      }).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function saveNickname() {
+      const input = document.getElementById('nickname-input');
+      const name = input.value.trim();
+      if (!name) return;
+      userNickname = name;
+      document.getElementById('nickname-label').textContent = name;
+      document.getElementById('nickname-edit').classList.add('hidden');
+      try {
+        const userId = auth.currentUser.uid;
+        await db.collection('users').doc(userId).update({ nickname: name });
+        showNotification('Нікнейм збережено!', 'success');
+        loadLeaderboard(currentLeaderboardTab);
+      } catch (e) { console.log('Nickname save error:', e); }
     }
 
     // ========== WEEKLY QUEST ==========
@@ -6794,7 +9384,11 @@ Return ONLY the JSON array, no other text.`;
         soundIcon.classList.add('fas', 'fa-volume-up');
         soundIcon.onclick = (e) => {
           e.stopPropagation();
-          responsiveVoice.speak(word.english, "UK English Female");
+          soundIcon.classList.add('speaking');
+          responsiveVoice.speak(word.english, "UK English Female", {
+            onend: () => soundIcon.classList.remove('speaking')
+          });
+          setTimeout(() => soundIcon.classList.remove('speaking'), 3000);
         };
         li.appendChild(soundIcon);
 
@@ -6998,6 +9592,39 @@ Return ONLY the JSON array, no other text.`;
       }
     }
 
+    // Довантаження всіх решти фраз (для пошуку)
+    async function loadAllRemainingPhrases() {
+      while (!allPhrasesLoaded) {
+        await loadNextPhrasePage();
+      }
+    }
+
+    document.getElementById('phrase-search-input').addEventListener('input', function () {
+      const query = this.value.toLowerCase();
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(async () => {
+        if (query && !allPhrasesLoaded) {
+          await loadAllRemainingPhrases();
+        }
+        const filtered = allPhrases.filter(p =>
+          p.english.toLowerCase().includes(query) || p.translation.toLowerCase().includes(query)
+        );
+        const ul = document.getElementById('phrases');
+        ul.innerHTML = '';
+        renderPhrases(filtered);
+
+        const loadMoreBtn = document.getElementById('load-more-phrases');
+        if (query) {
+          loadMoreBtn.classList.add('hidden');
+        } else {
+          ul.innerHTML = '';
+          renderPhrases(allPhrases);
+          if (!allPhrasesLoaded) loadMoreBtn.classList.remove('hidden');
+          else loadMoreBtn.classList.add('hidden');
+        }
+      }, 300);
+    });
+
     function displaySearchedWords(words) {
       const wordsElement = document.getElementById('words');
       wordsElement.innerHTML = '';
@@ -7061,11 +9688,87 @@ Return ONLY the JSON array, no other text.`;
       updateSadCatVisibility();
     }
     // Показати "Додати слово"
+    let currentAddTab = 'word';
+
+    function switchAddTab(tab) {
+      currentAddTab = tab;
+      document.getElementById('add-tab-word').classList.toggle('active', tab === 'word');
+      document.getElementById('add-tab-phrase').classList.toggle('active', tab === 'phrase');
+      document.getElementById('add-word-form').classList.toggle('hidden', tab !== 'word');
+      document.getElementById('add-phrase-form').classList.toggle('hidden', tab !== 'phrase');
+    }
+
     function showAddWord() {
       toggleMainTitle();
       document.getElementById('account-screen').classList.add('hidden');
       document.getElementById('add-word-section').classList.remove('hidden');
       document.getElementById('translation-suggestions').innerHTML = '';
+      switchAddTab('word');
+    }
+
+    function getPhraseTranslationSuggestionsInline(phrase) {
+      if (!phrase || phrase.length < 2) return;
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(phrase)}&langpair=en|uk`;
+      axios.get(url)
+        .then(response => {
+          const suggestions = response.data.matches.slice(0, 3).map(m => m.translation);
+          const container = document.getElementById('phrase-translation-suggestions-inline');
+          container.innerHTML = '';
+          suggestions.forEach(t => {
+            const div = document.createElement('div');
+            div.classList.add('suggestion');
+            div.textContent = t;
+            div.onclick = () => { document.getElementById('phrase-translation-inline').value = t; container.innerHTML = ''; };
+            container.appendChild(div);
+          });
+        })
+        .catch(e => console.log('Phrase translation error:', e));
+    }
+
+    async function addPhraseInline() {
+      const english = document.getElementById('phrase-english-inline').value.trim();
+      const translation = document.getElementById('phrase-translation-inline').value.trim();
+
+      document.getElementById('phrase-english-inline-error').textContent = '';
+      document.getElementById('phrase-translation-inline-error').textContent = '';
+
+      let valid = true;
+      if (!english || english.length < 2) {
+        document.getElementById('phrase-english-inline-error').textContent = 'Введіть фразу англійською.';
+        valid = false;
+      }
+      if (!translation) {
+        document.getElementById('phrase-translation-inline-error').textContent = 'Введіть переклад.';
+        valid = false;
+      }
+      if (!valid) return;
+
+      showLoading();
+      try {
+        const userId = auth.currentUser.uid;
+        const phraseId = english.toLowerCase().replace(/\s+/g, '_');
+        const existing = await db.collection('users').doc(userId).collection('phrases').doc(phraseId).get();
+        if (existing.exists) {
+          document.getElementById('phrase-english-inline-error').textContent = 'Ця фраза вже існує.';
+        } else {
+          await db.collection('users').doc(userId).collection('phrases').doc(phraseId).set({
+            english: english,
+            translation: translation,
+            interactions: 0,
+            correctAnswers: 0,
+            priority: 0,
+            dateAdded: firebase.firestore.Timestamp.now(),
+          });
+          document.getElementById('phrase-english-inline').value = '';
+          document.getElementById('phrase-translation-inline').value = '';
+          document.getElementById('phrase-translation-suggestions-inline').innerHTML = '';
+          playSound(true);
+          showNotification(`Фразу "${english}" додано!`);
+        }
+      } catch (e) {
+        console.log('Add phrase error:', e);
+        showNotification('Помилка при додаванні фрази', 'warning');
+      } finally { hideLoading(); }
     }
 
     async function addWord() {
@@ -7281,6 +9984,159 @@ Return ONLY the JSON array, no other text.`;
 
 
 
+    // ========== STORY MODE & QUIZ ==========
+    let currentStoryMode = 'text';
+    let storyAudioListens = 2;
+    let generatedStoryText = '';
+    let storyQuizQuestions = [];
+    let currentStoryQuizQuestion = 0;
+    let storyQuizCorrectAnswers = 0;
+
+    function selectStoryMode(mode, btn) {
+      currentStoryMode = mode;
+      document.querySelectorAll('.story-mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    async function startStoryQuiz() {
+      // Hide story/actions, show quiz
+      document.getElementById('generated-story').classList.add('hidden');
+      document.getElementById('story-actions').classList.add('hidden');
+      document.getElementById('story-audio-mode').classList.add('hidden');
+      document.getElementById('story-quiz').classList.remove('hidden');
+      document.getElementById('story-quiz-container').innerHTML = '<div style="text-align:center;padding:30px;color:rgba(240,237,232,0.5);">Генерую питання...</div>';
+
+      // Generate quiz via AI
+      try {
+        const storyText = generatedStoryText;
+        const prompt = `Based on this English story, generate exactly 5 multiple-choice questions to test reading/listening comprehension. Each question should have 4 answer options with exactly one correct answer.
+
+Story: "${storyText}"
+
+Return ONLY valid JSON array in this exact format, no other text:
+[{"question":"...","options":["A","B","C","D"],"correct":0}]
+
+Where "correct" is the index (0-3) of the correct option. Mix languages: some questions in Ukrainian, some in English. Answer options can also be mixed — some English, some Ukrainian. This helps learners practice both directions.`;
+
+        const url = 'https://api.openai.com/v1/chat/completions';
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: prompt }],
+            model: 'gpt-4o-mini',
+            temperature: 0.7,
+            max_tokens: 800,
+          }),
+        });
+
+        const result = await response.json();
+        const content = result.choices[0].message.content.trim();
+        // Parse JSON from response (might be wrapped in ```json...```)
+        const jsonStr = content.replace(/```json\n?/g, '').replace(/```/g, '').trim();
+        storyQuizQuestions = JSON.parse(jsonStr);
+        currentStoryQuizQuestion = 0;
+        storyQuizCorrectAnswers = 0;
+        showStoryQuizQuestion();
+      } catch (e) {
+        console.log('Story quiz generation error:', e);
+        document.getElementById('story-quiz-container').innerHTML = '<p style="text-align:center;color:#ef4444;">Помилка генерації тесту. Спробуйте ще раз.</p>';
+      }
+    }
+
+    function showStoryQuizQuestion() {
+      if (currentStoryQuizQuestion >= storyQuizQuestions.length) {
+        showStoryQuizResult();
+        return;
+      }
+      const q = storyQuizQuestions[currentStoryQuizQuestion];
+      const container = document.getElementById('story-quiz-container');
+      container.innerHTML = `
+        <p style="font-size:15px;color:rgba(240,237,232,0.5);margin-bottom:8px;">Питання ${currentStoryQuizQuestion + 1}/${storyQuizQuestions.length}</p>
+        <p style="font-size:17px;color:#F0EDE8;font-weight:600;margin-bottom:16px;">${escapeHtml(q.question)}</p>
+        ${q.options.map((opt, i) => `<button class="quiz-option-button" onclick="answerStoryQuiz(${i}, ${q.correct})" style="display:block;width:100%;text-align:left;margin-bottom:8px;padding:14px 16px;">${escapeHtml(opt)}</button>`).join('')}
+      `;
+    }
+
+    function answerStoryQuiz(selected, correct) {
+      const isCorrect = selected === correct;
+      if (isCorrect) storyQuizCorrectAnswers++;
+
+      const buttons = document.querySelectorAll('#story-quiz-container .quiz-option-button');
+      buttons.forEach((btn, i) => {
+        btn.disabled = true;
+        if (i === correct) btn.style.background = 'rgba(52, 211, 153, 0.3)';
+        if (i === selected && !isCorrect) btn.style.background = 'rgba(239, 68, 68, 0.3)';
+      });
+
+      playSound(isCorrect);
+      setTimeout(() => {
+        currentStoryQuizQuestion++;
+        showStoryQuizQuestion();
+      }, 1000);
+    }
+
+    function showStoryQuizResult() {
+      const container = document.getElementById('story-quiz-container');
+      container.classList.add('hidden');
+      const result = document.getElementById('story-quiz-result');
+      result.classList.remove('hidden');
+
+      const total = storyQuizQuestions.length;
+      const pct = Math.round((storyQuizCorrectAnswers / total) * 100);
+      const xpEarned = storyQuizCorrectAnswers * 15;
+      let emoji = '', message = '', scoreClass = '';
+
+      if (pct >= 90) { emoji = '🔥'; message = 'Неймовірно!'; scoreClass = 'great'; }
+      else if (pct >= 70) { emoji = '💪'; message = 'Чудово!'; scoreClass = 'great'; }
+      else if (pct >= 50) { emoji = '👏'; message = 'Непогано!'; scoreClass = 'good'; }
+      else { emoji = '📚'; message = 'Спробуй ще раз!'; scoreClass = 'low'; }
+
+      addXP(xpEarned);
+
+      result.innerHTML = `
+        <div style="font-size:80px;text-align:center;margin-bottom:8px;">${emoji}</div>
+        <div class="quiz-result-score ${scoreClass}">${storyQuizCorrectAnswers}/${total}</div>
+        <div class="quiz-result-xp">+${xpEarned} XP</div>
+        <div class="quiz-result-message">${message}</div>
+        <button class="finish-button" onclick="finishStoryQuiz()">Завершити</button>
+      `;
+    }
+
+    function finishStoryQuiz() {
+      showConfetti();
+      updateWeeklyQuestProgress('exercise_complete');
+      // Reset story
+      document.getElementById('story-quiz').classList.add('hidden');
+      document.getElementById('story-quiz-result').classList.add('hidden');
+      document.getElementById('story-quiz-container').classList.remove('hidden');
+      markStoryAsRead();
+    }
+
+    // Audio mode
+    function showAudioStoryMode() {
+      document.getElementById('generated-story').classList.add('hidden');
+      document.getElementById('story-actions').classList.add('hidden');
+      document.getElementById('story-audio-mode').classList.remove('hidden');
+      document.getElementById('story-audio-title').textContent = document.getElementById('story-title').textContent;
+      document.getElementById('play-audio-story-btn').classList.remove('hidden');
+      document.getElementById('play-audio-story-btn').disabled = false;
+      document.getElementById('audio-to-quiz-btn').classList.remove('hidden');
+      const listensEl = document.getElementById('audio-listens-left');
+      if (listensEl) listensEl.parentElement.style.display = 'none';
+    }
+
+    function playAudioStory() {
+      document.getElementById('play-audio-story-btn').disabled = true;
+
+      const text = generatedStoryText;
+      responsiveVoice.speak(text, 'UK English Female', {
+        onend: () => {
+          document.getElementById('play-audio-story-btn').disabled = false;
+        }
+      });
+    }
+
     // Функція для закриття попапу
     function closeSharedWordsPopup() {
       const popup = document.getElementById('sharedWordsPopup');
@@ -7293,19 +10149,19 @@ Return ONLY the JSON array, no other text.`;
     }
 
     function markStoryAsRead() {
-  // Видаляємо збережені дані про історію
   localStorage.removeItem("generatedStoryTitle");
   localStorage.removeItem("generatedStoryText");
 
-  // Ховаємо блок зі згенерованим текстом та кнопками дій
   document.getElementById('generated-story').classList.add('hidden');
   document.getElementById('story-actions').classList.add('hidden');
+  document.getElementById('story-audio-mode').classList.add('hidden');
+  document.getElementById('story-quiz').classList.add('hidden');
 
-  // Повертаємо користувачу доступ до налаштувань (стиль, складність, довжина) та кнопки «Сгенерувати»
   document.querySelectorAll('.title-wrapper').forEach(el => el.style.display = 'flex');
   document.querySelectorAll('.option-button').forEach(btn => btn.disabled = false);
   document.querySelector('.generate').disabled = false;
   document.querySelector('.generate').style.display = 'inline-block';
+  responsiveVoice.cancel();
 }
 
 
@@ -7601,6 +10457,7 @@ function copyStory() {
     }
 
     function showQuizResult() {
+      checkAndShowDailyRecord();
       const quizContainer = document.getElementById('quiz-container');
       const quizProgress = document.getElementById('quiz-progress');
       const quizResult = document.getElementById('quiz-result');
@@ -8035,7 +10892,7 @@ async function translateStory() {
       }, 500);
       // Отображаем контент
       container.innerHTML = `
-    <button onclick="responsiveVoice.speak('${questionWord.english}', 'UK English Female')" class="listening-sound-icon"><i class="fas fa-volume-up"></i></button>
+    <button onclick="speakWord('${questionWord.english}', this)" class="listening-sound-icon"><i class="fas fa-volume-up"></i></button>
     <input type="text" id="listening-answer" placeholder="Введіть слово...">
     <button class="check-button" onclick="checkListeningAnswer('${questionWord.english}')">Перевірити</button>
     <button class="skip-button" onclick="skipListeningQuestion()">Пропустити</button>
@@ -8176,7 +11033,7 @@ async function translateStory() {
         // Обновляем контент после анимации
         container.innerHTML = `
       <div class="sound-icon-container">
-        <button onclick="responsiveVoice.speak('${questionWord.english}', 'UK English Female')" class="listening-sound-icon">
+        <button onclick="speakWord('${questionWord.english}', this)" class="listening-sound-icon">
           <i class="fas fa-volume-up"></i>
         </button>
       </div>
@@ -8243,9 +11100,7 @@ async function translateStory() {
       // Уменьшение количества оставшихся букв
       remainingCount--;
       letterButton.setAttribute('data-count', remainingCount);
-      // Обновление текста кнопки
-      const displayText = remainingCount > 1 ? `${letter} (${remainingCount})` : letter;
-      letterButton.textContent = displayText;
+      letterButton.textContent = letter;
       // Отключение кнопки, если букв больше нет
       if (remainingCount === 0) {
         letterButton.disabled = true;
@@ -8304,6 +11159,19 @@ async function translateStory() {
 
     // Sound feedback
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function speakWord(text, btn) {
+      if (btn) {
+        btn.classList.add('playing');
+        responsiveVoice.speak(text, 'UK English Female', {
+          onend: () => btn.classList.remove('playing')
+        });
+        // Fallback — зняти анімацію через 3с якщо onend не спрацює
+        setTimeout(() => btn.classList.remove('playing'), 3000);
+      } else {
+        responsiveVoice.speak(text, 'UK English Female');
+      }
+    }
+
     function playSound(correct) {
       try {
         const t = audioCtx.currentTime;
@@ -8578,6 +11446,7 @@ async function translateStory() {
       container.classList.add('hidden');
       progress.classList.add('hidden');
       result.classList.remove('hidden');
+      document.querySelector('#picture-quiz-section > .skip-button').classList.add('hidden');
 
       const total = pictureQuizWords.length;
       const pct = Math.round((pictureCorrectAnswers / total) * 100);
@@ -8621,10 +11490,14 @@ async function translateStory() {
     }
 
     function finishPictureQuiz() {
+      checkAndShowDailyRecord();
+      showConfetti();
+      updateWeeklyQuestProgress('exercise_complete');
       backToAccount();
       document.getElementById('picture-quiz-result').classList.add('hidden');
       document.getElementById('picture-quiz-container').classList.remove('hidden');
       document.getElementById('picture-quiz-progress').classList.remove('hidden');
+      document.querySelector('#picture-quiz-section > .skip-button').classList.remove('hidden');
       pictureCorrectAnswers = 0;
       currentPictureQuestion = 0;
     }
@@ -9001,6 +11874,7 @@ async function translateStory() {
     }
 
     function showListeningResult() {
+      checkAndShowDailyRecord();
       const listeningContainer = document.getElementById('listening-quiz-container');
       const listeningProgress = document.getElementById('listening-progress');
       if (listeningProgress) listeningProgress.classList.add('hidden');
@@ -9053,15 +11927,13 @@ async function translateStory() {
       const initialCount = parseInt(letterButton.getAttribute('data-initial-count'));
       if (remainingCount <= initialCount) {
         letterButton.setAttribute('data-count', remainingCount);
-        // Обновление текста кнопки
-        const displayText = remainingCount > 1 ? `${lastLetter} (${remainingCount})` : lastLetter;
-        letterButton.textContent = displayText;
-        // Включение кнопки
+        letterButton.textContent = lastLetter;
         letterButton.disabled = false;
       }
     }
 
     function showConstructorResult() {
+      checkAndShowDailyRecord();
       const constructorContainer = document.getElementById('word-constructor-quiz-container');
       const constructorProgress = document.getElementById('constructor-progress');
       constructorProgress.classList.add('hidden');
@@ -9325,8 +12197,17 @@ async function generateStory() {
     // Ховаємо блоки конфігурації (наприклад, блоки з класом "title-wrapper")
     document.querySelectorAll('.title-wrapper').forEach(el => el.style.display = 'none');
 
-    // Відображаємо блок дій (копіювання, озвучення, переклад, прочитано)
-    document.getElementById('story-actions').classList.remove('hidden');
+    // Save plain text for quiz/audio
+    generatedStoryText = document.getElementById('story-text').textContent;
+
+    // Handle modes
+    if (currentStoryMode === 'audio') {
+      // Audio mode — don't show text, go to audio player
+      showAudioStoryMode();
+    } else {
+      // Text mode — show story + actions
+      document.getElementById('story-actions').classList.remove('hidden');
+    }
 
   } catch (error) {
     console.error('Помилка при генерації історії:', error);
@@ -9677,31 +12558,38 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
 
     function showFillBlanksResult(correctCount) {
       document.getElementById('fill-blanks-training').classList.add('hidden');
-      document.getElementById('fill-blanks-result').classList.remove('hidden');
+      const result = document.getElementById('fill-blanks-result');
+      result.classList.remove('hidden');
 
       const total = fillBlanksData.length;
-      const emoji = document.getElementById('fill-blanks-emoji');
-      const resultText = document.getElementById('fill-blanks-result-text');
+      const pct = Math.round((correctCount / total) * 100);
+      const xpEarned = correctCount * 10 + (total - correctCount) * 2;
+      let emoji = '', message = '', scoreClass = '';
 
-      let iconClasses = '';
-      let text = '';
-
-      if (correctCount <= 4) {
-        iconClasses = 'fas fa-sad-tear';
-        text = 'Не погано, але є куди рости!';
-      } else if (correctCount <= 7) {
-        iconClasses = 'fas fa-meh';
-        text = 'Добрий результат! Продовжуйте практикуватись.';
+      if (pct >= 90) {
+        emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great';
+      } else if (pct >= 70) {
+        emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great';
+      } else if (pct >= 50) {
+        emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good';
+      } else if (pct >= 30) {
+        emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good';
       } else {
-        iconClasses = 'fas fa-grin-stars';
-        text = 'Чудово! Ви відмінно знаєте ці слова!';
+        emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low';
       }
 
-      emoji.className = iconClasses;
-      resultText.textContent = `Правильних відповідей: ${correctCount} з ${total}. ${text}`;
+      result.innerHTML = `
+        <div style="font-size:80px;text-align:center;margin-bottom:8px;">${emoji}</div>
+        <div class="quiz-result-score ${scoreClass}">${correctCount}/${total}</div>
+        <div class="quiz-result-xp">+${xpEarned} XP</div>
+        <div class="quiz-result-message">${message}</div>
+        <button class="finish-button" onclick="finishFillBlanks()">Продовжити</button>
+      `;
     }
 
     function finishFillBlanks() {
+      showConfetti();
+      updateWeeklyQuestProgress('exercise_complete');
       document.getElementById('fill-blanks-section').classList.add('hidden');
       document.getElementById('account-screen').classList.remove('hidden');
       toggleMainTitle();
@@ -10034,10 +12922,67 @@ Return ONLY the JSON array, no other text.`;
       }
     });
 
+    let currentProgressTab = 'words';
+
+    function switchProgressTab(tab) {
+      currentProgressTab = tab;
+      document.getElementById('progress-tab-words').classList.toggle('active', tab === 'words');
+      document.getElementById('progress-tab-phrases').classList.toggle('active', tab === 'phrases');
+      loadProgressStats(tab);
+    }
+
+    function loadProgressStats(tab) {
+      const userId = auth.currentUser.uid;
+      const collection = tab === 'words' ? 'words' : 'phrases';
+      const label = tab === 'words' ? 'слова' : 'фрази';
+
+      db.collection("users").doc(userId).collection(collection).get().then(snapshot => {
+        let dateAdded = null;
+        let newCount = 0, goodCount = 0, avgCount = 0, poorCount = 0;
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const iterations = data.interactions || 0;
+          const correctAnswers = data.correctAnswers || 0;
+          const accuracy = iterations > 0 ? (correctAnswers / iterations) * 100 : 0;
+
+          if (data.dateAdded && (!dateAdded || data.dateAdded.toDate() < dateAdded)) {
+            dateAdded = data.dateAdded.toDate();
+          }
+
+          if (iterations < 3) newCount++;
+          else if (accuracy > 90) goodCount++;
+          else if (accuracy >= 60) avgCount++;
+          else poorCount++;
+        });
+
+        document.getElementById("newWords").innerText = newCount;
+        document.getElementById("goodKnowledge").innerText = goodCount;
+        document.getElementById("averageKnowledge").innerText = avgCount;
+        document.getElementById("poorKnowledge").innerText = poorCount;
+
+        // Оновити labels
+        document.querySelector('.tile-new p').textContent = tab === 'words' ? 'Нові слова' : 'Нові фрази';
+        document.querySelector('.tile-good p').textContent = 'Гарні знання';
+        document.querySelector('.tile-average p').textContent = 'Середні знання';
+        document.querySelector('.tile-poor p').textContent = 'Погані знання';
+
+        if (dateAdded) {
+          document.getElementById("dateRange").innerText =
+            `Звіт за період: ${dateAdded.toLocaleDateString()} - ${new Date().toLocaleDateString()}`;
+        }
+      });
+    }
+
     function loadUserProgress() {
       let dateAdded = null;
       let reportDate = new Date();
       const userId = auth.currentUser.uid;
+
+      // Скидаємо таб на слова
+      currentProgressTab = 'words';
+      document.getElementById('progress-tab-words').classList.add('active');
+      document.getElementById('progress-tab-phrases').classList.remove('active');
 
       Promise.all([
         db.collection("users").doc(userId).collection("words").get(),
@@ -10075,7 +13020,7 @@ Return ONLY the JSON array, no other text.`;
           document.getElementById("poorKnowledge").innerText = poorKnowledge;
 
           document.getElementById("dateRange").innerText =
-            `Звіт за період: ${dateAdded.toLocaleDateString()} - ${reportDate.toLocaleDateString()}`;
+            `Звіт за період: ${dateAdded ? dateAdded.toLocaleDateString() : '—'} - ${reportDate.toLocaleDateString()}`;
 
           // XP activity chart
           const userData = userDoc.exists ? userDoc.data() : {};
@@ -10105,12 +13050,14 @@ Return ONLY the JSON array, no other text.`;
                 <div class="acc-xp-chart-labels">
                   ${labels.map(l => `<span>${l}</span>`).join('')}
                 </div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;font-size:12px;color:rgba(240,237,232,0.5);"><i class="fas fa-trophy" style="color:#E8A838;font-size:11px;"></i>Рекорд дня: <span id="best-daily-xp" style="color:#E8A838;font-weight:600;">${bestDailyXP > 0 ? bestDailyXP + ' XP' : '—'}</span></div>
               </div>
             `;
           }
 
           loadWeeklyQuest();
           document.getElementById("progressPopup").classList.remove("hidden");
+          document.body.style.overflow = 'hidden';
         })
         .catch(error => {
           console.error("Ошибка при загрузке данных пользователя:", error);
@@ -10119,26 +13066,24 @@ Return ONLY the JSON array, no other text.`;
 
     // Показ информации при клике на карточку
     function showInfo(type) {
+      const isPhrases = currentProgressTab === 'phrases';
+      const label = isPhrases ? 'Фрази' : 'Слова';
       const info = {
         newWords: {
-          title: "Нові слова",
-          icon: "fas fa-star",
-          description: "Слова, які мають менш ніж 3 взаємодії. Це слова, які ви нещодавно додали і ще не практикували достатньо."
+          title: isPhrases ? "Нові фрази" : "Нові слова",
+          description: `${label}, які мають менш ніж 3 взаємодії. Це ${label.toLowerCase()}, які ви нещодавно додали і ще не практикували достатньо.`
         },
         goodKnowledge: {
           title: "Гарні знання",
-          icon: "fas fa-trophy",
-          description: "Слова з понад 90% правильних відповідей. Ви відмінно знаєте ці слова!"
+          description: `${label} з понад 90% правильних відповідей. Ви відмінно знаєте ці ${label.toLowerCase()}!`
         },
         averageKnowledge: {
           title: "Середні знання",
-          icon: "fas fa-book-open",
-          description: "Слова з 60-90% правильних відповідей. Потрібно ще трохи практики."
+          description: `${label} з 60-90% правильних відповідей. Потрібно ще трохи практики.`
         },
         poorKnowledge: {
           title: "Погані знання",
-          icon: "fas fa-redo",
-          description: "Слова з менш ніж 60% правильних відповідей. Рекомендуємо більше практикувати ці слова."
+          description: `${label} з менш ніж 60% правильних відповідей. Рекомендуємо більше практикувати ці ${label.toLowerCase()}.`
         }
       };
       const data = info[type];
@@ -10153,6 +13098,13 @@ Return ONLY the JSON array, no other text.`;
       );
     }
 
+    function showPhrasesInfo() {
+      showInfoPopup(
+        'Мої фрази',
+        'Натисніть на будь-яку фразу, щоб побачити детальну статистику: кількість взаємодій та відсоток правильних відповідей у конструкторі фраз.'
+      );
+    }
+
     // Показ інформації про прогрес
     function showProgressInfo() {
       showInfoPopup(
@@ -10164,6 +13116,7 @@ Return ONLY the JSON array, no other text.`;
     // Закриття попапу прогресу
     function closeProgressPopup() {
       document.getElementById("progressPopup").classList.add("hidden");
+      document.body.style.overflow = '';
     }
   </script>
 </body>
