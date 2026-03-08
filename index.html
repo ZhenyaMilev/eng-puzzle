@@ -10335,10 +10335,7 @@ function copyStory() {
         correctAnswers++;
       }
 
-      // Award XP immediately per answer: +10 correct, +2 incorrect
-      addXP(correct ? 10 : 2);
-
-      // Обновляем статистику слова и дату последнего взаимодействия
+      // Обновляем статистику слова и дату последнего взаимодействия (addXP вызывается внутри updateWordStats)
       updateWordStats(questionWord.english, correct);
 
       // Обновляем прогресс-бар
