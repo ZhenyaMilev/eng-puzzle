@@ -7028,6 +7028,11 @@ Return ONLY the JSON array, no other text.`;
       userXP += amount;
       userLevel = getLevelFromXP(userXP);
 
+      // Show feedback immediately (before async Firebase calls)
+      updateGamificationUI();
+      showXPToast(amount);
+      incrementDailyGoal(amount);
+
       const today = new Date().toISOString().split('T')[0];
       let streakUpdate = {};
       if (userLastActiveDate !== today) {
@@ -7059,10 +7064,6 @@ Return ONLY the JSON array, no other text.`;
       } catch (error) {
         console.log('Помилка збереження XP:', error);
       }
-
-      updateGamificationUI();
-      showXPToast(amount);
-      incrementDailyGoal(amount);
     }
 
     // Тост з нарахуванням XP
