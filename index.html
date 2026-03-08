@@ -1529,8 +1529,11 @@
     /* XP Toast */
     .xp-toast {
       position: fixed;
-      top: 20px;
-      right: 20px;
+      bottom: 30px;
+      left: 0;
+      right: 0;
+      width: fit-content;
+      margin: 0 auto;
       background: rgba(232, 168, 56, 0.9);
       color: #0f1117;
       padding: 8px 16px;
@@ -5985,15 +5988,22 @@
     checkForSharedWordsOnLoad();
 
     // Smart repetition: 20% chance to use spaced repetition algorithm (oldest interactions first)
-    function shouldUseRepetitionMode() {
-      return Math.random() < 0.2;
-    }
-
-    function getSmartWordQuery(userId, limit) {
+    // Falls back to priority mode if repetition returns too few words
+    function getSmartWordQuery(userId, limit, minRequired) {
       const wordsRef = db.collection('users').doc(userId).collection('words');
-      if (shouldUseRepetitionMode()) {
+      const useRepetition = Math.random() < 0.2;
+      if (useRepetition) {
         console.log('🔄 Repetition mode: selecting oldest reviewed words');
-        return wordsRef.orderBy('lastInteractionDate', 'asc').limit(limit);
+        const repeatQuery = wordsRef.orderBy('lastInteractionDate', 'asc').limit(limit);
+        return {
+          get: async () => {
+            const snapshot = await repeatQuery.get();
+            const min = minRequired || Math.min(10, limit);
+            if (snapshot.size >= min) return snapshot;
+            console.log('⚠️ Repetition mode returned only', snapshot.size, 'words, falling back to priority');
+            return wordsRef.orderBy('priority', 'asc').limit(limit).get();
+          }
+        };
       }
       return wordsRef.orderBy('priority', 'asc').limit(limit);
     }
@@ -10323,6 +10333,9 @@ function copyStory() {
       if (correct) {
         correctAnswers++;
       }
+
+      // Award XP immediately per answer: +10 correct, +2 incorrect
+      addXP(correct ? 10 : 2);
 
       // Обновляем статистику слова и дату последнего взаимодействия
       updateWordStats(questionWord.english, correct);
