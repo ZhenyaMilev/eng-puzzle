@@ -5293,6 +5293,21 @@
   </button>
 </div>
 
+<!-- Story quiz language selection -->
+<div id="story-quiz-lang" class="hidden" style="padding:20px 0;">
+  <h3 style="text-align:center;font-size:18px;color:#F0EDE8;margin-bottom:8px;">Тест по історії</h3>
+  <p style="text-align:center;font-size:14px;color:rgba(240,237,232,0.5);margin-bottom:20px;">Оберіть мову питань:</p>
+  <button class="large-btn" onclick="selectStoryQuizLang('uk')" style="width:100%;margin-bottom:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#F0EDE8;">
+    🇺🇦 Українською
+  </button>
+  <button class="large-btn" onclick="selectStoryQuizLang('en')" style="width:100%;margin-bottom:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#F0EDE8;">
+    🇬🇧 English
+  </button>
+  <button class="large-btn" onclick="selectStoryQuizLang('mix')" style="width:100%;background:rgba(232,168,56,0.15);border:1px solid rgba(232,168,56,0.3);color:#E8A838;">
+    🔀 Мікс (обидві)
+  </button>
+</div>
+
 <!-- Story quiz -->
 <div id="story-quiz" class="hidden">
   <h3 style="text-align:center;font-size:18px;color:#F0EDE8;margin-bottom:16px;">Тест по історії</h3>
@@ -9828,13 +9843,27 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
       btn.classList.add('active');
     }
 
-    async function startStoryQuiz() {
-      // Hide story/actions, show quiz
+    let storyQuizLang = 'uk';
+
+    function startStoryQuiz() {
+      // Hide story/actions, show language selection
       document.getElementById('generated-story').classList.add('hidden');
       document.getElementById('story-actions').classList.add('hidden');
       document.getElementById('story-audio-mode').classList.add('hidden');
+      document.getElementById('story-quiz-lang').classList.remove('hidden');
+    }
+
+    async function selectStoryQuizLang(lang) {
+      storyQuizLang = lang;
+      document.getElementById('story-quiz-lang').classList.add('hidden');
       document.getElementById('story-quiz').classList.remove('hidden');
       document.getElementById('story-quiz-container').innerHTML = '<div style="text-align:center;padding:30px;color:rgba(240,237,232,0.5);">Генерую питання...</div>';
+
+      const langInstruction = lang === 'uk'
+        ? 'All questions and answer options must be in Ukrainian only.'
+        : lang === 'en'
+        ? 'All questions and answer options must be in English only.'
+        : 'Mix languages: some questions in Ukrainian, some in English. Answer options can also be mixed.';
 
       // Generate quiz via AI
       try {
@@ -9846,7 +9875,7 @@ Story: "${storyText}"
 Return ONLY valid JSON array in this exact format, no other text:
 [{"question":"...","options":["A","B","C","D"],"correct":0}]
 
-Where "correct" is the index (0-3) of the correct option. Mix languages: some questions in Ukrainian, some in English. Answer options can also be mixed — some English, some Ukrainian. This helps learners practice both directions.`;
+Where "correct" is the index (0-3) of the correct option. ${langInstruction}`;
 
         const url = 'https://api.openai.com/v1/chat/completions';
         const response = await fetch(url, {
@@ -9938,6 +9967,7 @@ Where "correct" is the index (0-3) of the correct option. Mix languages: some qu
       updateWeeklyQuestProgress('exercise_complete');
       // Reset story
       document.getElementById('story-quiz').classList.add('hidden');
+      document.getElementById('story-quiz-lang').classList.add('hidden');
       document.getElementById('story-quiz-result').classList.add('hidden');
       document.getElementById('story-quiz-container').classList.remove('hidden');
       markStoryAsRead();
@@ -9986,6 +10016,7 @@ Where "correct" is the index (0-3) of the correct option. Mix languages: some qu
   document.getElementById('story-actions').classList.add('hidden');
   document.getElementById('story-audio-mode').classList.add('hidden');
   document.getElementById('story-quiz').classList.add('hidden');
+  document.getElementById('story-quiz-lang').classList.add('hidden');
 
   document.querySelectorAll('.title-wrapper').forEach(el => el.style.display = 'flex');
   document.querySelectorAll('.option-button').forEach(btn => btn.disabled = false);
