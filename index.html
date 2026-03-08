@@ -5094,11 +5094,7 @@
           <div class="acc-tile-icon"><i class="fas fa-scroll"></i></div>
           Генеративний текст
         </button>
-        <button class="acc-tile acc-animate acc-delay-12" data-color="orange" onclick="startRepetitionTraining()">
-          <div class="acc-tile-icon"><i class="fas fa-repeat"></i></div>
-          Повторення
-        </button>
-        <button class="acc-tile acc-animate acc-delay-13" data-color="sky" onclick="startCrossword()">
+        <button class="acc-tile acc-animate acc-delay-12" data-color="sky" onclick="startCrossword()">
           <div class="acc-tile-icon"><i class="fas fa-th"></i></div>
           Кросворд
         </button>
@@ -5315,28 +5311,6 @@
     </div>
 
 
-    <!-- Секция "Повторення" -->
-    <div id="repetition-training-section" class="hidden">
-      <div class="title-and-btn">
-        <button class="button-with-icon back-button" onclick="backToAccount()">
-          <i class="fas fa-arrow-left"></i>
-          <span>Назад</span>
-        </button>
-        <button class="button-with-icon small-button info-button" onclick="openRepetitionInfoPopup()">
-          <i class="fas fa-info-circle"></i>
-        </button>
-      </div>
-      <div id="repetition-quiz-container"></div>
-      <div id="repetition-progress">
-        <div id="repetition-progress-bar"></div>
-        <div id="repetition-question-number"></div>
-      </div>
-      <div id="repetition-result" class="quiz-result hidden">
-        <i id="repetition-emoji" class=""></i>
-        <p id="repetition-result-text"></p>
-        <button class="finish-button" onclick="finishRepetition()">Завершити тренування</button>
-      </div>
-    </div>
     <!-- Секція "Слова дня" -->
     <div id="daily-words-section" class="hidden">
       <div class="title-and-btn">
@@ -6008,157 +5982,21 @@
     let speedTrainingMode = ''; // 'ukr_to_eng' або 'eng_to_ukr'
     let speedTimerInterval;
     let speedRecord = 0; // Рекорд правильних відповідей
-    let repetitionWords = [];
-    let currentRepetitionQuestion = 0;
-    let repetitionCorrectAnswers = 0;
-
     checkForSharedWordsOnLoad();
 
-    function startRepetitionTraining() {
-      toggleMainTitle();
-      document.getElementById('account-screen').classList.add('hidden');
-      document.getElementById('repetition-training-section').classList.remove('hidden');
-      initializeRepetitionTraining();
+    // Smart repetition: 20% chance to use spaced repetition algorithm (oldest interactions first)
+    function shouldUseRepetitionMode() {
+      return Math.random() < 0.2;
     }
 
-    function initializeRepetitionTraining() {
-      showLoading();
-      const userId = auth.currentUser.uid;
-      // Беремо 10 слів з найдавнішою взаємодією (Firestore фільтрує документи без lastInteractionDate)
-      db.collection('users').doc(userId).collection('words')
-        .orderBy('lastInteractionDate', 'asc')
-        .limit(10)
-        .get()
-        .then(querySnapshot => {
-          if (querySnapshot.size < 10) {
-            document.getElementById('repetition-quiz-container').innerHTML =
-              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
-            hideLoading();
-            return;
-          }
-
-          repetitionWords = querySnapshot.docs.map(doc => {
-            const wordData = doc.data();
-            return {
-              english: doc.id,
-              translation: wordData.translation,
-              interactions: wordData.interactions || 0,
-              correctAnswers: wordData.correctAnswers || 0,
-              lastInteractionDate: wordData.lastInteractionDate.toDate()
-            };
-          });
-          currentRepetitionQuestion = 0;
-          repetitionCorrectAnswers = 0;
-          showRepetitionQuestion();
-          hideLoading();
-        })
-        .catch(error => {
-          console.error('Помилка ініціалізації повторення:', error);
-          hideLoading();
-        });
+    function getSmartWordQuery(userId, limit) {
+      const wordsRef = db.collection('users').doc(userId).collection('words');
+      if (shouldUseRepetitionMode()) {
+        console.log('🔄 Repetition mode: selecting oldest reviewed words');
+        return wordsRef.orderBy('lastInteractionDate', 'asc').limit(limit);
+      }
+      return wordsRef.orderBy('priority', 'asc').limit(limit);
     }
-
-    function showRepetitionQuestion() {
-      if (currentRepetitionQuestion >= repetitionWords.length) {
-        showRepetitionResult();
-        return;
-      }
-
-      function showRepetitionResult() {
-        checkAndShowDailyRecord();
-        const repetitionContainer = document.getElementById('repetition-quiz-container');
-        const repetitionProgress = document.getElementById('repetition-progress');
-        const repetitionResult = document.getElementById('repetition-result');
-
-        repetitionContainer.classList.add('hidden');
-        repetitionProgress.classList.add('hidden');
-        repetitionResult.classList.remove('hidden');
-
-        const total = repetitionWords.length;
-        const pct = Math.round((repetitionCorrectAnswers / total) * 100);
-        const xpEarned = repetitionCorrectAnswers * 10 + (total - repetitionCorrectAnswers) * 2;
-        let emoji = '', message = '', scoreClass = '';
-
-        if (pct >= 90) {
-          emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great';
-        } else if (pct >= 70) {
-          emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great';
-        } else if (pct >= 50) {
-          emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good';
-        } else if (pct >= 30) {
-          emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good';
-        } else {
-          emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low';
-        }
-
-        repetitionResult.innerHTML = `
-          <div style="font-size:80px;text-align:center;margin-bottom:8px;">${emoji}</div>
-          <div class="quiz-result-score ${scoreClass}">${repetitionCorrectAnswers}/${total}</div>
-          <div class="quiz-result-xp">+${xpEarned} XP</div>
-          <div class="quiz-result-message">${message}</div>
-          <button class="finish-button" onclick="finishRepetition()">Продовжити</button>
-        `;
-      }
-
-
-      const questionWord = repetitionWords[currentRepetitionQuestion];
-      const options = [questionWord.translation];
-
-      // Добавляем случайные переводы
-      while (options.length < 4 && allWords.length > options.length) {
-        const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
-        if (!options.includes(randomWord.translation)) {
-          options.push(randomWord.translation);
-        }
-      }
-
-      // Перемешиваем варианты
-      options.sort(() => 0.5 - Math.random());
-
-      // Обновляем прогресс-бар и номер вопроса
-      const progressPercent = ((currentRepetitionQuestion) / repetitionWords.length) * 100;
-      document.getElementById('repetition-progress-bar').style.width = `${progressPercent}%`;
-      document.getElementById('repetition-question-number').textContent =
-        `${currentRepetitionQuestion + 1}/${repetitionWords.length}`;
-
-      // Отображаем вопрос
-      document.getElementById('repetition-quiz-container').innerHTML = `
-    <h3>${questionWord.english}</h3>
-    ${options.map(option => `<button class="check-word" onclick="checkRepetitionAnswer('${option.replace(/'/g, "\\'")}')">${option}</button>`).join('')}
-  `;
-    }
-
-    function checkRepetitionAnswer(selectedOption) {
-      const questionWord = repetitionWords[currentRepetitionQuestion];
-      const buttons = document.querySelectorAll('#repetition-quiz-container button');
-      buttons.forEach(button => {
-        if (button.textContent === questionWord.translation) {
-          button.classList.add('correct');
-        } else if (button.textContent === selectedOption) {
-          button.classList.add('incorrect');
-        }
-        button.disabled = true;
-      });
-
-      const correct = selectedOption === questionWord.translation;
-      if (correct) {
-        repetitionCorrectAnswers++;
-      }
-
-      // Обновляем статистику слова и дату последнего взаимодействия
-      updateWordStats(questionWord.english, correct);
-
-      // Обновляем прогресс-бар
-      const progressPercent = ((currentRepetitionQuestion + 1) / repetitionWords.length) * 100;
-      document.getElementById('repetition-progress-bar').style.width = `${progressPercent}%`;
-
-      // Переходим к следующему вопросу через 1 секунду
-      setTimeout(() => {
-        currentRepetitionQuestion++;
-        showRepetitionQuestion();
-      }, 1000);
-    }
-
 
     function startSpeedTraining() {
       toggleMainTitle();
@@ -6467,7 +6305,6 @@
   document.getElementById('speed-training-section').classList.add('hidden');
   document.getElementById('generative-text-section').classList.add('hidden');
   document.getElementById('tariffs-section').classList.add('hidden');
-  document.getElementById('repetition-training-section').classList.add('hidden');
   document.getElementById('crossword-section').classList.add('hidden');
   document.getElementById('fill-blanks-section').classList.add('hidden');
   document.getElementById('definition-quiz-section').classList.add('hidden');
@@ -6608,23 +6445,6 @@ function exitSpeedTraining() {
       errorElements.forEach(el => el.textContent = '');
     }
 
-    function finishRepetition() {
-      showConfetti();
-      updateWeeklyQuestProgress('exercise_complete');
-      updateWeeklyQuestProgress('repetition');
-
-      // Возвращаемся на главный экран
-      backToAccount();
-      // Сбрасываем переменные
-      repetitionWords = [];
-      currentRepetitionQuestion = 0;
-      repetitionCorrectAnswers = 0;
-      // Сбрасываем UI
-      document.getElementById('repetition-quiz-container').classList.remove('hidden');
-      document.getElementById('repetition-progress').classList.remove('hidden');
-      document.getElementById('repetition-result').classList.add('hidden');
-    }
-
     // Оновлення інтерфейсу
     function updateUI() {
       const user = auth.currentUser;
@@ -6677,7 +6497,6 @@ function exitSpeedTraining() {
         document.getElementById('speed-training-section').classList.add('hidden');
         document.getElementById('generative-text-section').classList.add('hidden');
         document.getElementById('tariffs-section').classList.add('hidden');
-        document.getElementById('repetition-training-section').classList.add('hidden');
         // Если пользователь не залогинен, прелоадер скрываем
         document.getElementById('loading-overlay').classList.add('hidden');
       }
@@ -9845,7 +9664,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
           </div>
           <div class="algorithm-block" onclick="toggleAlgorithm(this)">
             <div class="algorithm-header">
-              <p>Як підбираються слова</p>
+              <p>Як працює</p>
               <i class="fas fa-chevron-down algorithm-chevron"></i>
             </div>
             <ol class="algorithm-content">
@@ -9869,10 +9688,10 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
         'Тестування',
         'Оберіть правильний переклад слова з 4 варіантів відповідей. Тренування допомагає закріпити знання слів.',
         [
-          'Алгоритм обирає 10 слів зі словника.',
-          'Спочатку використовуються нові слова (менше 3 взаємодій).',
-          'Якщо нових слів недостатньо, додаються слова від складних до простих.',
-          'Складність визначається відсотком правильних відповідей.'
+          'Розумний алгоритм сам обирає слова для тренування.',
+          'Зазвичай — нові та складні слова (від складних до простих).',
+          'Іноді автоматично вмикається режим повторення давніх слів.',
+          'Ви просто тренуєтесь — алгоритм сам вирішує, що потрібно.'
         ]
       );
     }
@@ -10312,12 +10131,11 @@ function copyStory() {
 
     function openSpeedInfoPopup() {
       showInfoPopup(
-        'Опис тренування:',
-        'Вам дається 60 секунд. За кожну правильну відповідь +1 секунда. За кожну неправильну -2 секунди. Мінімальна кількість слів для тренування: 60.',
+        'На швидкість',
+        'Вам дається 60 секунд. За правильну відповідь +1 сек, за неправильну -2 сек. Мінімум 60 слів у словнику.',
         [
-          'Алгоритм обирає 10 слів.',
-          'Початково використовуються нові слова.',
-          'Якщо нових слів недостатньо, додаються слова від складних до простих. Складність визначається відсотком правильних відповідей в попередніх тестах'
+          'Слова обираються випадково з усього словника.',
+          'Тренуйтесь якомога швидше — час обмежений!'
         ]
       );
     }
@@ -10372,12 +10190,12 @@ function copyStory() {
 
     function openConstructorInfoPopup() {
       showInfoPopup(
-        'Опис тренування:',
-        'Складіть слово з наданих літер. Використовуйте всі літери, щоб отримати правильне слово. Ви можете прослухати вимову слова, натиснувши на іконку звуку.',
+        'Конструктор слів',
+        'Складіть слово з наданих літер. Ви можете прослухати вимову слова, натиснувши на іконку звуку.',
         [
-          'Алгоритм обирає 10 слів.',
-          'Початково використовуються нові слова.',
-          'Якщо нових слів недостатньо, додаються слова від складних до простих. Складність визначається відсотком правильних відповідей в попередніх тестах'
+          'Розумний алгоритм сам обирає 10 слів для тренування.',
+          'Зазвичай — нові та складні слова.',
+          'Іноді автоматично вмикається режим повторення давніх слів.'
         ]
       );
     }
@@ -10393,10 +10211,8 @@ function copyStory() {
     function initializeQuiz() {
       showLoading();
       const userId = auth.currentUser.uid;
-      // Беремо 50 найпріоритетніших слів (priority = correctAnswers/interactions, менше = складніше)
-      db.collection('users').doc(userId).collection('words')
-        .orderBy('priority', 'asc')
-        .limit(50)
+      // Беремо 50 слів (розумний алгоритм: 80% за складністю, 20% за давністю повторення)
+      getSmartWordQuery(userId, 50)
         .get()
         .then(querySnapshot => {
           if (querySnapshot.size < 30) {
@@ -10524,12 +10340,12 @@ function copyStory() {
 
     function openListeningInfoPopup() {
       showInfoPopup(
-        'Опис тренування:',
+        'Аудіювання',
         'Прослухайте слово та введіть його правильно. Ви можете прослухати слово повторно, натиснувши на іконку звуку.',
         [
-          'Алгоритм обирає 10 слів.',
-          'Початково використовуються нові слова.',
-          'Якщо нових слів недостатньо, додаються слова від складних до простих. Складність визначається відсотком правильних відповідей в попередніх тестах'
+          'Розумний алгоритм сам обирає 10 слів для тренування.',
+          'Зазвичай — нові та складні слова.',
+          'Іноді автоматично вмикається режим повторення давніх слів.'
         ]
       );
     }
@@ -10845,9 +10661,7 @@ async function translateStory() {
     function initializeListeningTraining() {
       showLoading();
       const userId = auth.currentUser.uid;
-      db.collection('users').doc(userId).collection('words')
-        .orderBy('priority', 'asc')
-        .limit(10)
+      getSmartWordQuery(userId, 10)
         .get()
         .then(querySnapshot => {
           if (querySnapshot.size < 10) {
@@ -10925,19 +10739,6 @@ async function translateStory() {
       }, 1500);
     }
 
-    function openRepetitionInfoPopup() {
-      showInfoPopup(
-        'Повторення',
-        'Тренування для повторення слів, які ви давно не практикували. Допомагає не забути вивчене.',
-        [
-          'Обираються тільки слова, які ви вже практикували раніше.',
-          'Слова сортуються за датою останньої взаємодії.',
-          'Перші 10 слів - ті, які найдовше не повторювались.',
-          'Це допомагає підтримувати знання всіх слів на рівні.'
-        ]
-      );
-    }
-
     function openGeneratorInfoPopup() {
       showInfoPopup(
         'Генеративний текст',
@@ -10950,11 +10751,6 @@ async function translateStory() {
           'Можна прослухати історію та перекласти українською.'
         ]
       );
-    }
-
-    function closeRepetitionInfoPopup() {
-      document.getElementById('repetitionInfoPopup').classList.remove('show');
-      document.querySelector('.overlay').classList.add('hidden');
     }
 
     function closeGeneratorInfoPopup() {
@@ -10979,9 +10775,7 @@ async function translateStory() {
     function initializeWordConstructorTraining() {
       showLoading();
       const userId = auth.currentUser.uid;
-      db.collection('users').doc(userId).collection('words')
-        .orderBy('priority', 'asc')
-        .limit(10)
+      getSmartWordQuery(userId, 10)
         .get()
         .then(querySnapshot => {
           if (querySnapshot.size < 10) {
@@ -11297,11 +11091,11 @@ async function translateStory() {
     function openPictureQuizInfoPopup() {
       showInfoPopup(
         'Картинки',
-        'У цьому тренуванні ви бачите картинку і маєте обрати правильне англійське слово з 4 варіантів.',
+        'Бачите картинку — обирайте правильне англійське слово з 4 варіантів.',
         [
-          'Алгоритм обирає 10 слів зі словника.',
-          'Спочатку використовуються нові слова (менше 3 взаємодій).',
-          'Якщо нових слів недостатньо, додаються слова від складних до простих.',
+          'Розумний алгоритм сам обирає 10 слів для тренування.',
+          'Зазвичай — нові та складні слова.',
+          'Іноді автоматично вмикається режим повторення давніх слів.',
           'Для кожного слова завантажується відповідна картинка.'
         ]
       );
@@ -11319,9 +11113,7 @@ async function translateStory() {
       const userId = auth.currentUser.uid;
 
       try {
-        const querySnapshot = await db.collection('users').doc(userId).collection('words')
-          .orderBy('priority', 'asc')
-          .limit(50)
+        const querySnapshot = await getSmartWordQuery(userId, 50)
           .get();
 
         if (querySnapshot.size < 10) {
@@ -11521,10 +11313,8 @@ async function translateStory() {
       const userId = auth.currentUser.uid;
 
       try {
-        // Беремо 30 найпріоритетніших слів, фільтруємо підходящі для кросворда в JS
-        const querySnapshot = await db.collection('users').doc(userId).collection('words')
-          .orderBy('priority', 'asc')
-          .limit(60)
+        // Беремо слова (розумний алгоритм), фільтруємо підходящі для кросворда в JS
+        const querySnapshot = await getSmartWordQuery(userId, 60)
           .get();
 
         let wordsArray = [];
@@ -12296,10 +12086,9 @@ async function generateStory() {
         'Вставте слово',
         'Заповніть пропуски в реченнях правильними словами. AI генерує речення з вашими словами.',
         [
-          'Алгоритм обирає 10 слів зі словника.',
-          'Спочатку використовуються нові слова (менше 3 взаємодій).',
-          'Якщо нових слів недостатньо, додаються слова від складних до простих.',
-          'Складність визначається відсотком правильних відповідей.'
+          'Розумний алгоритм сам обирає 10 слів для тренування.',
+          'Зазвичай — нові та складні слова.',
+          'Іноді автоматично вмикається режим повторення давніх слів.'
         ]
       );
     }
@@ -12326,9 +12115,7 @@ async function generateStory() {
 
     async function generateFillBlanksSentences() {
       const userId = auth.currentUser.uid;
-      const querySnapshot = await db.collection('users').doc(userId).collection('words')
-        .orderBy('priority', 'asc')
-        .limit(10)
+      const querySnapshot = await getSmartWordQuery(userId, 10)
         .get();
 
       if (querySnapshot.size < 10) {
@@ -12627,15 +12414,13 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
 
     function openDefinitionQuizInfoPopup() {
       showInfoPopup(
-        'Опис тренування:',
-        'Вгадайте слово за його поясненням. Пояснення описує слово без згадування самого слова.',
+        'Вгадай слово',
+        'Вгадайте слово за його поясненням. AI описує слово без згадування самого слова.',
         [
-          'Спочатку обираються нові слова (з якими було ≤3 взаємодій).',
-          'Потім додаються складні слова (з найнижчим % правильних відповідей).',
-          'Алгоритм обирає до 10 слів для тренування.',
-          'Оберіть мову (англійська/українська) та складність пояснень.',
-          'AI генерує пояснення відповідно до обраної складності.',
-          'Ви обираєте правильне слово з 4 варіантів.'
+          'Розумний алгоритм сам обирає 10 слів для тренування.',
+          'Зазвичай — нові та складні слова.',
+          'Іноді автоматично вмикається режим повторення давніх слів.',
+          'Оберіть мову та складність пояснень.'
         ]
       );
     }
@@ -12672,9 +12457,7 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
       }
 
       const userId = auth.currentUser.uid;
-      const querySnapshot = await db.collection('users').doc(userId).collection('words')
-        .orderBy('priority', 'asc')
-        .limit(50)
+      const querySnapshot = await getSmartWordQuery(userId, 50)
         .get();
 
       if (querySnapshot.size < 10) {
