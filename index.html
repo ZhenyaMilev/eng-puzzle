@@ -1809,10 +1809,11 @@
       gap: 6px;
       margin-bottom: 16px;
       justify-content: center;
+      flex-wrap: wrap;
     }
 
     .grammar-level-tab {
-      padding: 8px 16px;
+      padding: 8px 12px;
       border-radius: 20px;
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.1);
@@ -5557,6 +5558,7 @@
       <div id="grammar-topics">
         <div class="grammar-level-tabs">
           <button class="grammar-level-tab active" onclick="filterGrammarLevel('all')">Всі</button>
+          <button class="grammar-level-tab" onclick="filterGrammarLevel('Pre-A1')">Pre-A1</button>
           <button class="grammar-level-tab" onclick="filterGrammarLevel('A1')">A1</button>
           <button class="grammar-level-tab" onclick="filterGrammarLevel('A2')">A2</button>
           <button class="grammar-level-tab" onclick="filterGrammarLevel('B1')">B1</button>
@@ -7524,6 +7526,16 @@ Return ONLY the JSON array, no other text.`;
 
     // ========== GRAMMAR ==========
     const grammarTopics = [
+      { id: 'alphabet', name: 'Англійський алфавіт', desc: 'A, B, C... Літери англійської мови', icon: '🔤', level: 'Pre-A1' },
+      { id: 'basic_sounds', name: 'Звуки та вимова', desc: 'Як звучать англійські літери', icon: '🔊', level: 'Pre-A1' },
+      { id: 'subject_pronouns', name: 'Особові займенники', desc: 'I, you, he, she, it, we, they', icon: '👤', level: 'Pre-A1' },
+      { id: 'verb_to_be', name: 'Дієслово "to be"', desc: 'am, is, are — найважливіше дієслово', icon: '🟦', level: 'Pre-A1' },
+      { id: 'singular_plural', name: 'Однина та множина', desc: 'one cat → two cats', icon: '🔢', level: 'Pre-A1' },
+      { id: 'this_that', name: 'This / That / These / Those', desc: 'Вказівні слова: це, те, ці, ті', icon: '👉', level: 'Pre-A1' },
+      { id: 'word_order', name: 'Порядок слів у реченні', desc: 'Subject + Verb + Object', icon: '📝', level: 'Pre-A1' },
+      { id: 'possessives', name: 'Присвійні займенники', desc: 'my, your, his, her, our, their', icon: '🏠', level: 'Pre-A1' },
+      { id: 'basic_questions', name: 'Базові питання', desc: 'What? Where? Who? When?', icon: '❓', level: 'Pre-A1' },
+      { id: 'there_is_are', name: 'There is / There are', desc: 'Є, існує, знаходиться', icon: '📍', level: 'Pre-A1' },
       { id: 'present_simple', name: 'Present Simple', desc: 'I go, She likes...', icon: '🟢', level: 'A1' },
       { id: 'present_continuous', name: 'Present Continuous', desc: 'I am going, She is reading...', icon: '🔵', level: 'A1' },
       { id: 'past_simple', name: 'Past Simple', desc: 'I went, She liked...', icon: '🟡', level: 'A1' },
@@ -7610,6 +7622,424 @@ Return ONLY the JSON array, no other text.`;
     }
 
     const grammarLessons = {
+      alphabet: [
+        `<div class="grammar-lesson-block">
+          <h3>Англійський алфавіт</h3>
+          <p>В англійській мові <b>26 літер</b>. Вони відрізняються від українських — тут використовується <b>латиниця</b>.</p>
+          <p>Деякі літери схожі на українські, але звучать інакше! Наприклад, <b>H</b> — це не "Н", а звук "ейч".</p>
+          <div class="example"><b>A B C D E F G H I J K L M</b></div>
+          <div class="example"><b>N O P Q R S T U V W X Y Z</b></div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Великі літери (A, B, C) і малі (a, b, c) — це одні й ті ж літери, просто різний розмір.</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Голосні та приголосні</h3>
+          <p><b>Голосні (vowels)</b> — це 5 літер, які дають "відкритий" звук:</p>
+          <p style="font-size:20px;text-align:center;padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>A · E · I · O · U</b></p>
+          <p style="margin-top:10px;"><b>Приголосні (consonants)</b> — решта 21 літера:</p>
+          <p style="font-size:14px;text-align:center;padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>B C D F G H J K L M N P Q R S T V W X Y Z</b></p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">⚠️ Літера <b>Y</b> може бути і голосною, і приголосною: <b>yes</b> (приголосна) vs <b>gym</b> (голосна)</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Як вимовляти літери</h3>
+          <p>Назви літер англійською:</p>
+          <div class="example"><b>A</b> — ей · <b>B</b> — бі · <b>C</b> — сі · <b>D</b> — ді · <b>E</b> — і</div>
+          <div class="example"><b>F</b> — еф · <b>G</b> — джі · <b>H</b> — ейч · <b>I</b> — ай · <b>J</b> — джей</div>
+          <div class="example"><b>K</b> — кей · <b>L</b> — ел · <b>M</b> — ем · <b>N</b> — ен · <b>O</b> — оу</div>
+          <div class="example"><b>P</b> — пі · <b>Q</b> — к'ю · <b>R</b> — ар · <b>S</b> — ес · <b>T</b> — ті</div>
+          <div class="example"><b>U</b> — ю · <b>V</b> — ві · <b>W</b> — даб'л ю · <b>X</b> — екс · <b>Y</b> — вай · <b>Z</b> — зед</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Пастки для українців</h3>
+          <p>Ці літери виглядають знайомо, але означають інше:</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ <b>B</b> — це НЕ "В", а "Б" (як у <b>b</b>ook — книга)</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ <b>H</b> — це НЕ "Н", а легкий видих (як у <b>h</b>ello)</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ <b>P</b> — це НЕ "Р", а "П" (як у <b>p</b>en — ручка)</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ <b>C</b> — це НЕ "С" завжди: <b>c</b>at = "кет", <b>c</b>ity = "сіті"</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Літера <b>R</b> в англійській звучить м'яко, не як українське "р"!</p>
+        </div>`
+      ],
+      basic_sounds: [
+        `<div class="grammar-lesson-block">
+          <h3>Основні звуки англійської</h3>
+          <p>В англійській мові одна літера може давати <b>різні звуки</b> залежно від слова. Це головна складність!</p>
+          <p>В українській: одна літера = один звук. В англійській: все складніше.</p>
+          <div class="example"><b>A</b>: cat /кет/ · cake /кейк/ · car /кар/ — три різні звуки!</div>
+          <div class="example"><b>E</b>: bed /бед/ · be /бі/ · her /хер/ — теж різні!</div>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">💡 Не хвилюйся! Вимова запам'ятовується з практикою.</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Короткі голосні звуки</h3>
+          <p>Ці звуки короткі та чіткі:</p>
+          <div class="example"><b>/æ/</b> — як у <b>cat</b> (кет), <b>hat</b> (хет), <b>man</b> (мен)</div>
+          <div class="example"><b>/e/</b> — як у <b>bed</b> (бед), <b>red</b> (ред), <b>ten</b> (тен)</div>
+          <div class="example"><b>/ɪ/</b> — як у <b>sit</b> (сіт), <b>big</b> (біг), <b>fish</b> (фіш)</div>
+          <div class="example"><b>/ɒ/</b> — як у <b>hot</b> (хот), <b>dog</b> (дог), <b>not</b> (нот)</div>
+          <div class="example"><b>/ʌ/</b> — як у <b>cup</b> (кап), <b>bus</b> (бас), <b>run</b> (ран)</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Довгі голосні звуки</h3>
+          <p>Ці звуки тягнуться довше:</p>
+          <div class="example"><b>/iː/</b> — як у <b>see</b> (сі), <b>tree</b> (трі), <b>me</b> (мі)</div>
+          <div class="example"><b>/ɑː/</b> — як у <b>car</b> (кар), <b>far</b> (фар), <b>star</b> (стар)</div>
+          <div class="example"><b>/ɔː/</b> — як у <b>door</b> (дор), <b>more</b> (мор), <b>four</b> (фор)</div>
+          <div class="example"><b>/uː/</b> — як у <b>food</b> (фуд), <b>moon</b> (мун), <b>blue</b> (блу)</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Часто довгий звук позначається подвійною літерою: s<b>ee</b>, m<b>oo</b>n, f<b>oo</b>d</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Звуки, яких немає в українській</h3>
+          <p>Ці звуки потребують особливої уваги:</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:8px;"><b>/θ/</b> — <b>th</b>ink, <b>th</b>ree — кінчик язика між зубами, глухий звук</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:8px;"><b>/ð/</b> — <b>th</b>is, <b>th</b>at — те саме, але дзвінкий</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:8px;"><b>/w/</b> — <b>w</b>ater, <b>w</b>hat — губи трубочкою, як "ув" разом</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:8px;"><b>/ŋ/</b> — si<b>ng</b>, thi<b>nk</b> — носовий звук "нг"</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">⚠️ Не замінюй <b>th</b> на "з" або "с"! <b>think</b> ≠ "зінк" чи "сінк"</p>
+        </div>`
+      ],
+      subject_pronouns: [
+        `<div class="grammar-lesson-block">
+          <h3>Особові займенники</h3>
+          <p>Це слова, які замінюють імена людей і назви предметів. Без них не побудувати жодне речення!</p>
+          <p style="font-size:18px;text-align:center;padding:12px;background:rgba(232,168,56,0.1);border-radius:8px;">
+            <b>I</b> — я · <b>you</b> — ти/ви<br>
+            <b>he</b> — він · <b>she</b> — вона · <b>it</b> — воно<br>
+            <b>we</b> — ми · <b>they</b> — вони
+          </p>
+          <div class="example"><b>I</b> am a student. — <b>Я</b> студент.</div>
+          <div class="example"><b>She</b> is my sister. — <b>Вона</b> моя сестра.</div>
+          <div class="example"><b>They</b> are friends. — <b>Вони</b> друзі.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Коли який використовувати</h3>
+          <p><b>I</b> — завжди з великої літери, навіть у середині речення!</p>
+          <div class="example">My friend and <b>I</b> go to school. — Мій друг і <b>я</b> ходимо до школи.</div>
+          <p style="margin-top:10px;"><b>You</b> — і "ти", і "ви". В англійській немає різниці!</p>
+          <div class="example"><b>You</b> are smart. — <b>Ти</b> розумний / <b>Ви</b> розумні.</div>
+          <p style="margin-top:10px;"><b>It</b> — для тварин, предметів, погоди:</p>
+          <div class="example"><b>It</b> is cold today. — Сьогодні холодно.</div>
+          <div class="example">I have a dog. <b>It</b> is big. — У мене є собака. <b>Він</b> великий.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Як замінювати іменники</h3>
+          <p>Замість повторення імені — використовуй займенник:</p>
+          <div class="example"><b>Maria</b> is a teacher. → <b>She</b> is a teacher.</div>
+          <div class="example"><b>Tom</b> likes football. → <b>He</b> likes football.</div>
+          <div class="example"><b>Tom and Maria</b> are happy. → <b>They</b> are happy.</div>
+          <div class="example"><b>The book</b> is interesting. → <b>It</b> is interesting.</div>
+          <div class="example"><b>My friend and I</b> are here. → <b>We</b> are here.</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Одна людина = he/she. Кілька = they. Предмет = it.</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Типові помилки</h3>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ <b>i</b> am happy.<br>✅ <b>I</b> am happy. — "I" завжди з великої!</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ <b>He</b> is a good girl.<br>✅ <b>She</b> is a good girl. — he = він, she = вона!</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ My cat is cute. <b>He</b> is white.<br>✅ My cat is cute. <b>It</b> is white. — тварини = it</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Виняток: якщо тварина — домашній улюбленець, можна he/she</p>
+        </div>`
+      ],
+      verb_to_be: [
+        `<div class="grammar-lesson-block">
+          <h3>Дієслово "to be"</h3>
+          <p>Це <b>найважливіше</b> дієслово в англійській! Означає "бути", "є", "знаходитися".</p>
+          <p>В українській ми часто його пропускаємо: "Я студент", "Вона вчителька". В англійській <b>обов'язково</b> потрібно!</p>
+          <p style="font-size:18px;text-align:center;padding:12px;background:rgba(232,168,56,0.1);border-radius:8px;">
+            I <b>am</b> · You <b>are</b> · He/She/It <b>is</b><br>
+            We <b>are</b> · They <b>are</b>
+          </p>
+          <div class="example">I <b>am</b> a student. — Я (є) студент.</div>
+          <div class="example">She <b>is</b> happy. — Вона (є) щаслива.</div>
+          <div class="example">They <b>are</b> at home. — Вони (є) вдома.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Скорочені форми</h3>
+          <p>В розмовній мові майже завжди скорочують:</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">
+            I am → <b>I'm</b><br>
+            You are → <b>You're</b><br>
+            He is → <b>He's</b> · She is → <b>She's</b> · It is → <b>It's</b><br>
+            We are → <b>We're</b> · They are → <b>They're</b>
+          </p>
+          <div class="example"><b>I'm</b> tired. — Я втомлений.</div>
+          <div class="example"><b>She's</b> a doctor. — Вона лікарка.</div>
+          <div class="example"><b>We're</b> ready. — Ми готові.</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Скорочення — це нормально і природно! Їх використовують усі.</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Заперечення та питання</h3>
+          <p><span style="color:#ef4444;">Заперечення:</span> додаємо <b>not</b> після am/is/are:</p>
+          <div class="example">I <b>am not</b> (I'm not) hungry. — Я не голодний.</div>
+          <div class="example">She <b>is not</b> (isn't) here. — Її тут немає.</div>
+          <div class="example">They <b>are not</b> (aren't) ready. — Вони не готові.</div>
+          <p style="margin-top:10px;"><span style="color:#60a5fa;">Питання:</span> переставляємо am/is/are на початок:</p>
+          <div class="example"><b>Am</b> I late? — Я спізнився?</div>
+          <div class="example"><b>Is</b> she a teacher? — Вона вчителька?</div>
+          <div class="example"><b>Are</b> you OK? — Ти в порядку?</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Коли вживати "to be"</h3>
+          <p><b>1. Хто ти / професія:</b></p>
+          <div class="example">I <b>am</b> a teacher. He <b>is</b> a doctor.</div>
+          <p><b>2. Який ти / опис:</b></p>
+          <div class="example">She <b>is</b> tall. They <b>are</b> young.</div>
+          <p><b>3. Де ти / місце:</b></p>
+          <div class="example">We <b>are</b> at school. The cat <b>is</b> on the table.</div>
+          <p><b>4. Скільки тобі років:</b></p>
+          <div class="example">I <b>am</b> 20 years old. She <b>is</b> 15.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I <b>have</b> 20 years. ✅ I <b>am</b> 20 years old. — вік = am/is/are, НЕ have!</p>
+        </div>`
+      ],
+      singular_plural: [
+        `<div class="grammar-lesson-block">
+          <h3>Однина та множина</h3>
+          <p><b>Однина (singular)</b> — один предмет. <b>Множина (plural)</b> — два і більше.</p>
+          <p>Основне правило дуже просте: додай <b>-s</b> в кінці!</p>
+          <div class="example">one <b>cat</b> → two <b>cats</b> — один кіт → два коти</div>
+          <div class="example">one <b>book</b> → three <b>books</b> — одна книга → три книги</div>
+          <div class="example">one <b>dog</b> → five <b>dogs</b> — один пес → п'ять псів</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 В більшості випадків просто додаєш <b>-s</b>. Це працює для 90% слів!</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Коли додавати -es</h3>
+          <p>Якщо слово закінчується на <b>-s, -ss, -sh, -ch, -x, -z</b> → додаємо <b>-es</b>:</p>
+          <div class="example">bus → bus<b>es</b> · glass → glass<b>es</b></div>
+          <div class="example">dish → dish<b>es</b> · watch → watch<b>es</b></div>
+          <div class="example">box → box<b>es</b> · quiz → quiz<b>zes</b></div>
+          <p style="margin-top:10px;">Якщо слово на <b>приголосна + y</b> → міняємо <b>y → ies</b>:</p>
+          <div class="example">baby → bab<b>ies</b> · city → cit<b>ies</b> · story → stor<b>ies</b></div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Але якщо <b>голосна + y</b> → просто -s: boy → boy<b>s</b>, day → day<b>s</b></p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Неправильні множини</h3>
+          <p>Деякі слова змінюються повністю — їх треба запам'ятати:</p>
+          <div class="example"><b>man</b> → <b>men</b> — чоловік → чоловіки</div>
+          <div class="example"><b>woman</b> → <b>women</b> — жінка → жінки</div>
+          <div class="example"><b>child</b> → <b>children</b> — дитина → діти</div>
+          <div class="example"><b>foot</b> → <b>feet</b> — ступня → ступні</div>
+          <div class="example"><b>tooth</b> → <b>teeth</b> — зуб → зуби</div>
+          <div class="example"><b>mouse</b> → <b>mice</b> — миша → миші</div>
+          <div class="example"><b>person</b> → <b>people</b> — людина → люди</div>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">⚠️ Деякі слова однакові: one <b>fish</b> → two <b>fish</b>, one <b>sheep</b> → two <b>sheep</b></p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Типові помилки</h3>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ Two <b>childs</b> are playing.<br>✅ Two <b>children</b> are playing.</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ I have three <b>boxs</b>.<br>✅ I have three <b>boxes</b>. — після x додаємо -es!</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ Many <b>babys</b> are cute.<br>✅ Many <b>babies</b> are cute. — y → ies!</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Порада: якщо не впевнений — додай -s. Це правильно в 90% випадків!</p>
+        </div>`
+      ],
+      this_that: [
+        `<div class="grammar-lesson-block">
+          <h3>This / That / These / Those</h3>
+          <p>Ці слова допомагають <b>вказати на предмет</b> — близький чи далекий.</p>
+          <p style="font-size:16px;text-align:center;padding:12px;background:rgba(232,168,56,0.1);border-radius:8px;">
+            Близько 👆: <b>this</b> (це) · <b>these</b> (ці)<br>
+            Далеко 👉: <b>that</b> (те) · <b>those</b> (ті)
+          </p>
+          <div class="example"><b>This</b> is my phone. — Це мій телефон. (тримаю в руці)</div>
+          <div class="example"><b>That</b> is your car. — То твоя машина. (стоїть далеко)</div>
+          <div class="example"><b>These</b> are my books. — Це мої книги. (лежать поруч)</div>
+          <div class="example"><b>Those</b> are her shoes. — То її взуття. (стоїть далеко)</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Однина та множина</h3>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-bottom:8px;">
+            <b>Однина:</b> this (це) / that (те) → для ОДНОГО предмета<br>
+            <b>Множина:</b> these (ці) / those (ті) → для КІЛЬКОХ предметів
+          </p>
+          <div class="example"><b>This</b> apple is red. → <b>These</b> apples are red.</div>
+          <div class="example"><b>That</b> house is big. → <b>Those</b> houses are big.</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Запам'ятай пари: <b>this → these</b> (близько), <b>that → those</b> (далеко)</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Вживання в різних ситуаціях</h3>
+          <p><b>Знайомство по телефону:</b></p>
+          <div class="example">Hello, <b>this</b> is Maria. — Привіт, це Марія. (представляю себе)</div>
+          <p><b>Вказуємо на щось:</b></p>
+          <div class="example"><b>This</b> is delicious! — Це смачно!</div>
+          <div class="example"><b>That</b> was a great movie! — То був чудовий фільм!</div>
+          <p><b>В магазині:</b></p>
+          <div class="example">I want <b>this</b> one. — Я хочу цей. (показую)</div>
+          <div class="example">How much are <b>those</b>? — Скільки коштують ті? (далеко)</div>
+        </div>`
+      ],
+      word_order: [
+        `<div class="grammar-lesson-block">
+          <h3>Порядок слів у реченні</h3>
+          <p>В англійській мові порядок слів <b>ФІКСОВАНИЙ</b>. Не можна переставляти як в українській!</p>
+          <p style="font-size:18px;text-align:center;padding:12px;background:rgba(232,168,56,0.1);border-radius:8px;">
+            <b>Subject + Verb + Object</b><br>
+            Хто + Що робить + Що/Кого
+          </p>
+          <div class="example"><b>I</b> drink <b>coffee</b>. — Я п'ю каву.</div>
+          <div class="example"><b>She</b> reads <b>books</b>. — Вона читає книги.</div>
+          <div class="example"><b>They</b> love <b>music</b>. — Вони люблять музику.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ Coffee drink I. ❌ Drink I coffee. ✅ <b>I drink coffee.</b></p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Чому це важливо для українців</h3>
+          <p>В українській можна сказати:</p>
+          <div class="example">Каву я п'ю. = Я п'ю каву. = П'ю я каву. — все зрозуміло!</div>
+          <p style="margin-top:10px;">В англійській <b>тільки один порядок</b>:</p>
+          <div class="example">✅ <b>I drink coffee.</b> — і ніяк інакше!</div>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-top:10px;">В українській є відмінки (каву, кави, каві), тому порядок вільний. В англійській відмінків немає → порядок слів показує хто що робить!</p>
+          <div class="example"><b>The dog</b> chases <b>the cat</b>. — Собака ганяє кота.</div>
+          <div class="example"><b>The cat</b> chases <b>the dog</b>. — Кіт ганяє собаку. (інший сенс!)</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Розширена структура</h3>
+          <p>Повне речення може містити більше елементів:</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>Subject + Verb + Object + Place + Time</b><br>Хто + Що робить + Що + Де + Коли</p>
+          <div class="example"><b>I</b> read <b>a book</b> <b>at home</b> <b>every evening</b>.</div>
+          <div class="example"><b>She</b> drinks <b>coffee</b> <b>in the kitchen</b> <b>every morning</b>.</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Правило: спочатку МІСЦЕ, потім ЧАС. Не навпаки!</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I read every evening at home a book.<br>✅ I read a book at home every evening.</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Порядок слів у питаннях</h3>
+          <p>В питаннях порядок змінюється — допоміжне дієслово виходить вперед:</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>Допоміжне + Subject + Verb + Object?</b></p>
+          <div class="example">You <b>are</b> happy. → <b>Are</b> you happy?</div>
+          <div class="example">She <b>likes</b> tea. → <b>Does</b> she like tea?</div>
+          <div class="example">They <b>can</b> swim. → <b>Can</b> they swim?</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ You are happy? (з інтонацією) — розмовне, але граматично неправильно!<br>✅ <b>Are</b> you happy?</p>
+        </div>`
+      ],
+      possessives: [
+        `<div class="grammar-lesson-block">
+          <h3>Присвійні займенники</h3>
+          <p>Показують, <b>кому належить</b> предмет. Стоять ПЕРЕД іменником.</p>
+          <p style="font-size:16px;text-align:center;padding:12px;background:rgba(232,168,56,0.1);border-radius:8px;">
+            I → <b>my</b> (мій) · you → <b>your</b> (твій)<br>
+            he → <b>his</b> (його) · she → <b>her</b> (її) · it → <b>its</b> (його)<br>
+            we → <b>our</b> (наш) · they → <b>their</b> (їхній)
+          </p>
+          <div class="example"><b>My</b> name is Tom. — <b>Моє</b> ім'я Том.</div>
+          <div class="example"><b>Her</b> cat is cute. — <b>Її</b> кіт милий.</div>
+          <div class="example"><b>Their</b> house is big. — <b>Їхній</b> дім великий.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Як запам'ятати</h3>
+          <p>Проста формула: <b>займенник → присвійний</b></p>
+          <div class="example"><b>I</b> am Maria. → <b>My</b> name is Maria.</div>
+          <div class="example"><b>You</b> are a student. → <b>Your</b> bag is here.</div>
+          <div class="example"><b>He</b> is Tom. → <b>His</b> phone is new.</div>
+          <div class="example"><b>She</b> is Anna. → <b>Her</b> dress is beautiful.</div>
+          <div class="example"><b>We</b> are a team. → <b>Our</b> project is ready.</div>
+          <div class="example"><b>They</b> are students. → <b>Their</b> teacher is kind.</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Присвійний займенник НЕ змінюється! <b>my</b> book, <b>my</b> books, <b>my</b> cat — завжди <b>my</b>.</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>'s — присвійний відмінок</h3>
+          <p>Для імен і живих істот використовуємо <b>'s</b>:</p>
+          <div class="example"><b>Tom's</b> car — машина Тома</div>
+          <div class="example"><b>Maria's</b> book — книга Марії</div>
+          <div class="example"><b>the cat's</b> tail — хвіст кота</div>
+          <p style="margin-top:10px;">Для множини на -s додаємо тільки <b>'</b>:</p>
+          <div class="example"><b>my parents'</b> house — дім моїх батьків</div>
+          <div class="example"><b>the students'</b> books — книги студентів</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">⚠️ Не плутай: <b>it's</b> = it is, <b>its</b> = його (присвійний). Без апострофа!</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Типові помилки</h3>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ <b>Me</b> name is Tom.<br>✅ <b>My</b> name is Tom. — me = мене, my = мій!</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ <b>He</b> car is red.<br>✅ <b>His</b> car is red. — he = він, his = його!</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ The dog lost <b>it's</b> bone.<br>✅ The dog lost <b>its</b> bone. — без апострофа!</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 Запам'ятай: <b>their</b> (їхній), <b>there</b> (там), <b>they're</b> (вони є) — три різних слова!</p>
+        </div>`
+      ],
+      basic_questions: [
+        `<div class="grammar-lesson-block">
+          <h3>Питальні слова</h3>
+          <p>В англійській є спеціальні слова для різних типів питань. Всі починаються на <b>Wh-</b>:</p>
+          <p style="font-size:16px;text-align:center;padding:12px;background:rgba(232,168,56,0.1);border-radius:8px;">
+            <b>What</b> — що/який · <b>Where</b> — де<br>
+            <b>Who</b> — хто · <b>When</b> — коли<br>
+            <b>Why</b> — чому · <b>How</b> — як
+          </p>
+          <div class="example"><b>What</b> is your name? — Як тебе звати?</div>
+          <div class="example"><b>Where</b> are you from? — Звідки ти?</div>
+          <div class="example"><b>Who</b> is she? — Хто вона?</div>
+          <div class="example"><b>When</b> is your birthday? — Коли твій день народження?</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Як будувати питання</h3>
+          <p>Формула проста:</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>Wh-слово + допоміжне дієслово + підмет + дієслово?</b></p>
+          <div class="example"><b>What do</b> you <b>like</b>? — Що тобі подобається?</div>
+          <div class="example"><b>Where does</b> she <b>live</b>? — Де вона живе?</div>
+          <div class="example"><b>Why are</b> you <b>sad</b>? — Чому ти сумний?</div>
+          <div class="example"><b>How do</b> you <b>spell</b> your name? — Як пишеться твоє ім'я?</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 З дієсловом <b>to be</b> не потрібен do/does: Where <b>is</b> he? (не: Where does he is?)</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Yes/No питання</h3>
+          <p>Питання без Wh-слова — відповідь "так" або "ні":</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>Допоміжне дієслово + підмет + дієслово?</b></p>
+          <div class="example"><b>Are</b> you a student? — Yes, I am. / No, I'm not.</div>
+          <div class="example"><b>Do</b> you like pizza? — Yes, I do. / No, I don't.</div>
+          <div class="example"><b>Does</b> she speak English? — Yes, she does. / No, she doesn't.</div>
+          <div class="example"><b>Can</b> you swim? — Yes, I can. / No, I can't.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ You like pizza? — це розмовне, але граматично невірно!<br>✅ <b>Do</b> you like pizza?</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Корисні питання на кожен день</h3>
+          <p>Запам'ятай ці базові питання:</p>
+          <div class="example"><b>What</b> is this? — Що це? (вказуєш на предмет)</div>
+          <div class="example"><b>How</b> are you? — Як справи?</div>
+          <div class="example"><b>How much</b> is it? — Скільки це коштує?</div>
+          <div class="example"><b>How old</b> are you? — Скільки тобі років?</div>
+          <div class="example"><b>What time</b> is it? — Котра година?</div>
+          <div class="example"><b>Where</b> is the toilet? — Де туалет?</div>
+          <div class="example"><b>Can</b> you help me? — Можете мені допомогти?</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 <b>How much</b> = скільки (не рахуєш), <b>How many</b> = скільки (рахуєш): How many cats?</p>
+        </div>`
+      ],
+      there_is_are: [
+        `<div class="grammar-lesson-block">
+          <h3>There is / There are</h3>
+          <p>Використовуємо, щоб сказати, що щось <b>є, існує або знаходиться</b> десь.</p>
+          <p style="font-size:16px;text-align:center;padding:12px;background:rgba(232,168,56,0.1);border-radius:8px;">
+            <b>There is</b> — є (один предмет)<br>
+            <b>There are</b> — є (кілька предметів)
+          </p>
+          <div class="example"><b>There is</b> a cat on the table. — На столі є кіт.</div>
+          <div class="example"><b>There are</b> two books on the shelf. — На полиці є дві книги.</div>
+          <div class="example"><b>There is</b> milk in the fridge. — В холодильнику є молоко.</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 В українській ми часто говоримо "На столі кіт" без "є". В англійській <b>there is/are</b> обов'язкове!</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Скорочення та вибір is/are</h3>
+          <p><b>Скорочена форма:</b></p>
+          <div class="example">There is → <b>There's</b> a problem. — Є проблема.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">⚠️ There are НЕ скорочується! ❌ There're — так не кажуть.</p>
+          <p style="margin-top:10px;"><b>Як обрати is чи are:</b></p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;">
+            <b>There is</b> + однина / незлічуване (water, music, time)<br>
+            <b>There are</b> + множина (books, people, cats)
+          </p>
+          <div class="example"><b>There is</b> a park near my house. — один парк</div>
+          <div class="example"><b>There are</b> many parks in Kyiv. — багато парків</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Заперечення та питання</h3>
+          <p><span style="color:#ef4444;">Заперечення:</span></p>
+          <div class="example">There <b>isn't</b> (is not) a problem. — Немає проблеми.</div>
+          <div class="example">There <b>aren't</b> (are not) any chairs. — Немає стільців.</div>
+          <p style="margin-top:10px;"><span style="color:#60a5fa;">Питання:</span></p>
+          <div class="example"><b>Is there</b> a bank near here? — Чи є банк поблизу?</div>
+          <div class="example"><b>Are there</b> any questions? — Чи є запитання?</div>
+          <p style="margin-top:10px;"><b>Короткі відповіді:</b></p>
+          <div class="example">Is there a park? — Yes, there is. / No, there isn't.</div>
+          <div class="example">Are there shops? — Yes, there are. / No, there aren't.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Типові помилки</h3>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ <b>It is</b> a cat on the table.<br>✅ <b>There is</b> a cat on the table. — для опису місця = there is!</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ <b>There is</b> many people.<br>✅ <b>There are</b> many people. — people = множина → are!</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:8px;">❌ <b>Have</b> a park near my house.<br>✅ <b>There is</b> a park near my house. — не перекладай "є" як "have"!</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 <b>There is/are</b> = щось ІСНУЄ десь. <b>It is</b> = опис конкретного предмету.</p>
+        </div>`
+      ],
       present_simple: [
         `<div class="grammar-lesson-block">
           <h3>Present Simple</h3>
