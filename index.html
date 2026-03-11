@@ -5337,11 +5337,18 @@
           <i class="fas fa-arrow-left"></i>
           <span>Назад</span>
         </button>
-        <h2 style="font-size: 28px;">Слова дня</h2>
-        <button class="button-with-icon small-button info-button" onclick="openDailyWordsSettings()" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);">
+        <h2 style="font-size: 28px;">Генерація</h2>
+        <button class="button-with-icon small-button info-button" id="daily-settings-btn" onclick="openDailyWordsSettings()" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);">
           <i class="fas fa-info-circle"></i>
         </button>
       </div>
+      <!-- Табы Слова / Фрази -->
+      <div class="vocab-tabs" style="padding: 0 16px;">
+        <button class="vocab-tab active" id="daily-tab-words" onclick="switchDailyTab('words')">Слова</button>
+        <button class="vocab-tab" id="daily-tab-phrases" onclick="switchDailyTab('phrases')">Фрази</button>
+      </div>
+      <!-- === WORDS TAB CONTENT === -->
+      <div id="daily-words-tab-content">
       <!-- Онбордінг (показується один раз) -->
       <div id="onboarding-container" class="hidden" style="padding: 0 16px;">
         <div style="text-align:center;margin:24px 0 16px;">
@@ -5400,6 +5407,38 @@
           🔄 Згенерувати інші слова
         </button>
       </div>
+      </div><!-- /daily-words-tab-content -->
+      <!-- === PHRASES TAB CONTENT === -->
+      <div id="daily-phrases-tab-content" class="hidden">
+        <!-- Онбордінг фраз (якщо немає профілю) -->
+        <div id="phrases-onboarding-container" class="hidden" style="padding: 0 16px;">
+          <div style="text-align:center;margin:24px 0 16px;">
+            <div style="font-size:48px;margin-bottom:12px;">💬</div>
+            <h3 style="font-size:20px;color:#F0EDE8;margin:0 0 8px;">Налаштуй генерацію фраз</h3>
+            <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;">Спочатку заповни профіль у вкладці "Слова"</p>
+          </div>
+          <button class="finish-button" onclick="switchDailyTab('words')" style="width:100%;margin:16px auto;">Перейти до налаштувань</button>
+        </div>
+        <!-- Список фраз дня -->
+        <div id="daily-phrases-list-container" class="hidden" style="padding: 0 16px;">
+          <div style="text-align:center;margin:16px 0;">
+            <div style="font-size:36px;margin-bottom:8px;">💬</div>
+            <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;" id="daily-phrases-subtitle">Твої нові фрази на сьогодні</p>
+          </div>
+          <!-- Опція: використовувати мої слова -->
+          <label id="use-my-words-toggle" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:14px;cursor:pointer;user-select:none;">
+            <input type="checkbox" id="phrases-use-my-words" checked style="accent-color:#E8A838;width:18px;height:18px;flex-shrink:0;">
+            <span style="font-size:14px;color:#F0EDE8;">Використовувати слова, які я вивчаю</span>
+          </label>
+          <ul id="daily-phrases-list" style="list-style:none;padding:0;"></ul>
+          <button class="finish-button" id="add-all-daily-phrases" onclick="addAllDailyPhrases()" style="width:100%;margin-top:8px;">
+            Додати всі до словника
+          </button>
+          <button class="long-button" id="regenerate-phrases-btn" onclick="regenerateDailyPhrases()" style="margin-top:8px;width:100%;">
+            🔄 Згенерувати інші фрази
+          </button>
+        </div>
+      </div><!-- /daily-phrases-tab-content -->
     </div>
     <!-- Попап налаштувань "Слова дня" -->
     <div id="dailyWordsSettingsPopup" class="hidden" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:flex-end;justify-content:center;" onclick="if(event.target===this)closeDailyWordsSettings()">
@@ -6886,6 +6925,276 @@ Return ONLY the JSON array, no other text.`;
       btn.disabled = false;
       btn.textContent = '🔄 Згенерувати інші слова';
     }
+
+    // === DAILY PHRASES SYSTEM ===
+    let currentDailyPhrases = [];
+    let activeDailyTab = 'words';
+
+    function switchDailyTab(tab) {
+      activeDailyTab = tab;
+      document.getElementById('daily-tab-words').classList.toggle('active', tab === 'words');
+      document.getElementById('daily-tab-phrases').classList.toggle('active', tab === 'phrases');
+      document.getElementById('daily-words-tab-content').classList.toggle('hidden', tab !== 'words');
+      document.getElementById('daily-phrases-tab-content').classList.toggle('hidden', tab !== 'phrases');
+
+      if (tab === 'phrases') {
+        loadDailyPhrasesScreen();
+      }
+    }
+
+    async function loadDailyPhrasesScreen() {
+      if (!userLearningProfile) {
+        document.getElementById('phrases-onboarding-container').classList.remove('hidden');
+        document.getElementById('daily-phrases-list-container').classList.add('hidden');
+        return;
+      }
+
+      document.getElementById('phrases-onboarding-container').classList.add('hidden');
+      document.getElementById('daily-phrases-list-container').classList.remove('hidden');
+      await loadOrGenerateDailyPhrases();
+    }
+
+    async function loadOrGenerateDailyPhrases() {
+      const userId = auth.currentUser.uid;
+      const today = new Date().toISOString().split('T')[0];
+
+      const userDoc = await db.collection('users').doc(userId).get();
+      const data = userDoc.data() || {};
+      const dailyPhrasesData = data.dailyPhrases || {};
+
+      const cachedValid = dailyPhrasesData.date === today && dailyPhrasesData.phrases && dailyPhrasesData.phrases.length > 0 && dailyPhrasesData.phrases[0].phrase;
+      if (cachedValid) {
+        currentDailyPhrases = dailyPhrasesData.phrases;
+        renderDailyPhrases();
+      } else {
+        await generateDailyPhrases();
+      }
+    }
+
+    async function generateDailyPhrases() {
+      showLoading();
+      const userId = auth.currentUser.uid;
+
+      if (!openaiApiKey) await loadOpenAIKey();
+
+      const existingSnap = await db.collection('users').doc(userId).collection('phrases').get();
+      const existingSet = new Set(existingSnap.docs.map(d => d.id.toLowerCase()));
+
+      const profile = userLearningProfile;
+      const levelMap = {
+        beginner: 'A1-A2 (basic everyday phrases)',
+        elementary: 'A2-B1 (simple but useful phrases)',
+        intermediate: 'B1-B2 (more advanced phrases and expressions)',
+        upper: 'B2-C1 (sophisticated phrases and idioms)'
+      };
+      const goalMap = {
+        travel: 'travel and tourism situations',
+        work: 'professional and business contexts',
+        study: 'academic and educational contexts',
+        general: 'general everyday communication'
+      };
+      const topicNames = profile.topics.join(', ');
+      const levelDesc = levelMap[profile.level] || 'intermediate level';
+      const goals = profile.goals || (profile.goal ? [profile.goal] : ['general']);
+      const goalDesc = goals.map(g => goalMap[g] || g).join(', ');
+      const noteText = profile.note ? `\nAdditional user note: ${profile.note}` : '';
+
+      // Get user's words if checkbox is checked
+      let myWordsInstruction = '';
+      const useMyWords = document.getElementById('phrases-use-my-words').checked;
+      if (useMyWords) {
+        const wordsSnap = await db.collection('users').doc(userId).collection('words').orderBy('dateAdded', 'desc').limit(50).get();
+        const myWords = wordsSnap.docs.map(d => d.id);
+        if (myWords.length > 0) {
+          myWordsInstruction = `\n\nIMPORTANT: Try to include some of these words the user is currently learning in the phrases: ${myWords.join(', ')}. Use at least 1-2 of these words per phrase where it sounds natural.`;
+        }
+      }
+
+      const excludeSample = [...existingSet].slice(-200).join(', ');
+
+      const prompt = `Generate exactly 5 different useful English phrases/expressions for a Ukrainian-speaking learner.
+
+Level: ${levelDesc}
+Goals: ${goalDesc}
+Interested topics: ${topicNames}${noteText}${myWordsInstruction}
+
+${excludeSample ? `Do NOT include these phrases: ${excludeSample}` : ''}
+
+Each phrase should be a common expression, collocation, or useful phrase (2-6 words). Not full sentences.
+Examples: "break the ice", "make up your mind", "get along with", "look forward to"
+
+Return ONLY a valid JSON array with exactly 5 objects, each having:
+- "phrase": the English phrase
+- "translation": Ukrainian translation
+- "example": a short example sentence using this phrase
+
+Example: [{"phrase":"break the ice","translation":"розрядити обстановку","example":"She told a joke to break the ice at the meeting."}]
+
+Return ONLY the JSON array, no other text.`;
+
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: prompt }],
+            model: 'gpt-4o-mini',
+            temperature: 0.9,
+            max_tokens: 4000,
+          }),
+        });
+
+        if (!response.ok) throw new Error('OpenAI API error');
+        const result = await response.json();
+        const content = result.choices[0].message.content.trim();
+        const jsonStr = content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+        const generated = JSON.parse(jsonStr);
+
+        currentDailyPhrases = generated.filter(p => p && p.phrase && p.translation && !existingSet.has(p.phrase.toLowerCase())).slice(0, 5);
+      } catch (error) {
+        console.error('Phrase generation failed:', error);
+        currentDailyPhrases = [];
+      }
+
+      hideLoading();
+
+      if (currentDailyPhrases.length === 0) {
+        const list = document.getElementById('daily-phrases-list');
+        list.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.5);padding:20px;">На жаль, не вдалося згенерувати фрази. Спробуйте ще раз.</p>';
+        return;
+      }
+
+      const today = new Date().toISOString().split('T')[0];
+      await db.collection('users').doc(userId).update({
+        dailyPhrases: { date: today, phrases: currentDailyPhrases }
+      });
+
+      renderDailyPhrases();
+    }
+
+    function renderDailyPhrases() {
+      const list = document.getElementById('daily-phrases-list');
+      list.innerHTML = '';
+      currentDailyPhrases = currentDailyPhrases.filter(p => p && p.phrase && p.translation);
+
+      if (currentDailyPhrases.length === 0) {
+        list.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.5);padding:20px;">Натисни "Згенерувати" щоб отримати фрази</p>';
+        return;
+      }
+
+      currentDailyPhrases.forEach((p, i) => {
+        const li = document.createElement('li');
+        li.style.cssText = 'background:rgba(255,255,255,0.05);padding:15px 22px;margin-bottom:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);position:relative;list-style:none;animation:dailyWordFadeIn 0.4s ease forwards;animation-delay:' + (i * 0.06) + 's;opacity:0;';
+        const safePhrase = p.phrase.replace(/'/g, "\\'");
+        const exampleHtml = p.example ? `<div style="font-size:12px;color:rgba(240,237,232,0.45);margin-top:6px;font-style:italic;">"${p.example}"</div>` : '';
+        li.innerHTML = `<div style="display:flex;align-items:center;"><i class="fas fa-volume-up" style="color:rgba(240,237,232,0.5);cursor:pointer;margin-right:12px;flex-shrink:0;" onclick="responsiveVoice.speak('${safePhrase}', 'UK English Female')"></i><div style="flex:1;"><strong>${p.phrase}</strong>&nbsp;- ${p.translation}${exampleHtml}</div><i class="fas fa-plus" onclick="addDailyPhrase(${i}, this)" style="color:#F0EDE8;cursor:pointer;padding:5px;flex-shrink:0;margin-left:8px;"></i></div>`;
+        list.appendChild(li);
+      });
+    }
+
+    async function addDailyPhrase(index, btn) {
+      const p = currentDailyPhrases[index];
+      const userId = auth.currentUser.uid;
+      const phraseId = p.phrase.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+      const ref = db.collection('users').doc(userId).collection('phrases').doc(phraseId);
+
+      try {
+        const existing = await ref.get();
+        if (existing.exists) {
+          showNotification(`"${p.phrase}" вже у словнику`, 'warning');
+          btn.className = 'fas fa-check';
+          btn.style.color = '#34d399';
+          btn.onclick = null;
+          return;
+        }
+        await ref.set({
+          english: p.phrase,
+          translation: p.translation,
+          example: p.example || '',
+          interactions: 0,
+          correctAnswers: 0,
+          priority: 0,
+          dateAdded: firebase.firestore.Timestamp.now(),
+        });
+        btn.className = 'fas fa-check';
+        btn.style.color = '#34d399';
+        btn.onclick = null;
+        playSound(true);
+        showNotification(`"${p.phrase}" додано!`);
+      } catch (e) {
+        console.error('Error adding phrase:', e);
+        showNotification('Помилка додавання', 'warning');
+      }
+    }
+
+    async function addAllDailyPhrases() {
+      const userId = auth.currentUser.uid;
+      const btn = document.getElementById('add-all-daily-phrases');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Додаємо...';
+
+      try {
+        const batch = db.batch();
+        let added = 0;
+        for (const p of currentDailyPhrases) {
+          const phraseId = p.phrase.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+          const ref = db.collection('users').doc(userId).collection('phrases').doc(phraseId);
+          const existing = await ref.get();
+          if (!existing.exists) {
+            batch.set(ref, {
+              english: p.phrase,
+              translation: p.translation,
+              example: p.example || '',
+              interactions: 0,
+              correctAnswers: 0,
+              priority: 0,
+              dateAdded: firebase.firestore.Timestamp.now(),
+            });
+            added++;
+          }
+        }
+        if (added > 0) {
+          await batch.commit();
+          showNotification(`Додано ${added} нових фраз!`);
+        } else {
+          showNotification('Всі фрази вже у словнику', 'warning');
+        }
+        document.querySelectorAll('#daily-phrases-list .fa-plus').forEach(icon => {
+          icon.className = 'fas fa-check';
+          icon.style.color = '#34d399';
+          icon.onclick = null;
+        });
+      } catch (e) {
+        console.error('Error adding all phrases:', e);
+        showNotification('Помилка додавання', 'warning');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    }
+
+    async function regenerateDailyPhrases() {
+      const btn = document.getElementById('regenerate-phrases-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Генеруємо...';
+
+      if (!openaiApiKey) await loadOpenAIKey();
+      if (!userLearningProfile) {
+        const userId = auth.currentUser.uid;
+        const userDoc = await db.collection('users').doc(userId).get();
+        userLearningProfile = (userDoc.data() || {}).learningProfile;
+      }
+
+      await generateDailyPhrases();
+
+      btn.disabled = false;
+      btn.textContent = '🔄 Згенерувати інші фрази';
+    }
+
     function closeDailyWordsSettings() {
       const sheet = document.getElementById('dailyWordsSettingsSheet');
       sheet.style.transform = 'translateY(100%)';
@@ -7548,6 +7857,23 @@ Return ONLY the JSON array, no other text.`;
       { id: 'articles', name: 'Articles', desc: 'a, an, the — when to use', icon: '📐', level: 'A1' },
       { id: 'prepositions', name: 'Prepositions', desc: 'in, on, at, by, for...', icon: '📍', level: 'A2' },
       { id: 'reported_speech', name: 'Reported Speech', desc: 'He said that...', icon: '💬', level: 'B2' },
+      { id: 'countable_uncountable', name: 'Злічувані / Незлічувані', desc: 'much vs many, a few vs a little', icon: '⚖️', level: 'A1' },
+      { id: 'imperative', name: 'Наказовий спосіб', desc: 'Sit down! Don\'t touch!', icon: '🫵', level: 'A1' },
+      { id: 'adjectives_order', name: 'Прикметники та порядок', desc: 'a big red car, not a red big car', icon: '🎨', level: 'A1' },
+      { id: 'comparatives_superlatives', name: 'Порівняння', desc: 'bigger, the biggest, more interesting', icon: '📊', level: 'A2' },
+      { id: 'adverbs', name: 'Прислівники', desc: 'quickly, well, always, never', icon: '⚡', level: 'A2' },
+      { id: 'gerund_infinitive', name: 'Gerund vs Infinitive', desc: 'enjoy doing vs want to do', icon: '🔄', level: 'B1' },
+      { id: 'relative_clauses', name: 'Relative Clauses', desc: 'who, which, that, where', icon: '🔗', level: 'B1' },
+      { id: 'used_to', name: 'Used to / Would', desc: 'I used to play... He would always...', icon: '⏪', level: 'A2' },
+      { id: 'past_perfect', name: 'Past Perfect', desc: 'I had already left when...', icon: '⏮️', level: 'B1' },
+      { id: 'conditionals_advanced', name: 'Conditionals (3 + Mixed)', desc: 'If I had known... I wish I had...', icon: '💠', level: 'B2' },
+      { id: 'phrasal_verbs', name: 'Phrasal Verbs', desc: 'give up, look after, turn on...', icon: '🧩', level: 'B1' },
+      { id: 'question_tags', name: 'Question Tags', desc: 'You like it, don\'t you?', icon: '🏷️', level: 'A2' },
+      { id: 'some_any_no', name: 'Some / Any / No', desc: 'something, anyone, nothing', icon: '🔍', level: 'A1' },
+      { id: 'present_perfect_continuous', name: 'Present Perfect Continuous', desc: 'I have been waiting for...', icon: '🟤', level: 'B1' },
+      { id: 'wish_if_only', name: 'Wish / If only', desc: 'I wish I knew... If only I had...', icon: '🌟', level: 'B2' },
+      { id: 'have_to_must', name: 'Have to / Must / Should', desc: 'Обов\'язок, порада, заборона', icon: '⚠️', level: 'A2' },
+      { id: 'so_such_too_enough', name: 'So / Such / Too / Enough', desc: 'so tired, such a nice day', icon: '📏', level: 'A2' },
     ];
 
     let grammarCompletedTopics = {};
@@ -8421,6 +8747,537 @@ Return ONLY the JSON array, no other text.`;
           <div class="example">"<b>Are</b> you happy?" → She asked if I <b>was</b> happy. (if замість ?)</div>
           <div class="example">"<b>Can</b> you help?" → He asked if I <b>could</b> help.</div>
           <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ He asked where <b>did</b> I live.<br>✅ He asked where I <b>lived</b>.</p>
+        </div>`
+      ],
+      countable_uncountable: [
+        `<div class="grammar-lesson-block">
+          <h3>Злічувані та незлічувані іменники</h3>
+          <p>В англійській <b>злічувані</b> (countable) можна порахувати: one apple, two apples.</p>
+          <p><b>Незлічувані</b> (uncountable) — не рахуються: water, money, information, advice.</p>
+          <div class="example">I have <b>three cats</b>. — Злічуваний (можна порахувати)</div>
+          <div class="example">I need <b>some water</b>. — Незлічуваний (не кажемо "two waters")</div>
+          <div class="example">She gave me <b>good advice</b>. — Незлічуваний (не "advices"!)</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ many <b>informations</b> → ✅ much <b>information</b><br>❌ an <b>advice</b> → ✅ a piece of <b>advice</b></p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Much / Many / A lot of</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>many</b> + злічувані: many books, many friends</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-bottom:6px;"><b>much</b> + незлічувані: much time, much money</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;"><b>a lot of</b> — універсальний, з будь-якими!</p>
+          <div class="example">How <b>many</b> students are there? — Скільки студентів?</div>
+          <div class="example">I don't have <b>much</b> time. — У мене мало часу.</div>
+          <div class="example">She has <b>a lot of</b> friends. — У неї багато друзів.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>A few / A little / Few / Little</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>a few</b> + злічувані = кілька (позитивно): a few friends</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-bottom:6px;"><b>a little</b> + незлічувані = трохи (позитивно): a little milk</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;"><b>few</b> / <b>little</b> (без a) = мало, недостатньо (негативно)</p>
+          <div class="example">I have <b>a few</b> questions. — У мене є кілька питань. (нормально)</div>
+          <div class="example">I have <b>few</b> friends here. — У мене мало друзів тут. (сумно)</div>
+          <div class="example">There is <b>a little</b> sugar left. — Ще є трохи цукру. (ок)</div>
+          <div class="example">There is <b>little</b> hope. — Мало надії. (погано)</div>
+        </div>`
+      ],
+      imperative: [
+        `<div class="grammar-lesson-block">
+          <h3>Наказовий спосіб (Imperative)</h3>
+          <p>Використовуємо для <b>команд, прохань, інструкцій</b>. Просто дієслово без підмета!</p>
+          <p>Підмет "you" — мається на увазі, але не говориться.</p>
+          <div class="example"><b>Sit</b> down, please. — Сядь, будь ласка.</div>
+          <div class="example"><b>Open</b> your books. — Відкрийте книги.</div>
+          <div class="example"><b>Listen</b> to me! — Послухай мене!</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Заперечний наказ: Don't</h3>
+          <p>Щоб сказати "не роби" — додаємо <b>Don't</b> перед дієсловом.</p>
+          <div class="example"><b>Don't</b> touch that! — Не чіпай це!</div>
+          <div class="example"><b>Don't</b> be late. — Не запізнюйся.</div>
+          <div class="example"><b>Don't</b> worry! — Не хвилюйся!</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ <b>Not</b> go there! → ✅ <b>Don't</b> go there!</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Let's + Ввічливі форми</h3>
+          <p><b>Let's</b> = давай(те) — пропозиція зробити щось разом.</p>
+          <div class="example"><b>Let's</b> go! — Ходімо!</div>
+          <div class="example"><b>Let's not</b> argue. — Давай не сперечатись.</div>
+          <p style="margin-top:12px;"><b>Ввічливий наказ:</b> додаємо please або could you</p>
+          <div class="example"><b>Please</b> close the window. — Закрий вікно, будь ласка.</div>
+          <div class="example"><b>Could you</b> help me? — Чи не могли б ви мені допомогти?</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">Порада: "please" робить будь-який наказ ввічливим!</p>
+        </div>`
+      ],
+      adjectives_order: [
+        `<div class="grammar-lesson-block">
+          <h3>Прикметники в англійській</h3>
+          <p>Прикметники стоять <b>перед іменником</b> (не після, як іноді в українській).</p>
+          <div class="example">a <b>beautiful</b> day — гарний день</div>
+          <div class="example">an <b>old</b> house — старий будинок</div>
+          <div class="example">a <b>tall, young</b> man — високий молодий чоловік</div>
+          <p>Або після дієслів <b>be, look, feel, seem, taste, sound</b>:</p>
+          <div class="example">She <b>is</b> happy. — Вона щаслива.</div>
+          <div class="example">It <b>looks</b> great! — Виглядає чудово!</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Порядок прикметників (OSASCOMP)</h3>
+          <p>Коли кілька прикметників — є <b>фіксований порядок</b>:</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">
+          <b>O</b>pinion → <b>S</b>ize → <b>A</b>ge → <b>S</b>hape → <b>C</b>olour → <b>O</b>rigin → <b>M</b>aterial → <b>P</b>urpose</p>
+          <div class="example">a <b>beautiful big old</b> house ✅</div>
+          <div class="example">a <b>small round wooden</b> table ✅</div>
+          <div class="example">a <b>nice young Italian</b> man ✅</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ a <b>wooden round small</b> table<br>✅ a <b>small round wooden</b> table</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>-ed vs -ing прикметники</h3>
+          <p>Дуже поширена помилка! Різниця проста:</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-bottom:6px;"><b>-ed</b> = як ти ПОЧУВАЄШСЯ: bored, tired, excited, interested</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>-ing</b> = яке щось Є (характеристика): boring, tiring, exciting, interesting</p>
+          <div class="example">I am <b>bored</b>. — Мені нудно. (моє відчуття)</div>
+          <div class="example">This movie is <b>boring</b>. — Цей фільм нудний. (його характеристика)</div>
+          <div class="example">She was <b>surprised</b>. — Вона була здивована.</div>
+          <div class="example">The news was <b>surprising</b>. — Новина була дивовижна.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I am <b>boring</b>. (= Я нудний як людина!)<br>✅ I am <b>bored</b>. (= Мені нудно.)</p>
+        </div>`
+      ],
+      comparatives_superlatives: [
+        `<div class="grammar-lesson-block">
+          <h3>Порівняльний ступінь (Comparative)</h3>
+          <p>Щоб порівняти ДВІ речі:</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;">Короткі слова (1 склад): + <b>-er</b>: tall → tall<b>er</b>, fast → fast<b>er</b></p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;">Довгі слова (2+ склади): <b>more</b> +: more beautiful, more expensive</p>
+          <div class="example">She is <b>taller than</b> me. — Вона вища за мене.</div>
+          <div class="example">This book is <b>more interesting than</b> that one.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ more <b>taller</b> → ✅ <b>taller</b> (не подвоюй!)<br>❌ <b>interestinger</b> → ✅ <b>more interesting</b></p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Найвищий ступінь (Superlative)</h3>
+          <p>Щоб сказати "найбільш" серед ТРЬОХ і більше:</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;">Короткі: <b>the</b> + <b>-est</b>: the tall<b>est</b>, the fast<b>est</b></p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;">Довгі: <b>the most</b> +: the most beautiful, the most expensive</p>
+          <div class="example">She is <b>the tallest</b> in the class. — Вона найвища в класі.</div>
+          <div class="example">It's <b>the most expensive</b> hotel here.</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">Завжди з <b>the</b>! the best, the worst, the most</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Винятки (Irregular)</h3>
+          <p>Ці слова змінюються повністю:</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">
+          good → <b>better</b> → <b>the best</b><br>
+          bad → <b>worse</b> → <b>the worst</b><br>
+          far → <b>farther/further</b> → <b>the farthest/furthest</b><br>
+          little → <b>less</b> → <b>the least</b><br>
+          much/many → <b>more</b> → <b>the most</b></p>
+          <div class="example">This is <b>better than</b> I expected. — Це краще ніж я думав.</div>
+          <div class="example">It was <b>the worst</b> day ever. — Найгірший день.</div>
+          <div class="example">I need <b>more</b> time. — Мені потрібно більше часу.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ <b>more better</b> → ✅ <b>better</b><br>❌ <b>the most good</b> → ✅ <b>the best</b></p>
+        </div>`
+      ],
+      adverbs: [
+        `<div class="grammar-lesson-block">
+          <h3>Прислівники (Adverbs)</h3>
+          <p>Прислівники описують <b>як</b> відбувається дія. Зазвичай утворюються додаванням <b>-ly</b>:</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">slow → slow<b>ly</b>, quick → quick<b>ly</b>, careful → careful<b>ly</b></p>
+          <div class="example">She speaks <b>slowly</b>. — Вона говорить повільно.</div>
+          <div class="example">He drives <b>carefully</b>. — Він водить обережно.</div>
+          <div class="example">They worked <b>quickly</b>. — Вони працювали швидко.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Винятки та прислівники частоти</h3>
+          <p><b>Irregular adverbs</b> (не додаємо -ly):</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">good → <b>well</b>, fast → <b>fast</b>, hard → <b>hard</b>, late → <b>late</b>, early → <b>early</b></p>
+          <div class="example">She sings <b>well</b>. — Вона гарно співає.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ She sings <b>good</b>. → ✅ She sings <b>well</b>.</p>
+          <p style="margin-top:12px;"><b>Прислівники частоти</b> (стоять ПЕРЕД дієсловом):</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;">always (100%) → usually (80%) → often (60%) → sometimes (40%) → rarely (10%) → never (0%)</p>
+          <div class="example">I <b>always</b> drink coffee. — Я завжди п'ю каву.</div>
+          <div class="example">She <b>never</b> eats meat. — Вона ніколи не їсть м'ясо.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Позиція прислівника в реченні</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>Спосіб</b> (how) — в кінці: She speaks English <b>fluently</b>.</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-bottom:6px;"><b>Частота</b> — перед дієсловом: I <b>usually</b> wake up at 7.</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;"><b>З "be"</b> — після be: She is <b>always</b> late.</p>
+          <div class="example">He <b>often</b> goes to the gym. ✅</div>
+          <div class="example">She is <b>sometimes</b> tired. ✅</div>
+          <div class="example">They finished the project <b>successfully</b>. ✅</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ He goes <b>often</b> to the gym.<br>✅ He <b>often</b> goes to the gym.</p>
+        </div>`
+      ],
+      gerund_infinitive: [
+        `<div class="grammar-lesson-block">
+          <h3>Gerund (-ing) vs Infinitive (to do)</h3>
+          <p>Після деяких дієслів — <b>-ing</b>, після інших — <b>to + verb</b>. Це потрібно запам'ятати!</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>+ -ing:</b> enjoy, finish, avoid, keep, mind, suggest, imagine, practice</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>+ to:</b> want, need, decide, hope, plan, agree, refuse, learn, promise</p>
+          <div class="example">I <b>enjoy reading</b> books. — Мені подобається читати.</div>
+          <div class="example">She <b>wants to travel</b>. — Вона хоче подорожувати.</div>
+          <div class="example">He <b>avoided answering</b>. — Він уникнув відповіді.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Дієслова з різним значенням</h3>
+          <p>Деякі дієслова можуть мати і -ing, і to — але значення <b>змінюється</b>!</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">
+          <b>stop + -ing</b> = припинити: I stopped <b>smoking</b>. (кинув курити)<br>
+          <b>stop + to</b> = зупинитись щоб: I stopped <b>to smoke</b>. (зупинився покурити)</p>
+          <div class="example"><b>Remember + -ing</b> = пам'ятати що робив: I remember <b>meeting</b> her.</div>
+          <div class="example"><b>Remember + to</b> = не забути зробити: Remember <b>to call</b> mom!</div>
+          <div class="example"><b>Try + -ing</b> = спробувати (експеримент): Try <b>adding</b> salt.</div>
+          <div class="example"><b>Try + to</b> = намагатися: I tried <b>to open</b> the door.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Особливі випадки</h3>
+          <p><b>Після прийменників</b> — завжди -ing:</p>
+          <div class="example">I'm good <b>at cooking</b>. — Я добре готую.</div>
+          <div class="example">She left <b>without saying</b> goodbye. — Пішла не попрощавшись.</div>
+          <div class="example">I'm interested <b>in learning</b> English. — Мені цікаво вчити.</div>
+          <p style="margin-top:12px;"><b>Як підмет</b> — завжди -ing:</p>
+          <div class="example"><b>Swimming</b> is good for health. — Плавання корисне.</div>
+          <div class="example"><b>Learning</b> English takes time. — Вивчення англійської потребує часу.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I enjoy <b>to read</b>. → ✅ I enjoy <b>reading</b>.<br>❌ She wants <b>going</b>. → ✅ She wants <b>to go</b>.</p>
+        </div>`
+      ],
+      relative_clauses: [
+        `<div class="grammar-lesson-block">
+          <h3>Relative Clauses (Відносні речення)</h3>
+          <p>Додають інформацію про іменник. Використовують <b>who, which, that, where, when</b>.</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">
+          <b>who</b> — для людей<br>
+          <b>which</b> — для речей / тварин<br>
+          <b>that</b> — для обох (неформально)<br>
+          <b>where</b> — для місць<br>
+          <b>when</b> — для часу</p>
+          <div class="example">The girl <b>who</b> called you is my sister. — Дівчина, яка тобі дзвонила.</div>
+          <div class="example">The book <b>which</b> I bought is great. — Книга, яку я купив.</div>
+          <div class="example">The café <b>where</b> we met. — Кафе, де ми зустрілись.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Defining vs Non-defining</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>Defining</b> (без ком) — уточнює ХТО/ЩО саме. Без нього речення втрачає сенс.</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>Non-defining</b> (з комами) — додає ЗАЙВУ інформацію. Можна прибрати.</p>
+          <div class="example">The man <b>who lives next door</b> is a doctor. — (який саме man? — defining)</div>
+          <div class="example">My brother<b>, who lives in London,</b> is a doctor. — (брат і так один — non-defining)</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">В non-defining НЕ можна "that"!<br>❌ My mom, <b>that</b> is 50... → ✅ My mom, <b>who</b> is 50...</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Коли можна пропустити who/which/that</h3>
+          <p>Якщо who/which/that є <b>об'єктом</b> (після нього є підмет) — можна пропустити:</p>
+          <div class="example">The film <b>(that)</b> I watched was good. — that = об'єкт (I = підмет) → можна пропустити</div>
+          <div class="example">The girl <b>(who)</b> I met yesterday. — who = об'єкт → можна пропустити</div>
+          <p style="margin-top:10px;">Але якщо who/which — <b>підмет</b>, пропускати НЕ можна:</p>
+          <div class="example">The man <b>who</b> called me... — who = підмет (хто дзвонив?) → ОБОВ'ЯЗКОВО</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ The man __ called me is here. (хто дзвонив?!)<br>✅ The man <b>who</b> called me is here.</p>
+        </div>`
+      ],
+      used_to: [
+        `<div class="grammar-lesson-block">
+          <h3>Used to — звички в минулому</h3>
+          <p><b>Used to + verb</b> — те, що ти <b>робив раніше, але більше не робиш</b>.</p>
+          <div class="example">I <b>used to</b> play guitar. — Я раніше грав на гітарі. (зараз — ні)</div>
+          <div class="example">She <b>used to</b> live in Paris. — Вона раніше жила в Парижі.</div>
+          <div class="example">We <b>used to</b> be friends. — Ми раніше були друзями.</div>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>Заперечення:</b> I <b>didn't use to</b> like coffee.<br><b>Питання:</b> <b>Did</b> you <b>use to</b> smoke?</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I <b>use to</b> play... → ✅ I <b>used to</b> play... (завжди past!)</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Be used to / Get used to</h3>
+          <p>Зовсім інше значення! Не плутай з "used to"!</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>be used to</b> + -ing = бути звиклим: I'm used to waking up early.</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>get used to</b> + -ing = звикати: I'm getting used to the new job.</p>
+          <div class="example">I <b>am used to</b> living alone. — Я звик жити один.</div>
+          <div class="example">She <b>can't get used to</b> the cold weather. — Не може звикнути до холоду.</div>
+          <div class="example">You'll <b>get used to</b> it. — Ти звикнеш.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Would — повторювані дії в минулому</h3>
+          <p><b>Would</b> теж описує минулі звички, але тільки для <b>дій</b> (не станів!).</p>
+          <div class="example">Every summer, we <b>would go</b> to the beach. — Щоліта їздили на пляж.</div>
+          <div class="example">My grandma <b>would always tell</b> us stories. — Бабуся завжди розповідала.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I <b>would be</b> shy as a child. (стан → не would!)<br>✅ I <b>used to be</b> shy as a child. ✅</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;"><b>Правило:</b><br>Дії (go, play, eat) → used to ✅ або would ✅<br>Стани (be, have, like, know) → тільки used to ✅</p>
+        </div>`
+      ],
+      past_perfect: [
+        `<div class="grammar-lesson-block">
+          <h3>Past Perfect (had + V3)</h3>
+          <p>Описує дію, яка відбулась <b>ДО іншої минулої дії</b>. "Минуле в минулому".</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>had</b> + past participle (V3): had gone, had eaten, had seen</p>
+          <div class="example">When I arrived, she <b>had already left</b>. — Коли я прийшов, вона вже пішла.</div>
+          <div class="example">I <b>had never seen</b> snow before that day. — Я ніколи не бачив снігу до того дня.</div>
+          <div class="example">They <b>had finished</b> dinner by 8 PM. — Вони закінчили вечерю до 8.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Past Perfect vs Past Simple</h3>
+          <p>Past Simple — одна дія в минулому. Past Perfect — <b>раніша</b> з двох.</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">1️⃣ <b>Had + V3</b> (перша дія) → 2️⃣ <b>Past Simple</b> (друга дія)</p>
+          <div class="example">I <b>had studied</b> English before I <b>moved</b> to London.</div>
+          <div class="example">She <b>had already eaten</b> when he <b>arrived</b>.</div>
+          <div class="example">After they <b>had left</b>, I <b>went</b> to sleep.</div>
+          <p style="margin-top:10px;">Маркери: <b>before, after, by the time, when, already, just, never</b></p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Заперечення та питання</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>Заперечення:</b> had + <b>not</b> (hadn't) + V3</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>Питання:</b> <b>Had</b> + subject + V3?</p>
+          <div class="example">I <b>hadn't finished</b> when the teacher collected the papers.</div>
+          <div class="example"><b>Had</b> you <b>ever been</b> to Japan before? — Ти бував у Японії до цього?</div>
+          <div class="example">She <b>hadn't seen</b> him for years. — Вона не бачила його роками.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I <b>didn't had</b> eaten. → ✅ I <b>hadn't</b> eaten.<br>❌ <b>Did</b> you <b>had</b> seen? → ✅ <b>Had</b> you <b>seen</b>?</p>
+        </div>`
+      ],
+      conditionals_advanced: [
+        `<div class="grammar-lesson-block">
+          <h3>Third Conditional (нереальне минуле)</h3>
+          <p>Описує ситуацію в минулому, яка <b>НЕ відбулась</b>. "Якби тоді..."</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">If + <b>had + V3</b>, ... <b>would have + V3</b></p>
+          <div class="example">If I <b>had studied</b> harder, I <b>would have passed</b>. — Якби я вчився більше, я б склав.</div>
+          <div class="example">If she <b>had left</b> earlier, she <b>wouldn't have missed</b> the train.</div>
+          <div class="example">If we <b>had known</b>, we <b>would have helped</b>. — Якби ми знали, ми б допомогли.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ If I <b>would have</b> studied... → ✅ If I <b>had</b> studied...</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Mixed Conditionals (змішані)</h3>
+          <p>Коли умова і результат у <b>різних часах</b>:</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>Тип 1:</b> Минула умова → теперішній результат<br>If + had V3, ... would + verb</p>
+          <div class="example">If I <b>had accepted</b> the job, I <b>would live</b> in Paris now.</div>
+          <div class="example">If she <b>hadn't broken</b> her leg, she <b>would be</b> playing today.</div>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-top:8px;"><b>Тип 2:</b> Теперішня умова → минулий результат<br>If + Past Simple, ... would have + V3</p>
+          <div class="example">If I <b>were</b> braver, I <b>would have told</b> her. — Якби я був сміливіший, я б сказав.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Wish / If only (для жалю)</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>Теперішнє:</b> I wish + Past Simple<br>I wish I <b>had</b> more time. — Шкода, що мало часу.</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-bottom:6px;"><b>Минуле:</b> I wish + had + V3<br>I wish I <b>had studied</b> harder. — Шкода, що не вчився більше.</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;"><b>Дратівливе:</b> I wish + would<br>I wish you <b>would stop</b> talking. — Припини розмовляти.</p>
+          <div class="example"><b>If only</b> I <b>had</b> more money! — Якби тільки у мене було більше грошей!</div>
+          <div class="example"><b>If only</b> I <b>had known</b>! — Якби тільки я знав!</div>
+        </div>`
+      ],
+      phrasal_verbs: [
+        `<div class="grammar-lesson-block">
+          <h3>Фразові дієслова (Phrasal Verbs)</h3>
+          <p>Дієслово + прийменник/прислівник = <b>нове значення</b>! Це як ідіоми.</p>
+          <p>Значення часто НЕ можна вгадати з окремих слів.</p>
+          <div class="example"><b>give up</b> = здатися (не "дати вгору"!)</div>
+          <div class="example"><b>look after</b> = доглядати (не "дивитися після")</div>
+          <div class="example"><b>put off</b> = відкласти (не "покласти геть")</div>
+          <div class="example"><b>turn on / turn off</b> = увімкнути / вимкнути</div>
+          <div class="example"><b>find out</b> = дізнатися</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Найважливіші фразові дієслова</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">
+          <b>get up</b> — встати<br>
+          <b>wake up</b> — прокинутися<br>
+          <b>come back</b> — повернутися<br>
+          <b>go on</b> — продовжувати<br>
+          <b>look for</b> — шукати<br>
+          <b>run out of</b> — закінчитися (ресурс)<br>
+          <b>take off</b> — зняти (одяг) / злетіти<br>
+          <b>put on</b> — надіти (одяг)<br>
+          <b>break down</b> — зламатися<br>
+          <b>figure out</b> — розібратися</p>
+          <div class="example">I <b>ran out of</b> milk. — У мене закінчилось молоко.</div>
+          <div class="example">Can you <b>figure out</b> this problem? — Зможеш розібратися?</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Роздільні та нероздільні</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>Роздільні (separable):</b> об'єкт може стояти посередині<br>Turn <b>off</b> the light = Turn the light <b>off</b> ✅</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>Нероздільні (inseparable):</b> об'єкт тільки після<br>Look <b>after</b> the kids ✅ (не "look the kids after" ❌)</p>
+          <p style="margin-top:10px;">З займенниками (it, them, her) — <b>завжди посередині</b>:</p>
+          <div class="example">Turn <b>it</b> off. ✅ (не "turn off it" ❌)</div>
+          <div class="example">Pick <b>them</b> up. ✅ (не "pick up them" ❌)</div>
+          <div class="example">But: Look after <b>them</b>. ✅ (нероздільне — після)</div>
+        </div>`
+      ],
+      question_tags: [
+        `<div class="grammar-lesson-block">
+          <h3>Question Tags (Питання-хвостики)</h3>
+          <p>Короткі питання в кінці речення для <b>підтвердження</b>. Як "правда?" або "так?"</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>Правило:</b> + речення → - tag, і навпаки<br>Стверджувальне → заперечний tag<br>Заперечне → стверджувальний tag</p>
+          <div class="example">You like coffee, <b>don't you</b>? — Ти любиш каву, так?</div>
+          <div class="example">She is smart, <b>isn't she</b>? — Вона розумна, чи не так?</div>
+          <div class="example">They don't know, <b>do they</b>? — Вони не знають, правда?</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Як утворювати tag</h3>
+          <p>Використовуй <b>той самий допоміжний дієслово</b> + займенник:</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">
+          He <b>is</b>... → <b>isn't he</b>?<br>
+          They <b>have</b> gone... → <b>haven't they</b>?<br>
+          She <b>can</b>... → <b>can't she</b>?<br>
+          You <b>will</b>... → <b>won't you</b>?<br>
+          He <b>doesn't</b>... → <b>does he</b>?</p>
+          <div class="example">It was fun, <b>wasn't it</b>?</div>
+          <div class="example">You've been there, <b>haven't you</b>?</div>
+          <div class="example">She can swim, <b>can't she</b>?</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Особливі випадки</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">
+          <b>I am</b> right, <b>aren't I</b>? (не "amn't I"!)<br>
+          <b>Let's</b> go, <b>shall we</b>?<br>
+          <b>Don't</b> touch, <b>will you</b>?<br>
+          <b>Nobody</b> called, <b>did they</b>? (nobody = заперечне)</p>
+          <div class="example">Everyone is here, <b>aren't they</b>? — (everyone = they)</div>
+          <div class="example">Nothing happened, <b>did it</b>? — (nothing = заперечне)</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I am late, <b>amn't I</b>? → ✅ I am late, <b>aren't I</b>?<br>❌ Everyone is here, <b>isn't he</b>? → ✅ ...<b>aren't they</b>?</p>
+        </div>`
+      ],
+      some_any_no: [
+        `<div class="grammar-lesson-block">
+          <h3>Some / Any / No</h3>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;margin-bottom:6px;"><b>some</b> — у стверджувальних: I have some friends.</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;margin-bottom:6px;"><b>any</b> — у питаннях і запереченнях: Do you have any questions? I don't have any money.</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;"><b>no</b> — заперечення (дієслово +): I have no idea. (= I don't have any idea)</p>
+          <div class="example">There are <b>some</b> apples on the table.</div>
+          <div class="example">Are there <b>any</b> eggs in the fridge?</div>
+          <div class="example">There is <b>no</b> milk left.</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Something / Anything / Nothing</h3>
+          <p>Ті самі правила, але для "щось":</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">
+          <b>something</b> — щось (ствердж.): I need something.<br>
+          <b>anything</b> — щось (питання/запер.): Do you need anything?<br>
+          <b>nothing</b> — нічого: I have nothing to say.</p>
+          <p style="margin-top:8px;">Аналогічно для людей і місць:</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;">
+          some<b>one</b>/some<b>body</b> — хтось<br>
+          any<b>one</b>/any<b>body</b> — хтось (пит./запер.)<br>
+          no <b>one</b>/no<b>body</b> — ніхто<br>
+          some<b>where</b> / any<b>where</b> / no<b>where</b> — десь / будь-де / ніде</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Винятки та нюанси</h3>
+          <p><b>Some</b> у питаннях — коли пропонуємо або очікуємо "так":</p>
+          <div class="example">Would you like <b>some</b> tea? — Хочеш чаю? (пропозиція)</div>
+          <div class="example">Can I have <b>some</b> water? — Можна мені води? (прохання)</div>
+          <p style="margin-top:10px;"><b>Any</b> у ствердженнях = "будь-який":</p>
+          <div class="example"><b>Any</b> student can join. — Будь-який студент може приєднатись.</div>
+          <div class="example">Call me <b>any</b> time! — Дзвони будь-коли!</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I don't have <b>no</b> money. (подвійне заперечення!)<br>✅ I don't have <b>any</b> money. АБО I have <b>no</b> money.</p>
+        </div>`
+      ],
+      present_perfect_continuous: [
+        `<div class="grammar-lesson-block">
+          <h3>Present Perfect Continuous</h3>
+          <p>Дія, яка <b>почалась в минулому і досі триває</b> (або щойно завершилась і є результат).</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>have/has + been + V-ing</b></p>
+          <div class="example">I <b>have been waiting</b> for 2 hours. — Я чекаю вже 2 години.</div>
+          <div class="example">She <b>has been studying</b> all day. — Вона вчиться цілий день.</div>
+          <div class="example">It <b>has been raining</b> since morning. — Дощ йде з ранку.</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">Маркери: <b>for</b> (протягом), <b>since</b> (з), <b>all day/morning</b>, <b>how long</b></p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Present Perfect vs Present Perfect Continuous</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>Present Perfect</b> — акцент на РЕЗУЛЬТАТ<br>I have read 3 books. (прочитав — результат)</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>Present Perfect Continuous</b> — акцент на ПРОЦЕС/ТРИВАЛІСТЬ<br>I have been reading all day. (процес — читаю)</p>
+          <div class="example">I <b>have painted</b> the room. — Я пофарбував кімнату. ✅ (готово!)</div>
+          <div class="example">I <b>have been painting</b> the room. — Я фарбую кімнату. 🎨 (ще в процесі)</div>
+          <div class="example">She <b>has written</b> 5 emails. — Вона написала 5 листів. (результат: 5)</div>
+          <div class="example">She <b>has been writing</b> emails all morning. — Вона пише листи весь ранок. (процес)</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Заперечення, питання та обмеження</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>Заперечення:</b> have/has + not + been + V-ing<br>I <b>haven't been sleeping</b> well lately.</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>Питання:</b> Have/Has + subject + been + V-ing?<br><b>How long have</b> you <b>been learning</b> English?</p>
+          <p style="margin-top:10px;">НЕ використовуємо з state verbs (стани):</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I <b>have been knowing</b> her for years.<br>✅ I <b>have known</b> her for years.<br><br>❌ I <b>have been wanting</b> this.<br>✅ I <b>have wanted</b> this.</p>
+        </div>`
+      ],
+      wish_if_only: [
+        `<div class="grammar-lesson-block">
+          <h3>Wish — бажання та жалі</h3>
+          <p><b>Wish</b> виражає бажання, що <b>реальність була іншою</b>. Завжди є відтінок жалю.</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;">Wish + <b>Past Simple</b> = жаль про ТЕПЕРІШНЄ</p>
+          <div class="example">I wish I <b>had</b> more time. — Шкода, що мало часу. (зараз)</div>
+          <div class="example">I wish I <b>spoke</b> French. — Шкода, що не розмовляю французькою.</div>
+          <div class="example">She wishes she <b>were</b> taller. — Вона б хотіла бути вищою.</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">З wish завжди <b>were</b> (не was): I wish I <b>were</b> rich.</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Wish про минуле та майбутнє</h3>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>Минуле</b> (жаль): wish + <b>had + V3</b><br>I wish I <b>had studied</b> harder. — Шкода, що не вчився більше.</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>Дратівливе / майбутнє</b>: wish + <b>would</b><br>I wish it <b>would stop</b> raining. — Хоч би дощ перестав!</p>
+          <div class="example">I wish I <b>hadn't said</b> that. — Шкода, що я це сказав.</div>
+          <div class="example">I wish you <b>would listen</b> to me! — Хоч би ти мене слухав!</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I wish I <b>would be</b> taller. (не про себе!)<br>✅ I wish I <b>were</b> taller.<br>Would — тільки про ІНШИХ або зовнішнє!</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>If only — підсилений wish</h3>
+          <p><b>If only</b> = wish, але <b>емоційніше</b>. Ті самі правила:</p>
+          <div class="example"><b>If only</b> I <b>had</b> a car! — Якби тільки у мене було авто!</div>
+          <div class="example"><b>If only</b> we <b>had known</b> earlier! — Якби тільки ми знали раніше!</div>
+          <div class="example"><b>If only</b> he <b>would change</b>! — Якби тільки він змінився!</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;"><b>Підсумок:</b><br>
+          Теперішнє: wish/if only + Past Simple<br>
+          Минуле: wish/if only + had V3<br>
+          Дратівливе: wish/if only + would</p>
+        </div>`
+      ],
+      have_to_must: [
+        `<div class="grammar-lesson-block">
+          <h3>Must vs Have to</h3>
+          <p>Обидва = "повинен", але є різниця!</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>must</b> — особисте рішення, внутрішній обов'язок<br>I must study harder. (я сам так вирішив)</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>have to</b> — зовнішня вимога, правило<br>I have to wear a uniform. (правило на роботі)</p>
+          <div class="example">I <b>must</b> call my mom. — Я повинен зателефонувати мамі. (хочу сам)</div>
+          <div class="example">You <b>have to</b> show your ID. — Ви повинні показати документ. (правило)</div>
+          <div class="example">I <b>have to</b> get up at 6. — Мушу вставати о 6. (робота вимагає)</div>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Заперечення: mustn't vs don't have to</h3>
+          <p>Тут різниця <b>ВЕЛИЧЕЗНА</b>!</p>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:6px;"><b>mustn't</b> = ЗАБОРОНЕНО! (не смій!)<br>You mustn't smoke here. — Тут заборонено палити!</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;"><b>don't have to</b> = НЕ ОБОВ'ЯЗКОВО (можеш, якщо хочеш)<br>You don't have to come. — Тобі не обов'язково приходити.</p>
+          <div class="example">You <b>mustn't</b> tell anyone! — Нікому не кажи! (секрет!)</div>
+          <div class="example">You <b>don't have to</b> pay. It's free. — Не треба платити. Безкоштовно.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ You <b>mustn't</b> come = Тобі ЗАБОРОНЕНО приходити!<br>✅ You <b>don't have to</b> come = Не обов'язково приходити.</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Should — порада</h3>
+          <p><b>Should</b> = тобі варто, я раджу. М'якше за must.</p>
+          <div class="example">You <b>should</b> drink more water. — Тобі варто пити більше води.</div>
+          <div class="example">He <b>shouldn't</b> eat so much sugar. — Йому не варто їсти стільки цукру.</div>
+          <div class="example"><b>Should</b> I call her? — Мені варто їй зателефонувати?</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;"><b>Порівняння сили:</b><br>
+          <b>must</b> — ПОВИНЕН (найсильніше) 💪<br>
+          <b>have to</b> — ТРЕБА (зовнішнє) 📋<br>
+          <b>should</b> — ВАРТО (порада) 💡<br>
+          <b>could</b> — МОЖНА Б (м'яка пропозиція) 🤔</p>
+        </div>`
+      ],
+      so_such_too_enough: [
+        `<div class="grammar-lesson-block">
+          <h3>So vs Such</h3>
+          <p>Обидва підсилюють = "такий/так", але різна граматика:</p>
+          <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>so</b> + прикметник/прислівник: so beautiful, so quickly</p>
+          <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>such</b> + (a/an) + іменник: such a beautiful day, such nice people</p>
+          <div class="example">She is <b>so</b> smart! — Вона така розумна!</div>
+          <div class="example">It was <b>such a</b> good movie! — Це був такий гарний фільм!</div>
+          <div class="example">He speaks <b>so</b> fast! — Він говорить так швидко!</div>
+          <div class="example">They are <b>such</b> nice people! — Вони такі гарні люди!</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ It was <b>so</b> a good movie. → ✅ <b>such a</b> good movie.<br>❌ She is <b>such</b> smart. → ✅ <b>so</b> smart.</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>So...that / Such...that</h3>
+          <p>Додаємо <b>that</b> для результату: "настільки... що..."</p>
+          <div class="example">I was <b>so tired that</b> I fell asleep immediately. — Так втомився, що одразу заснув.</div>
+          <div class="example">It was <b>such a long day that</b> I went to bed at 8. — Такий довгий день, що ліг о 8.</div>
+          <div class="example">She spoke <b>so quickly that</b> I couldn't understand. — Так швидко, що не зрозумів.</div>
+          <div class="example">It was <b>such bad weather that</b> we stayed home.</div>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">That можна пропускати в розмовній мові:<br>I was <b>so</b> hungry (that) I ate two pizzas.</p>
+        </div>`,
+        `<div class="grammar-lesson-block">
+          <h3>Too vs Enough</h3>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;margin-bottom:6px;"><b>too</b> = ЗАНАДТО (негативно, проблема)<br><b>too</b> + прикметник: too hot, too expensive, too difficult</p>
+          <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;"><b>enough</b> = ДОСТАТНЬО<br>прикметник + <b>enough</b>: good enough, old enough<br><b>enough</b> + іменник: enough time, enough money</p>
+          <div class="example">It's <b>too</b> cold to swim. — Занадто холодно щоб плавати.</div>
+          <div class="example">She's old <b>enough</b> to drive. — Вона достатньо доросла щоб водити.</div>
+          <div class="example">I don't have <b>enough</b> money. — У мене недостатньо грошей.</div>
+          <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ <b>enough old</b> → ✅ old <b>enough</b> (після прикметника!)<br>❌ time <b>enough</b> → ✅ <b>enough</b> time (перед іменником!)</p>
         </div>`
       ],
     };
