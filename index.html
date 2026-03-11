@@ -6999,38 +6999,62 @@ Return ONLY the JSON array, no other text.`;
       const goalDesc = goals.map(g => goalMap[g] || g).join(', ');
       const noteText = profile.note ? `\nAdditional user note: ${profile.note}` : '';
 
-      // Get user's words if checkbox is checked
-      let myWordsInstruction = '';
+      // Get user's words for phrase building
       const useMyWords = document.getElementById('phrases-use-my-words').checked;
+      let myWords = [];
       if (useMyWords) {
-        const wordsSnap = await db.collection('users').doc(userId).collection('words').orderBy('dateAdded', 'desc').limit(50).get();
-        const myWords = wordsSnap.docs.map(d => d.id);
-        if (myWords.length > 0) {
-          myWordsInstruction = `\n\nIMPORTANT: Try to include some of these words the user is currently learning in the phrases: ${myWords.join(', ')}. Use at least 1-2 of these words per phrase where it sounds natural.`;
-        }
+        const wordsSnap = await db.collection('users').doc(userId).collection('words').orderBy('dateAdded', 'desc').limit(60).get();
+        myWords = wordsSnap.docs.map(d => d.id);
       }
 
       const excludeSample = [...existingSet].slice(-200).join(', ');
 
-      const prompt = `Generate exactly 5 different useful English phrases/expressions for a Ukrainian-speaking learner.
+      let prompt;
+      if (useMyWords && myWords.length >= 3) {
+        // Shuffle and pick 10 words to build phrases around
+        const shuffled = myWords.sort(() => Math.random() - 0.5).slice(0, 10);
+        prompt = `You are helping a Ukrainian-speaking English learner practice vocabulary through phrases.
+
+The user is learning these English words: ${shuffled.join(', ')}
+
+Generate exactly 5 useful, natural English phrases (short sentences or expressions, 4-10 words).
+Each phrase MUST contain at least one word from the list above. The word must be used meaningfully, not forced.
 
 Level: ${levelDesc}
 Goals: ${goalDesc}
-Interested topics: ${topicNames}${noteText}${myWordsInstruction}
+Topics: ${topicNames}${noteText}
 
-${excludeSample ? `Do NOT include these phrases: ${excludeSample}` : ''}
+${excludeSample ? `Do NOT repeat these phrases: ${excludeSample}` : ''}
 
-Each phrase should be a common expression, collocation, or useful phrase (2-6 words). Not full sentences.
-Examples: "break the ice", "make up your mind", "get along with", "look forward to"
-
-Return ONLY a valid JSON array with exactly 5 objects, each having:
-- "phrase": the English phrase
+Return ONLY a valid JSON array with exactly 5 objects:
+- "phrase": the English phrase/sentence (4-10 words)
 - "translation": Ukrainian translation
-- "example": a short example sentence using this phrase
+- "word": which word from the user's list is used in this phrase
 
-Example: [{"phrase":"break the ice","translation":"розрядити обстановку","example":"She told a joke to break the ice at the meeting."}]
+Example for word "negotiate":
+[{"phrase":"We need to negotiate a better deal","translation":"Нам потрібно домовитися про кращу угоду","word":"negotiate"}]
 
 Return ONLY the JSON array, no other text.`;
+      } else {
+        prompt = `Generate exactly 5 useful English phrases/expressions for a Ukrainian-speaking learner.
+
+Level: ${levelDesc}
+Goals: ${goalDesc}
+Topics: ${topicNames}${noteText}
+
+${excludeSample ? `Do NOT repeat these phrases: ${excludeSample}` : ''}
+
+Each phrase should be a natural, useful expression or short sentence (4-10 words).
+
+Return ONLY a valid JSON array with exactly 5 objects:
+- "phrase": the English phrase (4-10 words)
+- "translation": Ukrainian translation
+- "word": the key/hardest word in this phrase
+
+Example: [{"phrase":"I look forward to hearing from you","translation":"З нетерпінням чекаю вашої відповіді","word":"forward"}]
+
+Return ONLY the JSON array, no other text.`;
+      }
 
       try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -7053,7 +7077,7 @@ Return ONLY the JSON array, no other text.`;
         const jsonStr = content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
         const generated = JSON.parse(jsonStr);
 
-        currentDailyPhrases = generated.filter(p => p && p.phrase && p.translation && !existingSet.has(p.phrase.toLowerCase())).slice(0, 5);
+        currentDailyPhrases = generated.filter(p => p && p.phrase && p.translation).slice(0, 5);
       } catch (error) {
         console.error('Phrase generation failed:', error);
         currentDailyPhrases = [];
@@ -7089,8 +7113,13 @@ Return ONLY the JSON array, no other text.`;
         const li = document.createElement('li');
         li.style.cssText = 'background:rgba(255,255,255,0.05);padding:15px 22px;margin-bottom:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);position:relative;list-style:none;animation:dailyWordFadeIn 0.4s ease forwards;animation-delay:' + (i * 0.06) + 's;opacity:0;';
         const safePhrase = p.phrase.replace(/'/g, "\\'");
-        const exampleHtml = p.example ? `<div style="font-size:12px;color:rgba(240,237,232,0.45);margin-top:6px;font-style:italic;">"${p.example}"</div>` : '';
-        li.innerHTML = `<div style="display:flex;align-items:center;"><i class="fas fa-volume-up" style="color:rgba(240,237,232,0.5);cursor:pointer;margin-right:12px;flex-shrink:0;" onclick="responsiveVoice.speak('${safePhrase}', 'UK English Female')"></i><div style="flex:1;"><strong>${p.phrase}</strong>&nbsp;- ${p.translation}${exampleHtml}</div><i class="fas fa-plus" onclick="addDailyPhrase(${i}, this)" style="color:#F0EDE8;cursor:pointer;padding:5px;flex-shrink:0;margin-left:8px;"></i></div>`;
+        // Highlight the vocabulary word in the phrase
+        let phraseHtml = p.phrase;
+        if (p.word) {
+          const regex = new RegExp(`\\b(${p.word})\\b`, 'gi');
+          phraseHtml = p.phrase.replace(regex, '<span style="color:#E8A838;font-weight:700;">$1</span>');
+        }
+        li.innerHTML = `<div style="display:flex;align-items:center;"><i class="fas fa-volume-up" style="color:rgba(240,237,232,0.5);cursor:pointer;margin-right:12px;flex-shrink:0;" onclick="responsiveVoice.speak('${safePhrase}', 'UK English Female')"></i><div style="flex:1;">${phraseHtml}<div style="font-size:13px;color:rgba(240,237,232,0.55);margin-top:4px;">${p.translation}</div></div><i class="fas fa-plus" onclick="addDailyPhrase(${i}, this)" style="color:#F0EDE8;cursor:pointer;padding:5px;flex-shrink:0;margin-left:8px;"></i></div>`;
         list.appendChild(li);
       });
     }
@@ -7114,6 +7143,7 @@ Return ONLY the JSON array, no other text.`;
           english: p.phrase,
           translation: p.translation,
           example: p.example || '',
+          keyWord: p.word || '',
           interactions: 0,
           correctAnswers: 0,
           priority: 0,
@@ -7149,6 +7179,7 @@ Return ONLY the JSON array, no other text.`;
               english: p.phrase,
               translation: p.translation,
               example: p.example || '',
+              keyWord: p.word || '',
               interactions: 0,
               correctAnswers: 0,
               priority: 0,
