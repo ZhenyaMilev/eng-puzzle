@@ -5392,7 +5392,7 @@
           </div>
           <!-- Опція: використовувати мої слова -->
           <label id="use-my-words-toggle" style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:14px;cursor:pointer;user-select:none;">
-            <input type="checkbox" id="phrases-use-my-words" checked style="accent-color:#E8A838;width:18px;height:18px;flex-shrink:0;">
+            <input type="checkbox" id="phrases-use-my-words" checked onchange="onPhrasesUseMyWordsChange()" style="accent-color:#E8A838;width:18px;height:18px;flex-shrink:0;">
             <span style="font-size:14px;color:#F0EDE8;">Використовувати слова, які я вивчаю</span>
           </label>
           <ul id="daily-phrases-list" style="list-style:none;padding:0;"></ul>
@@ -7169,6 +7169,18 @@ Return ONLY the JSON array, no other text.`;
       } finally {
         btn.disabled = false;
         btn.textContent = originalText;
+      }
+    }
+
+    function onPhrasesUseMyWordsChange() {
+      // Clear cached phrases so next generation respects the toggle
+      currentDailyPhrases = [];
+      const list = document.getElementById('daily-phrases-list');
+      list.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.5);padding:20px;">Натисни "Згенерувати" щоб отримати фрази</p>';
+      // Also clear the cache in Firestore so it doesn't reload old phrases
+      const userId = auth.currentUser?.uid;
+      if (userId) {
+        db.collection('users').doc(userId).update({ dailyPhrases: {} });
       }
     }
 
