@@ -5344,11 +5344,7 @@
         <div id="daily-phrases-list-container" class="hidden" style="padding: 0 16px;">
           <div style="background:rgba(232,168,56,0.08);border:1px solid rgba(232,168,56,0.15);border-radius:12px;padding:16px;margin-bottom:14px;text-align:center;">
             <div style="font-size:28px;margin-bottom:6px;">💬</div>
-            <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0 0 12px;" id="daily-phrases-subtitle">Твої нові фрази на сьогодні</p>
-            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
-              <input type="checkbox" id="phrases-use-my-words" checked onchange="onPhrasesUseMyWordsChange()" style="accent-color:#E8A838;width:18px;height:18px;flex-shrink:0;">
-              <span style="font-size:13px;color:rgba(240,237,232,0.8);">Використовувати слова, які я вивчаю</span>
-            </label>
+            <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;" id="daily-phrases-subtitle">Твої нові фрази на сьогодні</p>
           </div>
           <ul id="daily-phrases-list" style="list-style:none;padding:0;"></ul>
           <button class="finish-button" id="add-all-daily-phrases" onclick="addAllDailyPhrases()" style="width:100%;margin-top:8px;">
@@ -5399,6 +5395,15 @@
         <div style="margin-bottom:20px;">
           <label style="font-size:14px;font-weight:600;color:#F0EDE8;display:block;margin-bottom:10px;">Примітка</label>
           <textarea id="settings-note" placeholder="Наприклад: хочу слова про IT, фрази для співбесіди, сленг..." style="width:100%;min-height:60px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#F0EDE8;padding:12px;font-size:14px;resize:vertical;box-sizing:border-box;"></textarea>
+        </div>
+        <div style="margin-bottom:20px;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+            <input type="checkbox" id="settings-use-my-words" checked style="accent-color:#E8A838;width:18px;height:18px;flex-shrink:0;">
+            <div>
+              <span style="font-size:14px;font-weight:600;color:#F0EDE8;">Використовувати мої слова у фразах</span>
+              <div style="font-size:12px;color:rgba(240,237,232,0.4);margin-top:2px;">Для генерації фраз — вплітає слова з твого словника</div>
+            </div>
+          </label>
         </div>
         <button class="finish-button" onclick="saveDailyWordsSettings()" style="width:100%;">Зберегти</button>
       </div>
@@ -6918,7 +6923,7 @@ Return ONLY the JSON array, no other text.`;
       const noteText = profile.note ? `\nAdditional user note: ${profile.note}` : '';
 
       // Get user's words for phrase building
-      const useMyWords = document.getElementById('phrases-use-my-words').checked;
+      const useMyWords = userLearningProfile.useMyWords !== false;
       let myWords = [];
       if (useMyWords) {
         const wordsSnap = await db.collection('users').doc(userId).collection('words').orderBy('dateAdded', 'desc').limit(60).get();
@@ -7033,7 +7038,7 @@ Return ONLY the JSON array, no other text.`;
         const safePhrase = p.phrase.replace(/'/g, "\\'");
         // Highlight the vocabulary word only when "use my words" is on
         let phraseHtml = p.phrase;
-        const useMyWords = document.getElementById('phrases-use-my-words').checked;
+        const useMyWords = userLearningProfile.useMyWords !== false;
         if (p.word && useMyWords) {
           const regex = new RegExp(`\\b(${p.word})\\b`, 'gi');
           phraseHtml = p.phrase.replace(regex, '<span style="color:#E8A838;font-weight:700;">$1</span>');
@@ -7127,18 +7132,6 @@ Return ONLY the JSON array, no other text.`;
       }
     }
 
-    function onPhrasesUseMyWordsChange() {
-      // Clear cached phrases so next generation respects the toggle
-      currentDailyPhrases = [];
-      const list = document.getElementById('daily-phrases-list');
-      list.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.5);padding:20px;">Натисни "Згенерувати" щоб отримати фрази</p>';
-      // Also clear the cache in Firestore so it doesn't reload old phrases
-      const userId = auth.currentUser?.uid;
-      if (userId) {
-        db.collection('users').doc(userId).update({ dailyPhrases: {} });
-      }
-    }
-
     async function regenerateDailyPhrases() {
       const btn = document.getElementById('regenerate-phrases-btn');
       btn.disabled = true;
@@ -7190,6 +7183,8 @@ Return ONLY the JSON array, no other text.`;
         });
         // Note
         document.getElementById('settings-note').value = userLearningProfile.note || '';
+        // Use my words checkbox
+        document.getElementById('settings-use-my-words').checked = userLearningProfile.useMyWords !== false;
       }
     }
 
@@ -7204,7 +7199,8 @@ Return ONLY the JSON array, no other text.`;
         return;
       }
 
-      userLearningProfile = { level: level.dataset.value, goals: Array.from(goals).map(b => b.dataset.value), topics, note };
+      const useMyWords = document.getElementById('settings-use-my-words').checked;
+      userLearningProfile = { level: level.dataset.value, goals: Array.from(goals).map(b => b.dataset.value), topics, note, useMyWords };
       const userId = auth.currentUser.uid;
       await db.collection('users').doc(userId).update({ learningProfile: userLearningProfile });
 
