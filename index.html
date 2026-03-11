@@ -1970,50 +1970,6 @@
       width: auto;
     }
 
-    /* Weekly Quest */
-    .acc-quest {
-      background: rgba(102, 126, 234, 0.06);
-      border: 1px solid rgba(102, 126, 234, 0.12);
-      border-radius: 12px;
-      padding: 12px 14px;
-      margin-bottom: 10px;
-    }
-
-    .quest-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #667eea;
-      margin-bottom: 8px;
-    }
-
-    .quest-task {
-      font-size: 13px;
-      color: rgba(240, 237, 232, 0.7);
-      margin-bottom: 6px;
-    }
-
-    .quest-progress {
-      height: 5px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .quest-progress-fill {
-      height: 100%;
-      background: #667eea;
-      border-radius: 3px;
-      transition: width 0.6s ease;
-    }
-
-    .quest-reward {
-      font-size: 11px;
-      color: rgba(240, 237, 232, 0.35);
-      margin-top: 6px;
-    }
 
     /* Exercise complete confetti */
     .confetti-container {
@@ -4904,8 +4860,6 @@
         </div>
         <!-- XP Activity Chart -->
         <div id="progress-xp-chart" style="margin-top: 40px;"></div>
-        <!-- Weekly Quest -->
-        <div class="acc-quest" id="acc-quest" style="margin-top: 40px;"></div>
       </div>
     </div>
   </div>
@@ -6279,7 +6233,7 @@
     function finishSpeedTrainingSession() {
       checkAndShowDailyRecord();
       showConfetti();
-      updateWeeklyQuestProgress('exercise_complete');
+
 
       // Сброс переменных тренировки
       speedTrainingWords = [];
@@ -6565,7 +6519,6 @@ function exitSpeedTraining() {
         loadUnsplashKey();
         loadGamificationData();
         loadDailyGoal();
-        loadWeeklyQuest();
       }
       // Ховаємо прелоадер після завантаження
       const preloader = document.getElementById('page-preloader');
@@ -9589,7 +9542,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
     function finishGrammarQuiz() {
       checkAndShowDailyRecord();
       showConfetti();
-      updateWeeklyQuestProgress('exercise_complete');
+
       document.getElementById('grammar-quiz').classList.add('hidden');
       document.getElementById('grammar-quiz-container').classList.remove('hidden');
       document.getElementById('grammar-quiz-result').classList.add('hidden');
@@ -10057,7 +10010,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
 
     function finishPhraseConstructor() {
       showConfetti();
-      updateWeeklyQuestProgress('exercise_complete');
+
       backToAccount();
       document.getElementById('phrase-constructor-result').classList.add('hidden');
       document.getElementById('phrase-constructor-container').classList.remove('hidden');
@@ -10190,82 +10143,6 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
         showNotification('Нікнейм збережено!', 'success');
         loadLeaderboard(currentLeaderboardTab);
       } catch (e) { console.log('Nickname save error:', e); }
-    }
-
-    // ========== WEEKLY QUEST ==========
-    function getWeekNumber() {
-      const now = new Date();
-      const start = new Date(now.getFullYear(), 0, 1);
-      return Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
-    }
-
-    const QUEST_TEMPLATES = [
-      { text: 'Дай {n} правильних відповідей', target: 100, field: 'questCorrect', reward: 200 },
-      { text: 'Пройди {n} різних вправ', target: 5, field: 'questExercises', reward: 150 },
-      { text: 'Повтори {n} слів у "Повторенні"', target: 30, field: 'questRepetition', reward: 150 },
-    ];
-
-    async function loadWeeklyQuest() {
-      try {
-        const userId = auth.currentUser.uid;
-        const doc = await db.collection('users').doc(userId).get();
-        const data = doc.data() || {};
-        const currentWeek = getWeekNumber();
-
-        let quest = data.weeklyQuest;
-        if (!quest || quest.week !== currentWeek) {
-          const idx = currentWeek % QUEST_TEMPLATES.length;
-          quest = {
-            week: currentWeek,
-            templateIdx: idx,
-            progress: 0,
-            completed: false
-          };
-          await db.collection('users').doc(userId).update({ weeklyQuest: quest });
-        }
-
-        renderWeeklyQuest(quest);
-      } catch (e) { console.log('Quest load error:', e); }
-    }
-
-    function renderWeeklyQuest(quest) {
-      const el = document.getElementById('acc-quest');
-      if (!el) return;
-      const tpl = QUEST_TEMPLATES[quest.templateIdx];
-      const pct = Math.min((quest.progress / tpl.target) * 100, 100);
-      const done = quest.completed;
-      el.innerHTML = `
-        <div class="quest-header"><i class="fas fa-scroll"></i> Тижневий квест</div>
-        <div class="quest-task">${tpl.text.replace('{n}', tpl.target)} ${done ? '✅' : ''}</div>
-        <div class="quest-progress"><div class="quest-progress-fill" style="width:${pct}%"></div></div>
-        <div class="quest-reward">${done ? 'Виконано! +' + tpl.reward + ' XP' : quest.progress + '/' + tpl.target + ' — Нагорода: +' + tpl.reward + ' XP'}</div>
-      `;
-    }
-
-    async function updateWeeklyQuestProgress(type) {
-      try {
-        const userId = auth.currentUser.uid;
-        const doc = await db.collection('users').doc(userId).get();
-        const data = doc.data() || {};
-        let quest = data.weeklyQuest;
-        if (!quest || quest.completed) return;
-
-        const tpl = QUEST_TEMPLATES[quest.templateIdx];
-        let shouldIncrement = false;
-
-        if (tpl.field === 'questCorrect' && type === 'correct') shouldIncrement = true;
-        if (tpl.field === 'questExercises' && type === 'exercise_complete') shouldIncrement = true;
-        if (tpl.field === 'questRepetition' && type === 'repetition') shouldIncrement = true;
-
-        if (shouldIncrement) {
-          quest.progress++;
-          if (quest.progress >= tpl.target && !quest.completed) {
-            quest.completed = true;
-            addXP(tpl.reward);
-          }
-          await db.collection('users').doc(userId).update({ weeklyQuest: quest });
-        }
-      } catch (e) { console.log('Quest update error:', e); }
     }
 
     // ========== CONFETTI ==========
@@ -11163,7 +11040,7 @@ Where "correct" is the index (0-3) of the correct option. ${langInstruction}`;
 
     function finishStoryQuiz() {
       showConfetti();
-      updateWeeklyQuestProgress('exercise_complete');
+
       // Reset story
       document.getElementById('story-quiz').classList.add('hidden');
       document.getElementById('story-quiz-lang').classList.add('hidden');
@@ -12260,10 +12137,6 @@ async function translateStory() {
         }
         // Нараховуємо XP
         addXP(correct ? 10 : 2);
-        // Тижневий квест
-        if (correct) {
-          updateWeeklyQuestProgress('correct');
-        }
       } catch (error) {
         console.error('Помилка оновлення статистики слова:', error);
       }
@@ -12304,7 +12177,7 @@ async function translateStory() {
 
     function finishQuiz() {
       showConfetti();
-      updateWeeklyQuestProgress('exercise_complete');
+
 
       // Перехід на головну сторінку
       backToAccount();
@@ -12525,7 +12398,7 @@ async function translateStory() {
     function finishPictureQuiz() {
       checkAndShowDailyRecord();
       showConfetti();
-      updateWeeklyQuestProgress('exercise_complete');
+
       backToAccount();
       document.getElementById('picture-quiz-result').classList.add('hidden');
       document.getElementById('picture-quiz-container').classList.remove('hidden');
@@ -12938,7 +12811,7 @@ async function translateStory() {
 
     function finishListening() {
       showConfetti();
-      updateWeeklyQuestProgress('exercise_complete');
+
 
       backToAccount();
       // Скидання результатів слухання
@@ -12997,7 +12870,7 @@ async function translateStory() {
 
     function finishConstructor() {
       showConfetti();
-      updateWeeklyQuestProgress('exercise_complete');
+
 
       // Скрываем результаты и показываем главный экран
       document.getElementById('constructor-quiz-result').classList.add('hidden');
@@ -13617,7 +13490,7 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
 
     function finishFillBlanks() {
       showConfetti();
-      updateWeeklyQuestProgress('exercise_complete');
+
       document.getElementById('fill-blanks-section').classList.add('hidden');
       document.getElementById('account-screen').classList.remove('hidden');
       toggleMainTitle();
@@ -14079,7 +13952,6 @@ Return ONLY the JSON array, no other text.`;
             `;
           }
 
-          loadWeeklyQuest();
           document.getElementById("progressPopup").classList.remove("hidden");
           document.body.style.overflow = 'hidden';
         })
