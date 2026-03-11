@@ -7079,9 +7079,10 @@ Return ONLY the JSON array, no other text.`;
         const li = document.createElement('li');
         li.style.cssText = 'background:rgba(255,255,255,0.05);padding:15px 22px;margin-bottom:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);position:relative;list-style:none;animation:dailyWordFadeIn 0.4s ease forwards;animation-delay:' + (i * 0.06) + 's;opacity:0;';
         const safePhrase = p.phrase.replace(/'/g, "\\'");
-        // Highlight the vocabulary word in the phrase
+        // Highlight the vocabulary word only when "use my words" is on
         let phraseHtml = p.phrase;
-        if (p.word) {
+        const useMyWords = document.getElementById('phrases-use-my-words').checked;
+        if (p.word && useMyWords) {
           const regex = new RegExp(`\\b(${p.word})\\b`, 'gi');
           phraseHtml = p.phrase.replace(regex, '<span style="color:#E8A838;font-weight:700;">$1</span>');
         }
