@@ -2457,7 +2457,7 @@
     /* Стилі для кросворда - оптимізовано для мобільних */
     #crossword-section {
       background: #161822;
-      padding: 15px 10px;
+      padding: 10px 6px;
       border-radius: 10px;
     }
 
@@ -2499,13 +2499,13 @@
       margin: 5px 0 15px 0;
     }
 
-    /* СІТКА КРОСВОРДА - СПОЧАТКУ! */
+    /* СІТКА КРОСВОРДА */
     #crossword-container {
       display: flex;
       flex-direction: column;
       align-items: center;
       width: 100%;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
     }
 
     #crossword-grid-wrapper {
@@ -2513,11 +2513,11 @@
       overflow-x: auto;
       overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
-      padding: 15px 5px;
+      padding: 10px 4px;
       display: flex;
       justify-content: center;
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      border-radius: 16px;
+      border-radius: 14px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
@@ -2527,25 +2527,29 @@
 
     #crossword-grid table {
       border-collapse: separate;
-      border-spacing: 3px;
+      border-spacing: 2px;
       background: transparent;
     }
 
     .crossword-cell {
-      width: 36px;
-      height: 36px;
+      width: var(--cw-cell, 30px);
+      height: var(--cw-cell, 30px);
       padding: 0;
       position: relative;
       background: rgba(255, 255, 255, 0.1);
       border: none;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-      transition: all 0.2s ease;
+      border-radius: 5px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+      transition: all 0.15s ease;
     }
 
     .crossword-cell.empty {
       background: transparent;
       box-shadow: none;
+    }
+
+    .crossword-cell.highlight {
+      background: rgba(102, 126, 234, 0.2);
     }
 
     .crossword-cell input {
@@ -2554,23 +2558,23 @@
       border: none;
       outline: none;
       text-align: center;
-      font-size: 18px;
+      font-size: var(--cw-font, 15px);
       font-weight: 700;
       text-transform: uppercase;
       background: transparent;
       color: #F0EDE8;
       caret-color: #E8A838;
       padding: 0;
-      border-radius: 6px;
+      border-radius: 5px;
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
     }
 
     .crossword-cell input:focus {
-      background: rgba(232, 168, 56, 0.15);
+      background: rgba(232, 168, 56, 0.2);
       color: #F0EDE8;
-      box-shadow: 0 0 0 3px rgba(232, 168, 56, 0.3);
+      box-shadow: 0 0 0 2px rgba(232, 168, 56, 0.4);
     }
 
     .crossword-cell input.correct {
@@ -2586,34 +2590,28 @@
 
     .cell-number {
       position: absolute;
-      top: 1px;
-      left: 3px;
-      font-size: 8px;
+      top: 0px;
+      left: 2px;
+      font-size: 7px;
       font-weight: 700;
       color: #667eea;
       pointer-events: none;
       z-index: 1;
     }
 
-    /* Підказки - ПІСЛЯ сітки */
+    /* Підказки */
     #crossword-clues {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 15px;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
       width: 100%;
-    }
-
-    @media (max-width: 500px) {
-      #crossword-clues {
-        grid-template-columns: 1fr;
-      }
     }
 
     .clues-section {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
+      border-radius: 10px;
       overflow: hidden;
     }
 
@@ -2621,7 +2619,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 12px;
+      padding: 8px 12px;
       cursor: pointer;
       background: rgba(255, 255, 255, 0.05);
       color: #F0EDE8;
@@ -2635,7 +2633,7 @@
 
     .clues-header i {
       transition: transform 0.3s;
-      font-size: 12px;
+      font-size: 11px;
     }
 
     .clues-header i.rotated {
@@ -2653,19 +2651,19 @@
     }
 
     .clues-list li {
-      padding: 8px 12px;
+      padding: 7px 12px;
       font-size: 13px;
-      color: #F0EDE8;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: rgba(240,237,232,0.75);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       display: flex;
       align-items: flex-start;
       gap: 6px;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.15s;
     }
-
-    .clues-list li:hover {
-      background: rgba(255, 255, 255, 0.05);
+    .clues-list li.clue-active {
+      background: rgba(102, 126, 234, 0.15);
+      color: #F0EDE8;
     }
 
     .clues-list li:last-child {
@@ -2681,43 +2679,34 @@
     /* Кнопки дій */
     #crossword-actions {
       display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 15px;
-      padding: 0 10px;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 0 4px;
     }
 
     #crossword-section .check-button,
     #crossword-section .new-crossword-button {
-      width: 100%;
-      padding: 15px;
-      font-size: 18px;
-      font-weight: bold;
+      flex: 1;
+      padding: 14px 10px;
+      font-size: 15px;
+      font-weight: 700;
       color: #fffdfd;
       background-color: #90A4AE;
       border: none;
       border-radius: 12px;
       cursor: pointer;
-      transition: background-color 0.3s, transform 0.2s ease-in-out;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.2s, transform 0.15s;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-    }
-
-    #crossword-section .check-button:hover,
-    #crossword-section .new-crossword-button:hover {
-      background-color: #78909C;
-      transform: scale(1.02);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      gap: 6px;
     }
 
     #crossword-section .check-button:active,
     #crossword-section .new-crossword-button:active {
       background-color: #607D8B;
-      transform: scale(0.98);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transform: scale(0.97);
     }
 
     /* Попап з результатом */
@@ -2849,26 +2838,7 @@
       background: rgba(255, 255, 255, 0.12);
     }
 
-    /* Адаптивність для маленьких екранів */
-    @media (max-width: 380px) {
-      .crossword-cell {
-        width: 32px;
-        height: 32px;
-      }
-
-      .crossword-cell input {
-        font-size: 16px;
-      }
-
-      .cell-number {
-        font-size: 8px;
-      }
-
-      .check-button, .new-crossword-button {
-        padding: 12px 15px;
-        font-size: 14px;
-      }
-    }
+    /* Crossword hover removed — mobile only */
 
     /* Центрування іконки всередині кнопки */
     .button-with-icon {
@@ -4796,6 +4766,429 @@
   animation: spin 1s linear infinite;
   margin: 0 auto 20px;
 }
+
+    /* Sorting Game */
+    .sorting-categories {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .sorting-cat {
+      flex: 1;
+      padding: 12px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .sorting-cat-left {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #f87171;
+    }
+    .sorting-cat-right {
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      color: #34d399;
+    }
+    .sorting-progress {
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      margin-bottom: 6px;
+      overflow: hidden;
+    }
+    .sorting-progress-bar {
+      height: 100%;
+      background: #E8A838;
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .sorting-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      width: 100%;
+      max-width: 340px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .sorting-card.swipe-left {
+      transform: translateX(-120%) rotate(-12deg);
+      opacity: 0;
+    }
+    .sorting-card.swipe-right {
+      transform: translateX(120%) rotate(12deg);
+      opacity: 0;
+    }
+    .sorting-card.card-enter {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    .sorting-card-word {
+      font-size: 28px;
+      font-weight: 700;
+      color: #F0EDE8;
+      margin-bottom: 8px;
+    }
+    .sorting-card-translation {
+      font-size: 15px;
+      color: rgba(240,237,232,0.5);
+    }
+    .sorting-feedback {
+      text-align: center;
+      padding: 10px;
+      margin: 12px 0;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: opacity 0.3s ease;
+    }
+    .sorting-feedback.correct {
+      background: rgba(52,211,153,0.15);
+      color: #34d399;
+    }
+    .sorting-feedback.wrong {
+      background: rgba(239,68,68,0.15);
+      color: #f87171;
+    }
+    .sorting-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .sorting-btn {
+      flex: 1;
+      padding: 16px 12px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.1s ease;
+    }
+    .sorting-btn:active { transform: scale(0.95); }
+    .sorting-btn-left {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+    .sorting-btn-right {
+      background: rgba(52, 211, 153, 0.15);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      color: #34d399;
+    }
+    .sorting-btn i { font-size: 22px; }
+    .sorting-btn span { font-size: 12px; opacity: 0.8; }
+
+    /* ===== PIPE GAME ===== */
+    #pipe-build-phase {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 80px);
+    }
+    #pipe-build-phase.hidden { display: none; }
+    #pipe-flow-phase {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 80px);
+    }
+    #pipe-flow-phase.hidden { display: none; }
+    .pipe-valve {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #fff;
+      box-shadow: 0 0 28px rgba(59,130,246,0.45), inset 0 -2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* Pipeline scrollable view */
+    .pipe-pipeline-view {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px 4px 8px;
+      -webkit-overflow-scrolling: touch;
+      min-height: 0;
+    }
+
+    /* Question panel at bottom */
+    .pipe-question-panel {
+      flex-shrink: 0;
+      padding: 16px 12px 20px;
+      background: rgba(10,10,20,0.97);
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .pipe-question-word {
+      text-align: center;
+      font-size: 26px;
+      font-weight: 700;
+      color: #F0EDE8;
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+    }
+    .pipe-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .pipe-option {
+      background: linear-gradient(135deg, #2d3748 0%, #252d3a 100%);
+      border: 2px solid #3d4a5c;
+      border-radius: 14px;
+      padding: 16px 10px;
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(240,237,232,0.85);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+    .pipe-option:active { transform: scale(0.96); }
+    .pipe-option.selected {
+      border-color: #3b82f6;
+      background: rgba(59,130,246,0.15);
+      color: #F0EDE8;
+      box-shadow: 0 0 12px rgba(59,130,246,0.2);
+    }
+    .pipe-option.locked { pointer-events: none; opacity: 0.6; }
+
+    /* ===== PIPE SEGMENTS (built pipeline) ===== */
+    .pipe-seg-row {
+      position: relative;
+      animation: pipeSegAppear 0.35s ease forwards;
+    }
+    @keyframes pipeSegAppear {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Vertical pipe piece */
+    .pipe-v {
+      position: absolute;
+      width: 10px;
+      background: linear-gradient(90deg, #4a5568 0%, #718096 50%, #4a5568 100%);
+      border-radius: 5px;
+      box-shadow: inset 0 0 3px rgba(0,0,0,0.3);
+    }
+    .pipe-v.water { background: linear-gradient(90deg, #1d4ed8 0%, #60a5fa 50%, #1d4ed8 100%); box-shadow: 0 0 8px rgba(59,130,246,0.3); }
+
+    /* Horizontal pipe piece */
+    .pipe-h {
+      position: absolute;
+      height: 10px;
+      background: linear-gradient(180deg, #4a5568 0%, #718096 50%, #4a5568 100%);
+      border-radius: 5px;
+      box-shadow: inset 0 0 3px rgba(0,0,0,0.3);
+    }
+    .pipe-h.water { background: linear-gradient(180deg, #1d4ed8 0%, #60a5fa 50%, #1d4ed8 100%); box-shadow: 0 0 8px rgba(59,130,246,0.3); }
+
+    /* Joint circle where pipes connect */
+    .pipe-joint {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #8494a7 0%, #5a6577 100%);
+      border: 2px solid #4a5568;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .pipe-joint.water {
+      background: radial-gradient(circle, #60a5fa 0%, #2563eb 100%);
+      border-color: #1d4ed8;
+      box-shadow: 0 0 10px rgba(59,130,246,0.5);
+    }
+
+    /* Pipe fitting — connection point (numbered circle) */
+    .pipe-fitting {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #5a6577 0%, #3d4a5c 100%);
+      border: 3px solid #718096;
+      transform: translate(-50%, -50%);
+      z-index: 3;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+    .pipe-fitting::after {
+      content: attr(data-num);
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(240,237,232,0.6);
+    }
+
+    /* Water flow states on fittings */
+    .pipe-fitting.water-pass {
+      border-color: #3b82f6;
+      background: radial-gradient(circle, #3b82f6 0%, #1d4ed8 100%);
+      box-shadow: 0 0 16px rgba(59,130,246,0.5), inset 0 1px 2px rgba(255,255,255,0.2);
+    }
+    .pipe-fitting.water-pass::after { color: #fff; }
+    .pipe-fitting.water-leak {
+      border-color: #ef4444;
+      background: radial-gradient(circle, #ef4444 0%, #b91c1c 100%);
+      box-shadow: 0 0 20px rgba(239,68,68,0.5);
+      animation: pipeShake 0.5s ease;
+    }
+    .pipe-fitting.water-leak::after { color: #fff; }
+
+    /* Word label that appears during water flow */
+    .pipe-word-label {
+      position: absolute;
+      background: rgba(15,20,30,0.95);
+      border: 2px solid #3b82f6;
+      border-radius: 10px;
+      padding: 4px 10px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 4;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+      opacity: 0;
+      transform: translateY(-4px);
+      animation: labelAppear 0.3s ease forwards;
+      pointer-events: none;
+    }
+    .pipe-word-label .pw { font-weight: 700; color: #F0EDE8; font-size: 13px; }
+    .pipe-word-label .pa { color: rgba(240,237,232,0.55); font-size: 12px; }
+    .pipe-word-label .parr { color: rgba(240,237,232,0.3); font-size: 10px; }
+    .pipe-word-label.leak {
+      border-color: #ef4444;
+    }
+    @keyframes labelAppear {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Tank/house endpoint */
+    .pipe-tank {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: rgba(240,237,232,0.5);
+      border: 3px solid #718096;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      transition: all 0.5s ease;
+    }
+    .pipe-tank.water-reached {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      border-color: #60a5fa;
+      color: #fff;
+      box-shadow: 0 0 24px rgba(59,130,246,0.5);
+    }
+
+    /* Leak splash */
+    .pipe-leak-splash {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 10;
+    }
+    .pipe-leak-drop {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #60a5fa;
+      animation: leakDrop 0.8s ease forwards;
+    }
+    @keyframes leakDrop {
+      0% { transform: translate(0,0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+    }
+    @keyframes pipeShake {
+      0%, 100% { transform: translateX(0); }
+      15% { transform: translateX(-5px) rotate(-1deg); }
+      30% { transform: translateX(4px) rotate(1deg); }
+      45% { transform: translateX(-3px); }
+      60% { transform: translateX(2px); }
+    }
+
+    /* Flow phase */
+    .pipe-flow-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(240,237,232,0.7);
+      margin-bottom: 12px;
+      animation: pipePulse 1.5s ease infinite;
+    }
+    @keyframes pipePulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+    /* Flow result panel (shown at bottom of flow phase) */
+    .pipe-flow-result-panel {
+      text-align: center;
+      padding: 20px 16px 24px;
+      background: rgba(10,10,20,0.97);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      animation: labelAppear 0.4s ease forwards;
+    }
+    .pipe-flow-result-panel .pipe-result-msg {
+      font-size: 18px;
+      font-weight: 700;
+      color: #F0EDE8;
+      margin-bottom: 4px;
+    }
+    .pipe-flow-result-panel .pipe-result-sub {
+      font-size: 13px;
+      color: rgba(240,237,232,0.45);
+      margin-bottom: 10px;
+    }
+    .pipe-flow-result-panel .pipe-result-xp-big {
+      font-size: 28px;
+      font-weight: 800;
+      color: #E8A838;
+      margin-bottom: 18px;
+    }
+    .pipe-flow-result-panel .pipe-finish-btn {
+      width: 100%;
+      padding: 16px;
+      font-size: 17px;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(59,130,246,0.35);
+    }
+    .pipe-flow-result-panel .pipe-finish-btn:active { transform: scale(0.97); }
+    .pipe-flow-status {
+      text-align: center;
+      padding: 16px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .pipe-flow-status.success { color: #34d399; }
+    .pipe-flow-status.failure { color: #ef4444; }
   </style>
 
 </head>
@@ -5038,6 +5431,14 @@
         <button class="acc-tile acc-animate acc-delay-16" data-color="violet" onclick="showGrammar()">
           <div class="acc-tile-icon"><i class="fas fa-graduation-cap"></i></div>
           Граматика
+        </button>
+        <button class="acc-tile acc-animate acc-delay-16" data-color="orange" onclick="startSortingGame()">
+          <div class="acc-tile-icon"><i class="fas fa-sort"></i></div>
+          Сортування
+        </button>
+        <button class="acc-tile acc-animate acc-delay-16" data-color="blue" onclick="startPipeGame()">
+          <div class="acc-tile-icon"><i class="fas fa-faucet"></i></div>
+          Труби
         </button>
       </div>
 
@@ -5426,32 +5827,37 @@
         <div id="voice-status" class="hidden" style="text-align:center;padding:12px;margin-bottom:12px;background:rgba(232,168,56,0.1);border-radius:10px;color:#E8A838;font-size:14px;">
           <i class="fas fa-circle" style="animation:blink 1s infinite;color:#ef4444;margin-right:6px;font-size:10px;"></i>Слухаю...
         </div>
-        <div style="display:flex;align-items:center;gap:8px;margin:5px 0 15px 0;">
-          <input type="text" id="english-word" placeholder="Англійське слово" style="flex:1;margin:0;height:52px;box-sizing:border-box;"
+        <div style="position:relative;margin:5px 0 15px 0;">
+          <input type="text" id="english-word" placeholder="Англійське слово" style="margin:0;height:52px;box-sizing:border-box;padding-right:48px;"
             onblur="getTranslationSuggestions(this.value)">
-          <button onclick="startVoiceInput('en')" style="width:90px;min-width:90px;height:52px;padding:0;margin:0;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:28px;color:#E8A838;cursor:pointer;box-shadow:none;" title="Голосом (EN)">
+          <button onclick="startVoiceInput('en')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;font-size:18px;color:#E8A838;cursor:pointer;box-shadow:none;opacity:0.7;" title="Голосом (EN)">
             <i class="fas fa-microphone"></i>
           </button>
         </div>
         <div id="english-word-error" class="error-message"></div>
         <div id="translation-suggestions"></div>
-        <div style="display:flex;align-items:center;gap:8px;margin:5px 0 15px 0;">
-          <input type="text" id="translation" placeholder="Переклад" style="flex:1;margin:0;height:52px;box-sizing:border-box;"
+        <div style="position:relative;margin:5px 0 15px 0;">
+          <input type="text" id="translation" placeholder="Переклад" style="margin:0;height:52px;box-sizing:border-box;padding-right:48px;"
             onblur="getReverseTranslation(this.value)">
-          <button onclick="startVoiceInput('uk')" style="width:90px;min-width:90px;height:52px;padding:0;margin:0;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:28px;color:#60a5fa;cursor:pointer;box-shadow:none;" title="Голосом (УК)">
+          <button onclick="startVoiceInput('uk')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;font-size:18px;color:#60a5fa;cursor:pointer;box-shadow:none;opacity:0.7;" title="Голосом (УК)">
             <i class="fas fa-microphone"></i>
           </button>
         </div>
         <div id="translation-error" class="error-message"></div>
         <div id="reverse-translation-suggestions"></div>
-        <input type="text" id="example" placeholder="Приклад використання (необов'язково)">
-        <div id="example-error" class="error-message"></div>
+        <div id="example-toggle-wrap" style="margin-bottom:12px;">
+          <a href="#" onclick="event.preventDefault();document.getElementById('example-expand').classList.toggle('hidden');this.classList.add('hidden');" style="font-size:13px;color:rgba(240,237,232,0.4);text-decoration:none;">+ Додати приклад</a>
+          <div id="example-expand" class="hidden">
+            <input type="text" id="example" placeholder="Приклад використання" style="margin-top:8px;">
+            <div id="example-error" class="error-message"></div>
+          </div>
+        </div>
         <button onclick="addWord()">Додати</button>
         <!-- Photo / Camera -->
-        <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);">
-          <label id="photo-upload-label" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(240,237,232,0.6);font-size:15px;cursor:pointer;margin:0;">
-            <span id="photo-upload-text"><i class="fas fa-camera" style="font-size:18px;"></i> Додати слова з фото</span>
-            <span id="photo-upload-loading" class="hidden"><i class="fas fa-spinner fa-spin" style="font-size:18px;"></i> Аналізую фото...</span>
+        <div style="margin-top:14px;">
+          <label id="photo-upload-label" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:transparent;border:1px dashed rgba(240,237,232,0.15);border-radius:12px;color:rgba(240,237,232,0.35);font-size:13px;cursor:pointer;margin:0;">
+            <span id="photo-upload-text"><i class="fas fa-camera" style="font-size:14px;"></i> або додай з фото</span>
+            <span id="photo-upload-loading" class="hidden"><i class="fas fa-spinner fa-spin" style="font-size:14px;"></i> Аналізую фото...</span>
             <input type="file" accept="image/*" capture="environment" onchange="handlePhotoInput(event)" style="display:none;">
           </label>
         </div>
@@ -5903,6 +6309,129 @@
       </div>
     </div>
 
+    <!-- Секція "Сортування" -->
+    <div id="sorting-game-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div id="sorting-game-loader" class="hidden" style="text-align:center;padding:60px 20px;">
+        <div class="spinner"></div>
+        <p style="color:rgba(240,237,232,0.6);margin-top:16px;">Готуємо гру...</p>
+      </div>
+
+      <!-- Game area -->
+      <div id="sorting-game-area" class="hidden">
+        <!-- Category labels -->
+        <div class="sorting-categories">
+          <div class="sorting-cat sorting-cat-left" id="sorting-cat-left">
+            <i class="fas fa-arrow-left" style="margin-right:6px;"></i>
+            <span id="sorting-cat-left-name"></span>
+          </div>
+          <div class="sorting-cat sorting-cat-right" id="sorting-cat-right">
+            <span id="sorting-cat-right-name"></span>
+            <i class="fas fa-arrow-right" style="margin-left:6px;"></i>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="sorting-progress">
+          <div class="sorting-progress-bar" id="sorting-progress-bar"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:0 4px;margin-bottom:16px;">
+          <span id="sorting-score" style="font-size:13px;color:rgba(240,237,232,0.5);"></span>
+          <span id="sorting-counter" style="font-size:13px;color:rgba(240,237,232,0.5);"></span>
+        </div>
+
+        <!-- Word card -->
+        <div id="sorting-card-container" style="display:flex;justify-content:center;align-items:center;min-height:180px;position:relative;">
+          <div id="sorting-card" class="sorting-card">
+            <div class="sorting-card-word" id="sorting-card-word"></div>
+            <div class="sorting-card-translation" id="sorting-card-translation"></div>
+          </div>
+        </div>
+
+        <!-- Feedback -->
+        <div id="sorting-feedback" class="sorting-feedback hidden"></div>
+
+        <!-- Buttons -->
+        <div class="sorting-buttons">
+          <button class="sorting-btn sorting-btn-left" id="sorting-btn-left" onclick="sortingAnswer('left')">
+            <i class="fas fa-times"></i>
+            <span id="sorting-btn-left-label"></span>
+          </button>
+          <button class="sorting-btn sorting-btn-right" id="sorting-btn-right" onclick="sortingAnswer('right')">
+            <i class="fas fa-check"></i>
+            <span id="sorting-btn-right-label"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div id="sorting-game-result" class="quiz-result hidden">
+        <div id="sorting-result-emoji" style="font-size:64px;margin-bottom:16px;"></div>
+        <p id="sorting-result-text" style="font-size:18px;font-weight:600;margin-bottom:8px;"></p>
+        <p id="sorting-result-score" style="font-size:14px;color:rgba(240,237,232,0.6);margin-bottom:20px;"></p>
+        <button class="finish-button" onclick="finishSortingGame()">Завершити</button>
+      </div>
+    </div>
+
+    <!-- Секція "Труби" -->
+    <div id="pipe-game-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="backToAccount()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <span id="pipe-step-counter" style="font-size:13px;color:rgba(240,237,232,0.45);"></span>
+      </div>
+
+      <!-- Loading -->
+      <div id="pipe-game-loader" class="hidden" style="text-align:center;padding:60px 20px;">
+        <div class="spinner"></div>
+        <p style="color:rgba(240,237,232,0.6);margin-top:16px;">Будуємо трубопровід...</p>
+      </div>
+
+      <!-- Phase 1: Build pipeline -->
+      <div id="pipe-build-phase" class="hidden">
+        <!-- Pipeline view (scrollable, grows) -->
+        <div id="pipe-pipeline-view" class="pipe-pipeline-view">
+          <!-- Source valve -->
+          <div style="display:flex;justify-content:center;padding-bottom:4px;">
+            <div class="pipe-valve"><i class="fas fa-faucet"></i></div>
+          </div>
+          <!-- Segments added here dynamically -->
+        </div>
+
+        <!-- Question panel (fixed at bottom) -->
+        <div id="pipe-question-panel" class="pipe-question-panel">
+          <div class="pipe-question-word" id="pipe-current-word"></div>
+          <div class="pipe-options" id="pipe-options"></div>
+        </div>
+      </div>
+
+      <!-- Phase 2: Water flow -->
+      <div id="pipe-flow-phase" class="hidden">
+        <div class="pipe-flow-title" id="pipe-flow-title">Запускаємо воду...</div>
+        <div id="pipe-flow-view" class="pipe-pipeline-view" style="flex:1;min-height:0;"></div>
+        <div id="pipe-flow-status" class="pipe-flow-status"></div>
+        <div id="pipe-flow-result" style="display:none;"></div>
+      </div>
+
+      <!-- Phase 3: Result -->
+      <div id="pipe-game-result" class="quiz-result hidden">
+        <div id="pipe-result-emoji" style="font-size:64px;margin-bottom:16px;"></div>
+        <p id="pipe-result-text" style="font-size:18px;font-weight:600;margin-bottom:4px;"></p>
+        <p id="pipe-result-detail" style="font-size:14px;color:rgba(240,237,232,0.5);margin-bottom:8px;"></p>
+        <p id="pipe-result-xp" style="font-size:16px;color:#E8A838;font-weight:700;margin-bottom:20px;"></p>
+        <button class="finish-button" onclick="finishPipeGame()">Завершити</button>
+      </div>
+    </div>
+
   </div>
   <!-- Підключення Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -6303,6 +6832,8 @@
   document.getElementById('add-phrase-section').classList.add('hidden');
   document.getElementById('phrase-constructor-section').classList.add('hidden');
   document.getElementById('grammar-section').classList.add('hidden');
+  document.getElementById('sorting-game-section').classList.add('hidden');
+  document.getElementById('pipe-game-section').classList.add('hidden');
 }
 
 
@@ -6619,7 +7150,7 @@ function exitSpeedTraining() {
       const cachedValid = dailyWordsData.date === today && dailyWordsData.words && dailyWordsData.words.length > 0 && dailyWordsData.words[0].word;
       if (cachedValid) {
         currentDailyWords = dailyWordsData.words;
-        renderDailyWords();
+        await renderDailyWords();
       } else {
         await generateDailyWords();
       }
@@ -6727,7 +7258,7 @@ Return ONLY the JSON array, no other text.`;
       await renderDailyWords();
     }
 
-    function renderDailyWords() {
+    async function renderDailyWords() {
       const list = document.getElementById('daily-words-list');
       list.innerHTML = '';
       currentDailyWords = currentDailyWords.filter(w => w && w.word && w.translation);
@@ -6737,13 +7268,39 @@ Return ONLY the JSON array, no other text.`;
         return;
       }
 
+      // Check which words are already in vocabulary
+      const userId = auth.currentUser.uid;
+      const existingSet = new Set();
+      try {
+        const snap = await db.collection('users').doc(userId).collection('words').get();
+        snap.docs.forEach(d => existingSet.add(d.id.toLowerCase()));
+      } catch (e) {}
+
+      let allAdded = true;
       currentDailyWords.forEach((w, i) => {
+        const alreadyAdded = existingSet.has(w.word.toLowerCase());
+        if (!alreadyAdded) allAdded = false;
         const li = document.createElement('li');
         li.style.cssText = 'background:rgba(255,255,255,0.05);padding:15px 22px;margin-bottom:10px;border-radius:8px;display:flex;align-items:center;border:1px solid rgba(255,255,255,0.06);position:relative;cursor:pointer;list-style:none;animation:dailyWordFadeIn 0.4s ease forwards;animation-delay:' + (i * 0.06) + 's;opacity:0;';
         const safeWord = w.word.replace(/'/g, "\\'");
-        li.innerHTML = `<i class="fas fa-volume-up" style="color:rgba(240,237,232,0.5);cursor:pointer;margin-right:12px;" onclick="responsiveVoice.speak('${safeWord}', 'UK English Female')"></i><strong>${w.word}</strong>&nbsp;- ${w.translation}<i class="fas fa-plus" onclick="addDailyWord(${i}, this)" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);color:#F0EDE8;cursor:pointer;padding:5px;"></i>`;
+        const iconHtml = alreadyAdded
+          ? `<i class="fas fa-check" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);color:#34d399;padding:5px;"></i>`
+          : `<i class="fas fa-plus" onclick="addDailyWord(${i}, this)" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);color:#F0EDE8;cursor:pointer;padding:5px;"></i>`;
+        li.innerHTML = `<i class="fas fa-volume-up" style="color:rgba(240,237,232,0.5);cursor:pointer;margin-right:12px;" onclick="responsiveVoice.speak('${safeWord}', 'UK English Female')"></i><strong>${w.word}</strong>&nbsp;- ${w.translation}${iconHtml}`;
         list.appendChild(li);
       });
+
+      // If all words already added, hide "add all" button and show hint
+      const addAllBtn = document.getElementById('add-all-daily-words');
+      if (allAdded) {
+        if (addAllBtn) addAllBtn.style.display = 'none';
+        const hint = document.createElement('p');
+        hint.style.cssText = 'text-align:center;color:rgba(240,237,232,0.4);font-size:13px;margin-top:8px;';
+        hint.textContent = 'Всі слова вже додані. Згенеруй нові!';
+        list.appendChild(hint);
+      } else {
+        if (addAllBtn) addAllBtn.style.display = '';
+      }
     }
 
     async function addDailyWord(index, btn) {
@@ -6888,7 +7445,7 @@ Return ONLY the JSON array, no other text.`;
       const cachedValid = dailyPhrasesData.date === today && dailyPhrasesData.phrases && dailyPhrasesData.phrases.length > 0 && dailyPhrasesData.phrases[0].phrase;
       if (cachedValid) {
         currentDailyPhrases = dailyPhrasesData.phrases;
-        renderDailyPhrases();
+        await renderDailyPhrases();
       } else {
         await generateDailyPhrases();
       }
@@ -7019,10 +7576,10 @@ Return ONLY the JSON array, no other text.`;
         dailyPhrases: { date: today, phrases: currentDailyPhrases }
       });
 
-      renderDailyPhrases();
+      await renderDailyPhrases();
     }
 
-    function renderDailyPhrases() {
+    async function renderDailyPhrases() {
       const list = document.getElementById('daily-phrases-list');
       list.innerHTML = '';
       currentDailyPhrases = currentDailyPhrases.filter(p => p && p.phrase && p.translation);
@@ -7032,7 +7589,19 @@ Return ONLY the JSON array, no other text.`;
         return;
       }
 
+      // Check which phrases are already in vocabulary
+      const userId = auth.currentUser.uid;
+      const existingSet = new Set();
+      try {
+        const snap = await db.collection('users').doc(userId).collection('phrases').get();
+        snap.docs.forEach(d => existingSet.add(d.id));
+      } catch (e) {}
+
+      let allAdded = true;
       currentDailyPhrases.forEach((p, i) => {
+        const phraseId = p.phrase.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+        const alreadyAdded = existingSet.has(phraseId);
+        if (!alreadyAdded) allAdded = false;
         const li = document.createElement('li');
         li.style.cssText = 'background:rgba(255,255,255,0.05);padding:15px 22px;margin-bottom:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);position:relative;list-style:none;animation:dailyWordFadeIn 0.4s ease forwards;animation-delay:' + (i * 0.06) + 's;opacity:0;';
         const safePhrase = p.phrase.replace(/'/g, "\\'");
@@ -7043,9 +7612,24 @@ Return ONLY the JSON array, no other text.`;
           const regex = new RegExp(`\\b(${p.word})\\b`, 'gi');
           phraseHtml = p.phrase.replace(regex, '<span style="color:#E8A838;font-weight:700;">$1</span>');
         }
-        li.innerHTML = `<div style="display:flex;align-items:center;"><i class="fas fa-volume-up" style="color:rgba(240,237,232,0.5);cursor:pointer;margin-right:12px;flex-shrink:0;" onclick="responsiveVoice.speak('${safePhrase}', 'UK English Female')"></i><div style="flex:1;">${phraseHtml}<div style="font-size:13px;color:rgba(240,237,232,0.55);margin-top:4px;">${p.translation}</div></div><i class="fas fa-plus" onclick="addDailyPhrase(${i}, this)" style="color:#F0EDE8;cursor:pointer;padding:5px;flex-shrink:0;margin-left:8px;"></i></div>`;
+        const iconHtml = alreadyAdded
+          ? `<i class="fas fa-check" style="color:#34d399;padding:5px;flex-shrink:0;margin-left:8px;"></i>`
+          : `<i class="fas fa-plus" onclick="addDailyPhrase(${i}, this)" style="color:#F0EDE8;cursor:pointer;padding:5px;flex-shrink:0;margin-left:8px;"></i>`;
+        li.innerHTML = `<div style="display:flex;align-items:center;"><i class="fas fa-volume-up" style="color:rgba(240,237,232,0.5);cursor:pointer;margin-right:12px;flex-shrink:0;" onclick="responsiveVoice.speak('${safePhrase}', 'UK English Female')"></i><div style="flex:1;">${phraseHtml}<div style="font-size:13px;color:rgba(240,237,232,0.55);margin-top:4px;">${p.translation}</div></div>${iconHtml}</div>`;
         list.appendChild(li);
       });
+
+      // If all phrases already added, hide "add all" button and show hint
+      const addAllBtn = document.getElementById('add-all-daily-phrases');
+      if (allAdded) {
+        if (addAllBtn) addAllBtn.style.display = 'none';
+        const hint = document.createElement('p');
+        hint.style.cssText = 'text-align:center;color:rgba(240,237,232,0.4);font-size:13px;margin-top:8px;';
+        hint.textContent = 'Всі фрази вже додані. Згенеруй нові!';
+        list.appendChild(hint);
+      } else {
+        if (addAllBtn) addAllBtn.style.display = '';
+      }
     }
 
     async function addDailyPhrase(index, btn) {
@@ -7352,6 +7936,9 @@ Return ONLY the JSON array, no other text.`;
 
     // Тост з нарахуванням XP
     function showXPToast(amount) {
+      // Suppress during pipe game (XP shown at the end)
+      var pipeEl = document.getElementById('pipe-game-section');
+      if (pipeEl && !pipeEl.classList.contains('hidden')) return;
       const toast = document.createElement('div');
       toast.className = 'xp-toast';
       toast.textContent = `+${amount} XP`;
@@ -12657,6 +13244,15 @@ async function translateStory() {
         }
       });
 
+      // Calculate cell size to fit screen
+      const numCols = maxCol - minCol + 1;
+      const availW = Math.min(window.innerWidth - 32, 400); // padding
+      const spacing = 2; // border-spacing
+      const cellSize = Math.max(24, Math.min(36, Math.floor((availW - (numCols + 1) * spacing) / numCols)));
+      const fontSize = Math.max(12, Math.min(18, Math.floor(cellSize * 0.5)));
+      document.documentElement.style.setProperty('--cw-cell', cellSize + 'px');
+      document.documentElement.style.setProperty('--cw-font', fontSize + 'px');
+
       // Рендеримо сітку
       const gridContainer = document.getElementById('crossword-grid');
       let html = '<table>';
@@ -12669,11 +13265,13 @@ async function translateStory() {
           const number = cellNumbers[key] || '';
 
           if (cell !== null) {
-            html += `<td class="crossword-cell">
+            html += `<td class="crossword-cell" data-row="${r}" data-col="${c}">
               ${number ? `<span class="cell-number">${number}</span>` : ''}
               <input type="text" maxlength="1" data-row="${r}" data-col="${c}"
+                     inputmode="text" enterkeyhint="next"
                      onkeyup="handleCrosswordInput(event, this)"
-                     autocomplete="off" autocorrect="off" autocapitalize="off">
+                     onfocus="highlightCrosswordWord(${r},${c})"
+                     autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
             </td>`;
           } else {
             html += '<td class="crossword-cell empty"></td>';
@@ -12704,30 +13302,75 @@ async function translateStory() {
       downClues.innerHTML = downHtml || '<li>Немає слів</li>';
     }
 
+    // Track current crossword direction for smart navigation
+    let cwDirection = 'across';
+
     function handleCrosswordInput(event, input) {
-      // Перетворюємо на велику літеру
-      input.value = input.value.toUpperCase();
+      input.value = input.value.toUpperCase().replace(/[^A-Z]/g, '');
 
-      // Переходимо до наступної клітинки при введенні
+      const row = parseInt(input.dataset.row);
+      const col = parseInt(input.dataset.col);
+
       if (input.value && event.key !== 'Backspace') {
-        const inputs = document.querySelectorAll('.crossword-cell input');
-        const inputsArray = Array.from(inputs);
-        const currentIndex = inputsArray.indexOf(input);
+        // Move to next cell in current word direction
+        const nextInput = findNextCrosswordInput(row, col, cwDirection, 1);
+        if (nextInput) nextInput.focus();
+      }
 
-        if (currentIndex < inputsArray.length - 1) {
-          inputsArray[currentIndex + 1].focus();
+      if (event.key === 'Backspace' && !input.value) {
+        const prevInput = findNextCrosswordInput(row, col, cwDirection, -1);
+        if (prevInput) prevInput.focus();
+      }
+    }
+
+    function findNextCrosswordInput(row, col, direction, step) {
+      const nextR = direction === 'down' ? row + step : row;
+      const nextC = direction === 'across' ? col + step : col;
+      const sel = `.crossword-cell input[data-row="${nextR}"][data-col="${nextC}"]`;
+      return document.querySelector(sel);
+    }
+
+    function highlightCrosswordWord(row, col) {
+      // Remove old highlights
+      document.querySelectorAll('.crossword-cell.highlight').forEach(c => c.classList.remove('highlight'));
+      document.querySelectorAll('.clues-list li.clue-active').forEach(c => c.classList.remove('clue-active'));
+
+      // Find which word(s) this cell belongs to
+      let matchedWord = null;
+      for (const pw of placedWords) {
+        const endR = pw.direction === 'down' ? pw.row + pw.english.length - 1 : pw.row;
+        const endC = pw.direction === 'across' ? pw.col + pw.english.length - 1 : pw.col;
+        if (pw.direction === 'across' && row === pw.row && col >= pw.col && col <= endC) {
+          matchedWord = pw; cwDirection = 'across'; break;
+        }
+        if (pw.direction === 'down' && col === pw.col && row >= pw.row && row <= endR) {
+          matchedWord = pw; cwDirection = 'down'; break;
         }
       }
 
-      // Переходимо до попередньої клітинки при Backspace
-      if (event.key === 'Backspace' && !input.value) {
-        const inputs = document.querySelectorAll('.crossword-cell input');
-        const inputsArray = Array.from(inputs);
-        const currentIndex = inputsArray.indexOf(input);
+      if (!matchedWord) return;
 
-        if (currentIndex > 0) {
-          inputsArray[currentIndex - 1].focus();
-        }
+      // Highlight cells of matched word
+      for (let i = 0; i < matchedWord.english.length; i++) {
+        const r = matchedWord.direction === 'down' ? matchedWord.row + i : matchedWord.row;
+        const c = matchedWord.direction === 'across' ? matchedWord.col + i : matchedWord.col;
+        const td = document.querySelector(`.crossword-cell[data-row="${r}"][data-col="${c}"]`);
+        if (td) td.classList.add('highlight');
+      }
+
+      // Highlight clue
+      const clueIdx = placedWords.indexOf(matchedWord);
+      const listId = matchedWord.direction === 'across' ? 'across-clues' : 'down-clues';
+      const list = document.getElementById(listId);
+      // Make sure clue list is visible
+      if (list.classList.contains('collapsed')) list.classList.remove('collapsed');
+      const lis = list.querySelectorAll('li');
+      // Find the li for this word
+      let dirWords = placedWords.filter(w => w.direction === matchedWord.direction);
+      const idx = dirWords.indexOf(matchedWord);
+      if (idx >= 0 && lis[idx]) {
+        lis[idx].classList.add('clue-active');
+        lis[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     }
 
@@ -12742,7 +13385,6 @@ async function translateStory() {
         const correctLetter = crosswordGrid[row][col];
         const userLetter = input.value.toUpperCase();
 
-        // Скидаємо попередні класи
         input.classList.remove('correct', 'incorrect');
 
         if (!userLetter) {
@@ -12755,13 +13397,43 @@ async function translateStory() {
         }
       });
 
+      // Show result in popup instead of alert
+      const popup = document.getElementById('crossword-popup');
+      const icon = document.getElementById('crossword-popup-icon');
+      const title = document.getElementById('crossword-popup-title');
+      const text = document.getElementById('crossword-popup-text');
+      const newBtn = document.getElementById('popup-new-btn');
+
       if (!allFilled) {
-        alert('Заповніть всі клітинки!');
+        icon.className = 'crossword-popup-icon warning';
+        icon.innerHTML = '<i class="fas fa-exclamation"></i>';
+        title.textContent = 'Не все заповнено';
+        text.textContent = 'Заповніть всі клітинки!';
+        newBtn.style.display = 'none';
       } else if (allCorrect) {
-        alert('Вітаємо! Кросворд розгадано правильно! 🎉');
+        icon.className = 'crossword-popup-icon success';
+        icon.innerHTML = '<i class="fas fa-trophy"></i>';
+        title.textContent = 'Вітаємо!';
+        text.textContent = 'Кросворд розгадано правильно!';
+        newBtn.style.display = '';
       } else {
-        alert('Є помилки. Неправильні літери позначено червоним.');
+        icon.className = 'crossword-popup-icon error';
+        icon.innerHTML = '<i class="fas fa-times"></i>';
+        title.textContent = 'Є помилки';
+        text.textContent = 'Неправильні літери позначено червоним.';
+        newBtn.style.display = 'none';
       }
+      popup.classList.remove('hidden');
+    }
+    function closeCrosswordPopup() {
+      document.getElementById('crossword-popup').classList.add('hidden');
+    }
+
+    function toggleClues(type) {
+      const list = document.getElementById(type + '-clues');
+      const chevron = document.getElementById(type + '-chevron');
+      list.classList.toggle('collapsed');
+      chevron.classList.toggle('rotated');
     }
     // ============ Кінець кросворда ============
 
@@ -14010,6 +14682,723 @@ Return ONLY the JSON array, no other text.`;
       document.getElementById("progressPopup").classList.add("hidden");
       document.body.style.overflow = '';
     }
+
+    // ========== SORTING GAME ==========
+    let sortingWords = [];
+    let sortingCurrentIndex = 0;
+    let sortingCorrectCount = 0;
+    let sortingCategoryLeft = '';
+    let sortingCategoryRight = '';
+    let sortingBusy = false;
+
+    function startSortingGame() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('sorting-game-section').classList.remove('hidden');
+      initSortingGame();
+    }
+
+    async function initSortingGame() {
+      const loader = document.getElementById('sorting-game-loader');
+      const area = document.getElementById('sorting-game-area');
+      const result = document.getElementById('sorting-game-result');
+
+      loader.classList.remove('hidden');
+      area.classList.add('hidden');
+      result.classList.add('hidden');
+
+      sortingCurrentIndex = 0;
+      sortingCorrectCount = 0;
+      sortingBusy = false;
+
+      try {
+        const userId = auth.currentUser.uid;
+        // Fetch up to 50 words
+        const snapshot = await db.collection('users').doc(userId).collection('words').limit(50).get();
+        if (snapshot.size < 10) {
+          loader.innerHTML = '<p style="color:rgba(240,237,232,0.6);text-align:center;padding:40px 20px;">Потрібно мінімум 10 слів у словнику для цієї гри.</p>';
+          return;
+        }
+
+        const allW = [];
+        snapshot.forEach(doc => {
+          allW.push({ word: doc.id, translation: doc.data().translation });
+        });
+
+        // Shuffle and take 20
+        const shuffled = allW.sort(() => Math.random() - 0.5).slice(0, 20);
+
+        // Ask AI to categorize
+        if (!openaiApiKey) await loadOpenAIKey();
+        const wordList = shuffled.map(w => w.word).join(', ');
+
+        const prompt = `You are given a list of English words. Pick ONE fun binary sorting category for these words. The category should be something intuitive and fun, like:
+- "Can fit in a backpack" vs "Cannot fit in a backpack"
+- "Edible" vs "Not edible"
+- "You can find it at home" vs "You cannot find it at home"
+- "Living" vs "Non-living"
+- "You can hold it in one hand" vs "Cannot hold in one hand"
+- "Can be found in a supermarket" vs "Cannot"
+- "Makes sound" vs "Silent"
+
+Choose a category where the words split roughly evenly (not all on one side). Use SHORT Ukrainian labels for the two sides (max 3-4 words each).
+
+Words: ${wordList}
+
+Respond ONLY with JSON:
+{
+  "categoryLeft": "short Ukrainian label for LEFT (the NO/negative side)",
+  "categoryRight": "short Ukrainian label for RIGHT (the YES/positive side)",
+  "words": [
+    {"word": "example", "side": "left"},
+    {"word": "example2", "side": "right"}
+  ]
+}`;
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: prompt }],
+            model: 'gpt-4o-mini',
+            temperature: 0.9,
+            max_tokens: 2000,
+          }),
+        });
+
+        if (!response.ok) throw new Error('API error');
+        const apiResult = await response.json();
+        const content = apiResult.choices[0].message.content.trim();
+        const jsonStr = content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(jsonStr);
+
+        sortingCategoryLeft = parsed.categoryLeft;
+        sortingCategoryRight = parsed.categoryRight;
+
+        // Build sortingWords with translation from our data
+        sortingWords = [];
+        for (const pw of parsed.words) {
+          const found = shuffled.find(s => s.word.toLowerCase() === pw.word.toLowerCase());
+          if (found) {
+            sortingWords.push({
+              word: found.word,
+              translation: found.translation,
+              correctSide: pw.side
+            });
+          }
+        }
+
+        if (sortingWords.length < 5) throw new Error('Not enough categorized words');
+
+        // Shuffle the game words
+        sortingWords.sort(() => Math.random() - 0.5);
+
+        // Setup UI
+        document.getElementById('sorting-cat-left-name').textContent = sortingCategoryLeft;
+        document.getElementById('sorting-cat-right-name').textContent = sortingCategoryRight;
+        document.getElementById('sorting-btn-left-label').textContent = sortingCategoryLeft;
+        document.getElementById('sorting-btn-right-label').textContent = sortingCategoryRight;
+
+        loader.classList.add('hidden');
+        area.classList.remove('hidden');
+        showSortingCard();
+
+      } catch (e) {
+        console.error('Sorting game init error:', e);
+        loader.innerHTML = '<p style="color:rgba(240,237,232,0.6);text-align:center;padding:40px 20px;">Помилка завантаження гри. Спробуйте ще раз.</p>';
+      }
+    }
+
+    function showSortingCard() {
+      if (sortingCurrentIndex >= sortingWords.length) {
+        showSortingResult();
+        return;
+      }
+
+      const w = sortingWords[sortingCurrentIndex];
+      const pct = (sortingCurrentIndex / sortingWords.length) * 100;
+      document.getElementById('sorting-progress-bar').style.width = pct + '%';
+      document.getElementById('sorting-score').textContent = `${sortingCorrectCount} правильних`;
+      document.getElementById('sorting-counter').textContent = `${sortingCurrentIndex + 1} / ${sortingWords.length}`;
+
+      const card = document.getElementById('sorting-card');
+      card.className = 'sorting-card card-enter';
+      document.getElementById('sorting-card-word').textContent = w.word;
+      document.getElementById('sorting-card-translation').textContent = w.translation;
+      document.getElementById('sorting-feedback').classList.add('hidden');
+
+      // Animate in
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          card.className = 'sorting-card';
+        });
+      });
+
+      // Enable buttons
+      document.getElementById('sorting-btn-left').disabled = false;
+      document.getElementById('sorting-btn-right').disabled = false;
+    }
+
+    async function sortingAnswer(side) {
+      if (sortingBusy) return;
+      sortingBusy = true;
+
+      const w = sortingWords[sortingCurrentIndex];
+      const isCorrect = w.correctSide === side;
+
+      // Disable buttons
+      document.getElementById('sorting-btn-left').disabled = true;
+      document.getElementById('sorting-btn-right').disabled = true;
+
+      // Animate card
+      const card = document.getElementById('sorting-card');
+      card.classList.add(side === 'left' ? 'swipe-left' : 'swipe-right');
+
+      // Show feedback
+      const fb = document.getElementById('sorting-feedback');
+      fb.classList.remove('hidden', 'correct', 'wrong');
+      if (isCorrect) {
+        sortingCorrectCount++;
+        fb.classList.add('correct');
+        fb.textContent = 'Правильно!';
+      } else {
+        const correctLabel = w.correctSide === 'left' ? sortingCategoryLeft : sortingCategoryRight;
+        fb.classList.add('wrong');
+        fb.textContent = `${w.word} → ${correctLabel}`;
+      }
+
+      // Update word stats & XP
+      updateWordStats(w.word, isCorrect);
+
+      sortingCurrentIndex++;
+
+      setTimeout(() => {
+        sortingBusy = false;
+        showSortingCard();
+      }, 1000);
+    }
+
+    function showSortingResult() {
+      document.getElementById('sorting-game-area').classList.add('hidden');
+      const result = document.getElementById('sorting-game-result');
+      result.classList.remove('hidden');
+
+      const total = sortingWords.length;
+      const pct = Math.round((sortingCorrectCount / total) * 100);
+      const totalXP = sortingCorrectCount * 10 + (total - sortingCorrectCount) * 2;
+
+      let emoji, msg;
+      if (pct >= 90) { emoji = '🏆'; msg = 'Чудово! Ти майстер сортування!'; }
+      else if (pct >= 70) { emoji = '🎯'; msg = 'Дуже добре! Так тримати!'; }
+      else if (pct >= 50) { emoji = '💪'; msg = 'Непогано! Є куди рости!'; }
+      else { emoji = '🔄'; msg = 'Спробуй ще раз!'; }
+
+      document.getElementById('sorting-result-emoji').textContent = emoji;
+      document.getElementById('sorting-result-text').textContent = msg;
+      document.getElementById('sorting-result-score').textContent = `${sortingCorrectCount}/${total} правильних • ${totalXP} XP`;
+
+      document.getElementById('sorting-progress-bar').style.width = '100%';
+    }
+
+    function finishSortingGame() {
+      showConfetti();
+      backToAccount();
+    }
+
+    // Swipe gestures for sorting game
+    (function() {
+      let startX = 0;
+      const container = document.getElementById('sorting-card-container');
+      if (!container) return;
+      container.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+      container.addEventListener('touchend', e => {
+        const diff = e.changedTouches[0].clientX - startX;
+        if (Math.abs(diff) > 60) {
+          sortingAnswer(diff < 0 ? 'left' : 'right');
+        }
+      }, { passive: true });
+    })();
+
+    // ========== PIPE GAME ==========
+    const PIPE_TOTAL = 10;
+    const PIPE_COLS = [15, 50, 85]; // 3 column positions (%)
+    let pipeWords = [];
+    let pipeAnswers = [];
+    let pipeCurrentStep = 0;
+    let pipeBusy = false;
+    let pipeColumns = [];
+
+    function startPipeGame() {
+      toggleMainTitle();
+      document.getElementById('account-screen').classList.add('hidden');
+      document.getElementById('pipe-game-section').classList.remove('hidden');
+      initPipeGame();
+    }
+
+    async function initPipeGame() {
+      const loader = document.getElementById('pipe-game-loader');
+      const buildPhase = document.getElementById('pipe-build-phase');
+      const flowPhase = document.getElementById('pipe-flow-phase');
+      const result = document.getElementById('pipe-game-result');
+
+      loader.classList.remove('hidden');
+      buildPhase.classList.add('hidden');
+      flowPhase.classList.add('hidden');
+      result.classList.add('hidden');
+      var flowResult = document.getElementById('pipe-flow-result');
+      if (flowResult) { flowResult.style.display = 'none'; flowResult.innerHTML = ''; }
+
+      pipeCurrentStep = 0;
+      pipeAnswers = [];
+      pipeBusy = false;
+
+      // Pre-generate column positions (snaking, never same twice)
+      pipeColumns = [1]; // start center
+      for (let i = 1; i < PIPE_TOTAL; i++) {
+        const prev = pipeColumns[i - 1];
+        const options = [0, 1, 2].filter(c => c !== prev);
+        pipeColumns.push(options[Math.floor(Math.random() * options.length)]);
+      }
+
+      try {
+        const userId = auth.currentUser.uid;
+        const snapshot = await getSmartWordQuery(userId, 50, PIPE_TOTAL).get();
+        if (snapshot.size < PIPE_TOTAL) {
+          loader.innerHTML = '<p style="color:rgba(240,237,232,0.6);text-align:center;padding:40px 20px;">Потрібно мінімум ' + PIPE_TOTAL + ' слів у словнику.</p>';
+          return;
+        }
+
+        const allW = [];
+        snapshot.forEach(doc => {
+          allW.push({ word: doc.id, translation: doc.data().translation });
+        });
+
+        const shuffled = allW.sort(() => Math.random() - 0.5);
+        pipeWords = shuffled.slice(0, PIPE_TOTAL);
+        const allTranslations = allW.map(w => w.translation);
+
+        pipeWords.forEach(w => {
+          const wrong = allTranslations.filter(t => t !== w.translation).sort(() => Math.random() - 0.5).slice(0, 3);
+          w.options = [w.translation, ...wrong].sort(() => Math.random() - 0.5);
+        });
+
+        // Reset pipeline view
+        const pipeView = document.getElementById('pipe-pipeline-view');
+        pipeView.innerHTML = '<div style="display:flex;justify-content:center;padding-bottom:4px;"><div class="pipe-valve"><i class="fas fa-faucet"></i></div></div>';
+
+        loader.classList.add('hidden');
+        buildPhase.classList.remove('hidden');
+        showPipeStep();
+
+      } catch (e) {
+        console.error('Pipe game init error:', e);
+        loader.innerHTML = '<p style="color:rgba(240,237,232,0.6);text-align:center;padding:40px 20px;">Помилка завантаження. Спробуйте ще раз.</p>';
+      }
+    }
+
+    function showPipeStep() {
+      if (pipeCurrentStep >= PIPE_TOTAL) {
+        addPipeEndpoint();
+        startWaterFlow();
+        return;
+      }
+
+      const w = pipeWords[pipeCurrentStep];
+      document.getElementById('pipe-step-counter').textContent = (pipeCurrentStep + 1) + ' / ' + PIPE_TOTAL;
+      document.getElementById('pipe-current-word').textContent = w.word;
+
+      const optionsEl = document.getElementById('pipe-options');
+      optionsEl.innerHTML = '';
+      w.options.forEach(opt => {
+        const btn = document.createElement('div');
+        btn.className = 'pipe-option';
+        btn.textContent = opt;
+        btn.onclick = () => selectPipeOption(btn, opt);
+        optionsEl.appendChild(btn);
+      });
+
+      pipeBusy = false;
+    }
+
+    function selectPipeOption(btn, chosenTranslation) {
+      if (pipeBusy) return;
+      pipeBusy = true;
+
+      const w = pipeWords[pipeCurrentStep];
+      const isCorrect = chosenTranslation === w.translation;
+
+      document.querySelectorAll('.pipe-option').forEach(o => o.classList.add('locked'));
+      btn.classList.add('selected');
+
+      pipeAnswers.push({
+        word: w.word,
+        translation: w.translation,
+        chosenTranslation: chosenTranslation,
+        correct: isCorrect
+      });
+
+      updateWordStatsSilent(w.word, isCorrect);
+      playPipeClick();
+
+      // Add pipe segment to pipeline view
+      addPipeSegment(pipeCurrentStep, w.word, chosenTranslation);
+
+      pipeCurrentStep++;
+      setTimeout(() => { showPipeStep(); }, 450);
+    }
+
+    // Silent version — updates stats + XP but no sound/toast
+    async function updateWordStatsSilent(word, correct) {
+      try { if (navigator.vibrate) navigator.vibrate(30); } catch(e) {}
+      const userId = auth.currentUser.uid;
+      const wordRef = db.collection('users').doc(userId).collection('words').doc(word);
+      try {
+        const doc = await wordRef.get();
+        if (doc.exists) {
+          const wordData = doc.data();
+          const interactions = (wordData.interactions || 0) + 1;
+          const correctAnswersCount = correct ? (wordData.correctAnswers || 0) + 1 : (wordData.correctAnswers || 0);
+          const priority = correctAnswersCount / interactions;
+          await wordRef.update({
+            interactions: interactions,
+            correctAnswers: correctAnswersCount,
+            lastInteractionDate: firebase.firestore.Timestamp.now(),
+            priority: priority,
+          });
+        }
+        // XP silently (no toast)
+        userXP += correct ? 10 : 2;
+        userLevel = getLevelFromXP(userXP);
+        updateGamificationUI();
+        const today = new Date().toISOString().split('T')[0];
+        await db.collection('users').doc(userId).update({
+          xp: userXP,
+          [`xpHistory.${today}`]: firebase.firestore.FieldValue.increment(correct ? 10 : 2)
+        });
+      } catch (e) { console.error('Silent stats error:', e); }
+    }
+
+    // Neutral click sound for pipe building
+    function playPipeClick() {
+      try {
+        const t = audioCtx.currentTime;
+        const gain = audioCtx.createGain();
+        gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(0.08, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+        const o = audioCtx.createOscillator();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(440, t);
+        o.connect(gain);
+        o.start(t);
+        o.stop(t + 0.1);
+      } catch(e) {}
+    }
+
+    // Ascending success sound — pitch rises with each correct connection
+    function playPipeWaterSuccess(stepIndex) {
+      try {
+        const t = audioCtx.currentTime;
+        // Base C5 (523Hz), each step goes up ~a major scale step
+        const scaleFreqs = [523, 587, 659, 698, 784, 880, 988, 1047, 1175, 1319];
+        const freq = scaleFreqs[Math.min(stepIndex, scaleFreqs.length - 1)];
+
+        const gain = audioCtx.createGain();
+        gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(0.12, t);
+        gain.gain.linearRampToValueAtTime(0.15, t + 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+
+        const o = audioCtx.createOscillator();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(freq, t);
+        o.frequency.linearRampToValueAtTime(freq * 1.02, t + 0.15);
+        o.connect(gain);
+        o.start(t);
+        o.stop(t + 0.4);
+
+        // Subtle harmonic
+        const g2 = audioCtx.createGain();
+        g2.connect(audioCtx.destination);
+        g2.gain.setValueAtTime(0.04, t);
+        g2.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+        const o2 = audioCtx.createOscillator();
+        o2.type = 'triangle';
+        o2.frequency.setValueAtTime(freq * 1.5, t);
+        o2.connect(g2);
+        o2.start(t);
+        o2.stop(t + 0.3);
+      } catch(e) {}
+    }
+
+    // Leak/failure sound
+    function playPipeLeakSound() {
+      try {
+        const t = audioCtx.currentTime;
+        const gain = audioCtx.createGain();
+        gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(0.15, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+        const o = audioCtx.createOscillator();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(220, t);
+        o.frequency.linearRampToValueAtTime(80, t + 0.5);
+        o.connect(gain);
+        o.start(t);
+        o.stop(t + 0.5);
+      } catch(e) {}
+    }
+
+    function addPipeEndpoint() {
+      const pipeView = document.getElementById('pipe-pipeline-view');
+      const lastCol = pipeColumns[PIPE_TOTAL - 1];
+      const lastX = PIPE_COLS[lastCol];
+
+      // Vertical pipe going down to tank
+      const endRow = document.createElement('div');
+      endRow.className = 'pipe-seg-row';
+      endRow.id = 'pipe-seg-end';
+      endRow.style.cssText = 'position:relative;height:65px;margin:0 12px;';
+
+      const v = document.createElement('div');
+      v.className = 'pipe-v';
+      v.id = 'pv-end';
+      v.style.cssText = 'left:' + lastX + '%;top:0;height:100%;transform:translateX(-50%);';
+      endRow.appendChild(v);
+      pipeView.appendChild(endRow);
+
+      // Tank/bucket at the end
+      const tank = document.createElement('div');
+      tank.style.cssText = 'display:flex;justify-content:center;padding-top:4px;';
+      tank.innerHTML = '<div class="pipe-tank" id="pipe-tank"><i class="fas fa-house-chimney"></i></div>';
+      pipeView.appendChild(tank);
+      pipeView.scrollTop = pipeView.scrollHeight;
+    }
+
+    function addPipeSegment(index, word, answer) {
+      const pipeView = document.getElementById('pipe-pipeline-view');
+      const curCol = pipeColumns[index];
+      const prevCol = index === 0 ? 1 : pipeColumns[index - 1];
+      const curX = PIPE_COLS[curCol];
+      const prevX = PIPE_COLS[prevCol];
+
+      // --- Connector row (pipes + fitting) ---
+      const connH = prevCol === curCol ? 65 : 75;
+      const conn = document.createElement('div');
+      conn.className = 'pipe-seg-row';
+      conn.id = 'pipe-seg-' + index;
+      conn.style.cssText = 'position:relative;height:' + connH + 'px;margin:0 12px;';
+
+      if (prevCol === curCol) {
+        // Straight down
+        const v = document.createElement('div');
+        v.className = 'pipe-v';
+        v.id = 'pv1-' + index;
+        v.style.cssText = 'left:' + prevX + '%;top:0;height:100%;transform:translateX(-50%);';
+        conn.appendChild(v);
+
+        // Fitting in the middle (shows this is a connection point)
+        const fit = document.createElement('div');
+        fit.className = 'pipe-fitting';
+        fit.id = 'pipe-blk-' + index;
+        fit.style.cssText = 'left:' + curX + '%;top:50%;';
+        fit.setAttribute('data-num', index + 1);
+        conn.appendChild(fit);
+      } else {
+        // Vertical down from prev
+        const v1 = document.createElement('div');
+        v1.className = 'pipe-v';
+        v1.id = 'pv1-' + index;
+        v1.style.cssText = 'left:' + prevX + '%;top:0;height:45%;transform:translateX(-50%);';
+        conn.appendChild(v1);
+
+        // Horizontal
+        const leftP = Math.min(prevX, curX);
+        const widthP = Math.abs(prevX - curX);
+        const h = document.createElement('div');
+        h.className = 'pipe-h';
+        h.id = 'ph-' + index;
+        h.style.cssText = 'left:' + leftP + '%;top:calc(45% - 5px);width:' + widthP + '%;';
+        conn.appendChild(h);
+
+        // Joint at turn
+        const j1 = document.createElement('div');
+        j1.className = 'pipe-joint';
+        j1.id = 'pj1-' + index;
+        j1.style.cssText = 'left:' + prevX + '%;top:45%;';
+        conn.appendChild(j1);
+
+        // Fitting at destination (the connection point)
+        const fit = document.createElement('div');
+        fit.className = 'pipe-fitting';
+        fit.id = 'pipe-blk-' + index;
+        fit.style.cssText = 'left:' + curX + '%;top:45%;';
+        fit.setAttribute('data-num', index + 1);
+        conn.appendChild(fit);
+
+        // Vertical down from fitting
+        const v2 = document.createElement('div');
+        v2.className = 'pipe-v';
+        v2.id = 'pv2-' + index;
+        v2.style.cssText = 'left:' + curX + '%;top:45%;height:55%;transform:translateX(-50%);';
+        conn.appendChild(v2);
+      }
+
+      pipeView.appendChild(conn);
+      pipeView.scrollTop = pipeView.scrollHeight;
+    }
+
+    async function startWaterFlow() {
+      const buildPhase = document.getElementById('pipe-build-phase');
+      const flowPhase = document.getElementById('pipe-flow-phase');
+
+      buildPhase.classList.add('hidden');
+      flowPhase.classList.remove('hidden');
+      document.getElementById('pipe-step-counter').textContent = '';
+
+      // Clone the built pipeline into flow view
+      const srcView = document.getElementById('pipe-pipeline-view');
+      const flowView = document.getElementById('pipe-flow-view');
+      flowView.innerHTML = srcView.innerHTML;
+
+      const statusEl = document.getElementById('pipe-flow-status');
+      const titleEl = document.getElementById('pipe-flow-title');
+      statusEl.textContent = '';
+      statusEl.className = 'pipe-flow-status';
+      titleEl.textContent = 'Запускаємо воду...';
+
+      let waterReached = 0;
+
+      for (let i = 0; i < pipeAnswers.length; i++) {
+        const v1 = flowView.querySelector('#pv1-' + i);
+        const ph = flowView.querySelector('#ph-' + i);
+        const v2 = flowView.querySelector('#pv2-' + i);
+        const j1 = flowView.querySelector('#pj1-' + i);
+        const j2 = flowView.querySelector('#pj2-' + i);
+        const blk = flowView.querySelector('#pipe-blk-' + i);
+
+        // Scroll to current segment
+        const segRow = flowView.querySelector('#pipe-seg-' + i);
+        if (segRow) segRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Animate water through pipes
+        if (v1) { v1.classList.add('water'); await sleep(200); }
+        if (j1) { j1.classList.add('water'); }
+        if (ph) { ph.classList.add('water'); await sleep(250); }
+        if (v2) { v2.classList.add('water'); await sleep(200); }
+        if (j2) { j2.classList.add('water'); }
+
+        if (pipeAnswers[i].correct) {
+          blk.classList.add('water-pass');
+          addWordLabel(blk, pipeAnswers[i].word, pipeAnswers[i].translation, false);
+          playPipeWaterSuccess(waterReached);
+          waterReached++;
+          await sleep(350);
+        } else {
+          // LEAK!
+          blk.classList.add('water-leak');
+          createLeakSplash(blk);
+          playPipeLeakSound();
+          addWordLabel(blk, pipeAnswers[i].word, '<s style="opacity:0.4">' + pipeAnswers[i].chosenTranslation + '</s> <span style="color:#ef4444">' + pipeAnswers[i].translation + '</span>', true);
+
+          await sleep(1200);
+          titleEl.textContent = '';
+          statusEl.textContent = 'Прорив на з\'єднанні ' + (i + 1) + '!';
+          statusEl.className = 'pipe-flow-status failure';
+          await sleep(1500);
+          showPipeFlowResult(waterReached);
+          return;
+        }
+      }
+
+      // All correct — animate endpoint
+      const endV = flowView.querySelector('#pv-end');
+      if (endV) { endV.classList.add('water'); await sleep(300); }
+      const tank = flowView.querySelector('#pipe-tank');
+      if (tank) { tank.classList.add('water-reached'); }
+
+      titleEl.textContent = '';
+      statusEl.textContent = '';
+      await sleep(800);
+      showPipeFlowResult(pipeAnswers.length);
+    }
+
+    function addWordLabel(fittingEl, word, translationHtml, isLeak) {
+      const row = fittingEl.parentElement;
+      const label = document.createElement('div');
+      label.className = 'pipe-word-label' + (isLeak ? ' leak' : '');
+      label.innerHTML = '<span class="pw">' + word + '</span><span class="parr"> \u2192 </span><span class="pa">' + translationHtml + '</span>';
+      // Position label next to fitting
+      const fitRect = fittingEl.style;
+      const fitLeft = parseFloat(fitRect.left);
+      if (fitLeft > 50) {
+        label.style.right = (100 - fitLeft + 5) + '%';
+        label.style.top = fitRect.top;
+        label.style.transform = 'translateY(-50%)';
+      } else {
+        label.style.left = (fitLeft + 5) + '%';
+        label.style.top = fitRect.top;
+        label.style.transform = 'translateY(-50%)';
+      }
+      row.appendChild(label);
+    }
+
+    function createLeakSplash(el) {
+      var splash = document.createElement('div');
+      splash.className = 'pipe-leak-splash';
+      el.style.overflow = 'visible';
+      el.appendChild(splash);
+      for (var i = 0; i < 14; i++) {
+        var drop = document.createElement('div');
+        drop.className = 'pipe-leak-drop';
+        var angle = (i / 14) * Math.PI * 2;
+        var dist = 25 + Math.random() * 35;
+        drop.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+        drop.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+        drop.style.animationDelay = (Math.random() * 0.15) + 's';
+        splash.appendChild(drop);
+      }
+    }
+
+    function sleep(ms) {
+      return new Promise(function(resolve) { setTimeout(resolve, ms); });
+    }
+
+    function showPipeFlowResult(waterReached) {
+      var total = pipeAnswers.length;
+      var correctCount = pipeAnswers.filter(function(a) { return a.correct; }).length;
+      var totalXP = correctCount * 10 + (total - correctCount) * 2;
+
+      var msg;
+      if (waterReached === total) {
+        msg = 'Трубопровід працює ідеально!';
+      } else if (waterReached >= total * 0.7) {
+        msg = 'Майже дійшла! Трохи протікає.';
+      } else if (waterReached >= total * 0.4) {
+        msg = 'Потрібен ремонт!';
+      } else {
+        msg = 'Повна аварія! Спробуй ще раз.';
+      }
+
+      var panel = document.getElementById('pipe-flow-result');
+      panel.className = 'pipe-flow-result-panel';
+      panel.style.display = 'block';
+      panel.innerHTML = '<div class="pipe-result-msg">' + msg + '</div>' +
+        '<div class="pipe-result-sub">Вода пройшла ' + waterReached + ' з ' + total + ' з\'єднань</div>' +
+        '<div class="pipe-result-xp-big">+' + totalXP + ' XP</div>' +
+        '<button class="pipe-finish-btn" onclick="finishPipeGame()">Завершити</button>';
+
+      panel.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+
+    function finishPipeGame() {
+      showConfetti();
+      backToAccount();
+    }
+
   </script>
 </body>
 
