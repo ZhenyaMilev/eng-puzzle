@@ -1907,39 +1907,6 @@
 
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-    /* Ambient Music Button */
-    .ambient-music-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: rgba(30, 30, 40, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: rgba(240, 237, 232, 0.6);
-      font-size: 18px;
-      cursor: pointer;
-      z-index: 999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-      padding: 0;
-      margin: 0;
-      width: 48px;
-    }
-
-    .ambient-music-btn.playing {
-      color: #E8A838;
-      border-color: rgba(232, 168, 56, 0.3);
-      background: rgba(232, 168, 56, 0.1);
-    }
-
-    .ambient-music-btn.hidden {
-      display: none;
-    }
 
     .grammar-lesson-block .example {
       background: rgba(255, 255, 255, 0.06);
@@ -4956,9 +4923,6 @@
   </div>
   <!-- Overlay -->
   <div class="overlay hidden" onclick="closeAllPopups()"></div>
-  <button class="ambient-music-btn hidden" id="ambient-music-btn" onclick="toggleAmbientMusic()">
-    <i class="fas fa-music"></i>
-  </button>
 
   <!-- Оверлей завантаження -->
   <div id="loading-overlay">
@@ -5057,7 +5021,7 @@
         </button>
         <button class="acc-action-btn" onclick="showDailyWords()">
           <i class="fas fa-magic"></i>
-          <span>Слова дня</span>
+          <span>Поповни словник</span>
         </button>
         <button class="acc-action-btn" onclick="loadUserProgress()">
           <i class="fa-solid fa-chart-line"></i>
@@ -5201,7 +5165,7 @@
       <button onclick="hideMyVocabulatyAndOpenDailyWords()" id="add-word-from-my-vocabulary"
         class="add-word-from-my-vocabulary hidden">
         <i class="fas fa-magic"></i>
-        Слова дня
+        Поповни словник
       </button>
       </div><!-- /vocab-words-content -->
 
@@ -6600,7 +6564,6 @@ function exitSpeedTraining() {
         loadGamificationData();
         loadDailyGoal();
         loadWeeklyQuest();
-        showAmbientButton();
       }
       // Ховаємо прелоадер після завантаження
       const preloader = document.getElementById('page-preloader');
@@ -7765,103 +7728,6 @@ Return ONLY the JSON array, no other text.`;
         console.log('Bulk add error:', e);
         showNotification('Помилка додавання', 'warning');
       } finally { hideLoading(); }
-    }
-
-    // ========== AMBIENT MUSIC ==========
-    let ambientCtx = null;
-    let ambientPlaying = false;
-    let ambientNodes = [];
-
-    function showAmbientButton() {
-      document.getElementById('ambient-music-btn').classList.remove('hidden');
-    }
-
-    function toggleAmbientMusic() {
-      if (ambientPlaying) {
-        stopAmbientMusic();
-      } else {
-        startAmbientMusic();
-      }
-    }
-
-    function startAmbientMusic() {
-      if (!ambientCtx) ambientCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (ambientCtx.state === 'suspended') ambientCtx.resume();
-
-      // Brown noise (warm, deep ambient)
-      const bufferSize = 2 * ambientCtx.sampleRate;
-      const buffer = ambientCtx.createBuffer(1, bufferSize, ambientCtx.sampleRate);
-      const data = buffer.getChannelData(0);
-      let lastOut = 0;
-      for (let i = 0; i < bufferSize; i++) {
-        const white = Math.random() * 2 - 1;
-        data[i] = (lastOut + (0.02 * white)) / 1.02;
-        lastOut = data[i];
-        data[i] *= 3.5;
-      }
-      const noiseSource = ambientCtx.createBufferSource();
-      noiseSource.buffer = buffer;
-      noiseSource.loop = true;
-
-      const noiseGain = ambientCtx.createGain();
-      noiseGain.gain.value = 0.06;
-
-      const noiseFilter = ambientCtx.createBiquadFilter();
-      noiseFilter.type = 'lowpass';
-      noiseFilter.frequency.value = 300;
-
-      noiseSource.connect(noiseFilter);
-      noiseFilter.connect(noiseGain);
-      noiseGain.connect(ambientCtx.destination);
-      noiseSource.start();
-
-      // Soft pad oscillators (ethereal chords)
-      const padFreqs = [130.81, 164.81, 196.00, 261.63]; // C3, E3, G3, C4
-      const padNodes = padFreqs.map(freq => {
-        const osc = ambientCtx.createOscillator();
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-
-        const gain = ambientCtx.createGain();
-        gain.gain.value = 0.008;
-
-        const filter = ambientCtx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = 800;
-
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(ambientCtx.destination);
-        osc.start();
-
-        // Slow volume oscillation for movement
-        const lfo = ambientCtx.createOscillator();
-        lfo.frequency.value = 0.05 + Math.random() * 0.1;
-        const lfoGain = ambientCtx.createGain();
-        lfoGain.gain.value = 0.004;
-        lfo.connect(lfoGain);
-        lfoGain.connect(gain.gain);
-        lfo.start();
-
-        return { osc, gain, filter, lfo, lfoGain };
-      });
-
-      ambientNodes = [{ source: noiseSource, gain: noiseGain, filter: noiseFilter }, ...padNodes];
-      ambientPlaying = true;
-      document.getElementById('ambient-music-btn').classList.add('playing');
-    }
-
-    function stopAmbientMusic() {
-      ambientNodes.forEach(node => {
-        try {
-          if (node.source) node.source.stop();
-          if (node.osc) node.osc.stop();
-          if (node.lfo) node.lfo.stop();
-        } catch (e) {}
-      });
-      ambientNodes = [];
-      ambientPlaying = false;
-      document.getElementById('ambient-music-btn').classList.remove('playing');
     }
 
     // ========== GRAMMAR ==========
