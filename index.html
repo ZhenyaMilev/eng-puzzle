@@ -4862,7 +4862,7 @@
       flex-shrink:0; transition:all 0.2s;
     }
     .sc-send-btn {
-      background:linear-gradient(135deg,#34d399,#059669); color:#fff;
+      background:linear-gradient(135deg,#34d399,#059669); color:#fff; margin:0;
     }
     .sc-send-btn:disabled { opacity:0.3; }
     .sc-mic-btn {
@@ -14524,20 +14524,16 @@ Return ONLY the JSON array, no other text.`;
           return;
         }
         var userId = auth.currentUser.uid;
-        var snap = await db.collection('users').doc(userId).collection('scSessions')
-          .limit(25).get();
-        if (snap.empty) {
+        var userDoc = await db.collection('users').doc(userId).get();
+        var history = (userDoc.exists && userDoc.data().scHistory) ? userDoc.data().scHistory : [];
+        if (history.length === 0) {
           el.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.4);padding:40px 0;">Історії поки немає. Проведи першу розмову!</p>';
           return;
         }
 
-        // Sort client-side by date descending
-        var docs = snap.docs.map(function(doc) { return doc.data(); });
-        docs.sort(function(a, b) { return (b.date ? b.date.seconds : 0) - (a.date ? a.date.seconds : 0); });
-
         var html = '';
-        docs.forEach(function(s) {
-          var d = s.date ? s.date.toDate() : new Date();
+        history.forEach(function(s) {
+          var d = s.date ? new Date(s.date) : new Date();
           var dateStr = d.toLocaleDateString('uk-UA', { day:'numeric', month:'short' }) + ' ' + d.toLocaleTimeString('uk-UA', { hour:'2-digit', minute:'2-digit' });
           var errCount = s.errorsCount || 0;
 
@@ -15211,7 +15207,7 @@ Rules:
       }
     }
 
-    function scShowAnalysis(analysis, xpEarned) {
+    async function scShowAnalysis(analysis, xpEarned) {
       document.getElementById('sc-chat-screen').classList.add('hidden');
       document.getElementById('sc-analysis-screen').classList.remove('hidden');
       document.getElementById('sc-analysis-screen').querySelector('h3').textContent = 'Розмова завершена!';
@@ -15219,12 +15215,25 @@ Rules:
       document.getElementById('sc-analysis-subtitle').textContent =
         scMessageCount + ' повідомлень • +' + xpEarned + ' XP';
 
-      // Save session to Firestore
+      // Load existing words and phrases to check duplicates
+      var existingWords = new Set();
+      var existingPhrases = new Set();
+      try {
+        var userId = auth.currentUser.uid;
+        var [wSnap, pSnap] = await Promise.all([
+          db.collection('users').doc(userId).collection('words').get(),
+          db.collection('users').doc(userId).collection('phrases').get()
+        ]);
+        wSnap.docs.forEach(function(d) { existingWords.add(d.id.toLowerCase()); });
+        pSnap.docs.forEach(function(d) { existingPhrases.add(d.id); });
+      } catch(e) {}
+
+      // Save session to user doc (scHistory array, max 25)
       try {
         var topic = scConfig.topic === '__custom__' ? scConfig.customTopic : scConfig.topic;
         var userId = auth.currentUser.uid;
-        db.collection('users').doc(userId).collection('scSessions').add({
-          date: firebase.firestore.Timestamp.now(),
+        var session = {
+          date: new Date().toISOString(),
           topic: topic,
           level: scConfig.level,
           format: scConfig.format,
@@ -15233,7 +15242,12 @@ Rules:
           errorsCount: (analysis.errors || []).length,
           summary: analysis.summary || '',
           errors: (analysis.errors || []).slice(0, 10),
-        });
+        };
+        var userDoc = await db.collection('users').doc(userId).get();
+        var history = (userDoc.exists && userDoc.data().scHistory) ? userDoc.data().scHistory : [];
+        history.unshift(session);
+        if (history.length > 25) history = history.slice(0, 25);
+        await db.collection('users').doc(userId).update({ scHistory: history });
       } catch(e) { console.error('Save session error:', e); }
 
       let html = '';
@@ -15271,11 +15285,12 @@ Rules:
         html += '<div class="sc-analysis-card"><h4>📚 Слова для вивчення</h4><div style="display:flex;flex-wrap:wrap;">';
         analysis.words.forEach(w => {
           var idx = suggIdx++;
+          var alreadyAdded = existingWords.has(w.word.toLowerCase());
           window._scSuggested.push({ text: w.word, translation: w.translation, type: 'word' });
           html += '<div class="sc-word-chip">' +
             '<i class="fas fa-volume-up" style="color:rgba(240,237,232,0.4);cursor:pointer;margin-right:4px;font-size:12px;" onclick="scSpeak(\'' + scEscape(w.word).replace(/'/g,"&#39;") + '\')"></i>' +
             '<strong>' + scEscape(w.word) + '</strong> - ' + scEscape(w.translation) +
-            ' <i class="fas fa-plus sc-add-word" onclick="scAddItem(this,' + idx + ')"></i></div>';
+            (alreadyAdded ? ' <i class="fas fa-check sc-added"></i>' : ' <i class="fas fa-plus sc-add-word" onclick="scAddItem(this,' + idx + ')"></i>') + '</div>';
         });
         html += '</div></div>';
       }
@@ -15298,10 +15313,12 @@ Rules:
       if (allPhrases.length > 0) {
         html += '<div class="sc-analysis-card"><h4>💬 Фрази для вивчення</h4><div style="display:flex;flex-wrap:wrap;">';
         allPhrases.forEach(p => {
+          var phraseId = p.text.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+          var alreadyAdded = existingPhrases.has(phraseId);
           html += '<div class="sc-word-chip">' +
             '<i class="fas fa-volume-up" style="color:rgba(240,237,232,0.4);cursor:pointer;margin-right:4px;font-size:12px;" onclick="scSpeak(\'' + scEscape(p.text).replace(/'/g,"&#39;") + '\')"></i>' +
             '<strong>' + scEscape(p.text) + '</strong> - ' + scEscape(p.translation) +
-            ' <i class="fas fa-plus sc-add-word" onclick="scAddItem(this,' + p.idx + ')"></i></div>';
+            (alreadyAdded ? ' <i class="fas fa-check sc-added"></i>' : ' <i class="fas fa-plus sc-add-word" onclick="scAddItem(this,' + p.idx + ')"></i>') + '</div>';
         });
         html += '</div></div>';
       }
