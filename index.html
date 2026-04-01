@@ -14517,8 +14517,12 @@ Return ONLY the JSON array, no other text.`;
 
     async function scLoadHistory() {
       var el = document.getElementById('sc-history');
-      el.innerHTML = '';
+      el.innerHTML = '<div style="text-align:center;padding:20px;"><div class="spinner"></div></div>';
       try {
+        if (!auth.currentUser) {
+          el.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.4);padding:40px 0;">Спочатку увійдіть в акаунт</p>';
+          return;
+        }
         var userId = auth.currentUser.uid;
         var snap = await db.collection('users').doc(userId).collection('scSessions')
           .limit(25).get();
@@ -14568,7 +14572,7 @@ Return ONLY the JSON array, no other text.`;
         el.innerHTML = html;
       } catch(e) {
         console.error('Load history error:', e);
-        el.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.4);padding:40px 0;">Помилка завантаження історії</p>';
+        el.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.4);padding:40px 0;">Помилка: ' + scEscape(e.message || String(e)) + '</p>';
       }
     }
 
@@ -15130,11 +15134,15 @@ Start the conversation with a greeting and an opening question about the topic.`
       scStopAudio();
       if (scIsRecording) scStopRecording();
 
-      // Disable input
-      document.getElementById('sc-input-area').style.display = 'none';
-
-      // Add finishing message
-      scAddMessage('bot', 'Great talk! Let me analyze our conversation... 🎯');
+      // Show loader
+      document.getElementById('sc-chat-screen').classList.add('hidden');
+      document.getElementById('sc-analysis-screen').classList.remove('hidden');
+      document.getElementById('sc-analysis-content').innerHTML = '';
+      document.getElementById('sc-analysis-subtitle').textContent = '';
+      document.getElementById('sc-analysis-screen').querySelector('h3').textContent = 'Аналізуємо розмову...';
+      document.getElementById('sc-analysis-screen').querySelector('.sc-start-btn').classList.add('hidden');
+      // Show spinner
+      document.getElementById('sc-analysis-content').innerHTML = '<div style="text-align:center;padding:40px 0;"><div class="spinner"></div><p style="color:rgba(240,237,232,0.5);margin-top:16px;">Зачекайте, аналізуємо вашу розмову...</p></div>';
 
       // Award XP
       const xpEarned = scMessageCount * 10;
@@ -15206,6 +15214,8 @@ Rules:
     function scShowAnalysis(analysis, xpEarned) {
       document.getElementById('sc-chat-screen').classList.add('hidden');
       document.getElementById('sc-analysis-screen').classList.remove('hidden');
+      document.getElementById('sc-analysis-screen').querySelector('h3').textContent = 'Розмова завершена!';
+      document.getElementById('sc-analysis-screen').querySelector('.sc-start-btn').classList.remove('hidden');
       document.getElementById('sc-analysis-subtitle').textContent =
         scMessageCount + ' повідомлень • +' + xpEarned + ' XP';
 
