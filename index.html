@@ -14489,6 +14489,7 @@ Return ONLY the JSON array, no other text.`;
     let scAudioBlobs = {}; // store user voice blobs by message id
     let scMsgTexts = {}; // store message texts for TTS replay
     let scMsgIdCounter = 0;
+    let scVoiceTranscripts = []; // store user voice transcriptions for pronunciation analysis
 
     async function showSpeakingClub() {
       toggleMainTitle();
@@ -14720,13 +14721,16 @@ Return ONLY the JSON array, no other text.`;
 - Avoid complex grammar — stick to present simple, past simple, "going to" future
 - No idioms or phrasal verbs`,
         'Intermediate': `- Respond in English ONLY (short messages, 1-3 sentences max)
-- Adapt vocabulary to intermediate level
-- If the user writes in Ukrainian, understand it and respond in English — gently provide the English version
-- You can use common phrasal verbs and simple idioms`,
+- Sound like a REAL person texting a friend: use "gonna", "wanna", "kinda", "tbh", "ngl", "btw"
+- Use common phrasal verbs: "hang out", "figure out", "check out", "end up", "turn out"
+- Use casual connectors: "I mean", "like", "you know", "honestly", "the thing is"
+- If the user writes in Ukrainian, understand it and respond in English — gently provide the English version`,
         'Upper': `- Respond in English ONLY (1-3 sentences)
-- Use natural, advanced vocabulary
-- If the user writes in Ukrainian, respond in English with the translation of what they meant
-- Use idioms, phrasal verbs, nuanced expressions freely`,
+- Talk like you're texting your best friend: contractions, slang, filler words, casual grammar
+- Use real colloquial expressions: "no way", "that's sick", "I'm down", "fair enough", "lowkey", "it hits different"
+- Use phrasal verbs heavily: "pull off", "come across", "get into", "put up with", "look into"
+- Use idioms naturally: "it's a no-brainer", "on the same page", "the whole nine yards"
+- If the user writes in Ukrainian, respond in English with the translation of what they meant`,
       };
 
       const systemPrompt = `You are a native English speaker named Sam chatting casually. You have real hobbies, preferences, and stories. Talk like a real friend — share your opinion, tell anecdotes, react with emotion. Use contractions, colloquial phrases, slang. Do NOT interview the user — have a real back-and-forth conversation.
