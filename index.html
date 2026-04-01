@@ -14521,15 +14521,18 @@ Return ONLY the JSON array, no other text.`;
       try {
         var userId = auth.currentUser.uid;
         var snap = await db.collection('users').doc(userId).collection('scSessions')
-          .orderBy('date', 'desc').limit(25).get();
+          .limit(25).get();
         if (snap.empty) {
           el.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.4);padding:40px 0;">Історії поки немає. Проведи першу розмову!</p>';
           return;
         }
 
-        var html = '<div class="sc-config-label" style="margin-bottom:10px;">Останні розмови</div>';
-        snap.forEach(doc => {
-          var s = doc.data();
+        // Sort client-side by date descending
+        var docs = snap.docs.map(function(doc) { return doc.data(); });
+        docs.sort(function(a, b) { return (b.date ? b.date.seconds : 0) - (a.date ? a.date.seconds : 0); });
+
+        var html = '';
+        docs.forEach(function(s) {
           var d = s.date ? s.date.toDate() : new Date();
           var dateStr = d.toLocaleDateString('uk-UA', { day:'numeric', month:'short' }) + ' ' + d.toLocaleTimeString('uk-UA', { hour:'2-digit', minute:'2-digit' });
           var errCount = s.errorsCount || 0;
