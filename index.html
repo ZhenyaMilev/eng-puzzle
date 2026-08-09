@@ -809,6 +809,17 @@
       transform: translateY(0);
     }
 
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .google-btn i {
+      font-size: 20px;
+    }
+
     input[type="text"],
     input[type="email"],
     input[type="password"] {
@@ -4840,6 +4851,7 @@
     .sc-msg .sc-msg-text-under {
       font-size:12px; color:rgba(240,237,232,0.4); margin-top:6px;
     }
+    .sc-msg .sc-vocab { background:rgba(232,168,56,0.18); color:#E8A838; font-weight:700; padding:0 3px; border-radius:4px; }
     .sc-typing { font-style:italic; color:rgba(240,237,232,0.4); border:none; background:none; padding:4px 16px; }
     .sc-typing::after { content:''; animation:scDots 1.2s steps(4,end) infinite; }
     @keyframes scDots { 0% { content:''; } 25% { content:'.'; } 50% { content:'..'; } 75% { content:'...'; } }
@@ -5021,6 +5033,7 @@
       <input type="password" id="login-password" placeholder="Пароль">
       <div id="login-password-error" class="error-message"></div>
       <button onclick="login()">Увійти</button>
+      <button class="google-btn" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Продовжити з Google</button>
       <button class="button-with-icon link-button register-link" onclick="showRegister()">Зареєструватися</button>
     </div>
     <!-- Форма реєстрації -->
@@ -5031,6 +5044,7 @@
       <input type="password" id="register-password" placeholder="Пароль">
       <div id="register-password-error" class="error-message"></div>
       <button onclick="register()">Зареєструватися</button>
+      <button class="google-btn" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Продовжити з Google</button>
       <button class="button-with-icon link-button register-link" onclick="showLogin()">Вже є акаунт?
         Увійти</button>
     </div>
@@ -6055,6 +6069,15 @@
             <div class="sc-config-label">Голос співрозмовника</div>
             <div class="sc-chips" id="sc-voices"></div>
           </div>
+          <div>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+              <input type="checkbox" id="sc-use-my-words" checked onchange="scConfig.useMyWords=this.checked" style="accent-color:#E8A838;width:18px;height:18px;flex-shrink:0;">
+              <div>
+                <span style="font-size:14px;font-weight:600;color:#F0EDE8;">Використовувати мої слова у розмові</span>
+                <div style="font-size:12px;color:rgba(240,237,232,0.4);margin-top:2px;">Співрозмовник вплітатиме слова з твого словника</div>
+              </div>
+            </label>
+          </div>
           <p style="font-size:12px;color:rgba(240,237,232,0.35);text-align:center;margin:4px 0 0;">
             Можеш говорити українською, якщо не знаєш слово — бот зрозуміє. Після розмови отримаєш аналіз помилок.
           </p>
@@ -6695,6 +6718,42 @@ function exitSpeedTraining() {
         updateUI();
       } catch (error) {
         document.getElementById('login-password-error').textContent = error.message;
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Вхід через Google
+    async function loginWithGoogle() {
+      clearErrors();
+      showLoading();
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+
+        const userDocRef = db.collection('users').doc(user.uid);
+        const userDoc = await userDocRef.get();
+
+        if (!userDoc.exists) {
+          const registrationDate = new Date();
+          const subscriptionExpiration = new Date();
+          subscriptionExpiration.setDate(subscriptionExpiration.getDate() + 3); // 3 дня подписки
+
+          await userDocRef.set({
+            email: user.email,
+            registrationDate: firebase.firestore.Timestamp.fromDate(registrationDate),
+            subscriptionExpiration: firebase.firestore.Timestamp.fromDate(subscriptionExpiration),
+          });
+        }
+
+        updateUI();
+      } catch (error) {
+        if (error.code !== 'auth/popup-closed-by-user') {
+          const loginForm = document.getElementById('login-form');
+          const targetId = loginForm.classList.contains('hidden') ? 'register-password-error' : 'login-password-error';
+          document.getElementById(targetId).textContent = error.message;
+        }
       } finally {
         hideLoading();
       }
@@ -14477,7 +14536,7 @@ Return ONLY the JSON array, no other text.`;
       { id:'onyx', label:'Onyx (низький)' },
     ];
 
-    let scConfig = { topic:'', customTopic:'', level:'Elementary', format:'text', style:'friendly', duration:2, voice:'nova' };
+    let scConfig = { topic:'', customTopic:'', level:'Elementary', format:'text', style:'friendly', duration:2, voice:'nova', useMyWords:true };
     let scChatHistory = [];
     let scTimerInterval = null;
     let scTimeLeft = 0;
@@ -14490,6 +14549,7 @@ Return ONLY the JSON array, no other text.`;
     let scMsgTexts = {}; // store message texts for TTS replay
     let scMsgIdCounter = 0;
     let scVoiceTranscripts = []; // store user voice transcriptions for pronunciation analysis
+    let scActiveWords = []; // user's vocabulary words for Sam to weave into the conversation
 
     async function showSpeakingClub() {
       toggleMainTitle();
@@ -14513,6 +14573,7 @@ Return ONLY the JSON array, no other text.`;
           scConfig.style = saved.style || 'friendly';
           scConfig.duration = saved.duration || 2;
           scConfig.voice = saved.voice || 'nova';
+          scConfig.useMyWords = saved.useMyWords !== false;
         }
       } catch(e) {}
       scRenderConfig();
@@ -14527,7 +14588,16 @@ Return ONLY the JSON array, no other text.`;
           return;
         }
         var userId = auth.currentUser.uid;
-        var userDoc = await db.collection('users').doc(userId).get();
+        var [userDoc, wSnap, pSnap] = await Promise.all([
+          db.collection('users').doc(userId).get(),
+          db.collection('users').doc(userId).collection('words').get(),
+          db.collection('users').doc(userId).collection('phrases').get()
+        ]);
+        var existingWords = new Set();
+        var existingPhrases = new Set();
+        wSnap.docs.forEach(function(d) { existingWords.add(d.id.toLowerCase()); });
+        pSnap.docs.forEach(function(d) { existingPhrases.add(d.id); });
+
         var history = (userDoc.exists && userDoc.data().scHistory) ? userDoc.data().scHistory : [];
         if (history.length === 0) {
           el.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.4);padding:40px 0;">Історії поки немає. Проведи першу розмову!</p>';
@@ -14535,13 +14605,15 @@ Return ONLY the JSON array, no other text.`;
         }
 
         var html = '';
-        history.forEach(function(s) {
+        history.forEach(function(s, i) {
           var d = s.date ? new Date(s.date) : new Date();
           var dateStr = d.toLocaleDateString('uk-UA', { day:'numeric', month:'short' }) + ' ' + d.toLocaleTimeString('uk-UA', { hour:'2-digit', minute:'2-digit' });
           var errCount = s.errorsCount || 0;
+          var hasDetails = !!(s.summary || (s.errors && s.errors.length) || (s.words && s.words.length) || (s.phrases && s.phrases.length) || (s.grammar && s.grammar.length));
 
-          html += '<div class="sc-analysis-card" style="margin-bottom:8px;padding:12px;cursor:pointer;" onclick="this.querySelector(\'.sc-hist-details\').classList.toggle(\'hidden\')">' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+          html += '<div class="sc-analysis-card" style="margin-bottom:8px;padding:12px;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;' + (hasDetails ? 'cursor:pointer;' : '') + '"' +
+            (hasDetails ? ' onclick="this.parentElement.querySelector(\'.sc-hist-details\').classList.toggle(\'hidden\')"' : '') + '>' +
             '<div><strong style="font-size:14px;color:#F0EDE8;">' + scEscape(s.topic || '?') + '</strong>' +
             '<div style="font-size:11px;color:rgba(240,237,232,0.4);margin-top:2px;">' + dateStr + ' • ' + (s.messages || 0) + ' повідомлень • ' + (s.level || '') + '</div></div>' +
             '<div style="text-align:right;">' +
@@ -14549,21 +14621,11 @@ Return ONLY the JSON array, no other text.`;
             (errCount > 0 ? '<div style="font-size:11px;color:#ef4444;">' + errCount + ' помил.</div>' : '<div style="font-size:11px;color:#34d399;">без помилок</div>') +
             '</div></div>';
 
-          // Expandable details
-          if ((s.errors && s.errors.length > 0) || s.summary) {
-            html += '<div class="sc-hist-details hidden" style="margin-top:10px;border-top:1px solid rgba(255,255,255,0.05);padding-top:10px;">';
-            if (s.summary) {
-              html += '<p style="font-size:12px;color:rgba(240,237,232,0.6);margin:0 0 8px;">' + scEscape(s.summary) + '</p>';
-            }
-            if (s.errors && s.errors.length > 0) {
-              s.errors.forEach(function(e) {
-                html += '<div style="font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03);">' +
-                  '<span style="color:#ef4444;">' + scEscape(e.original) + '</span>' +
-                  ' <span style="color:rgba(240,237,232,0.2);">→</span> ' +
-                  '<span style="color:#34d399;">' + scEscape(e.corrected) + '</span></div>';
-              });
-            }
-            html += '</div>';
+          // Expandable details — full analysis, same as the post-session screen
+          if (hasDetails) {
+            html += '<div class="sc-hist-details hidden" style="margin-top:10px;border-top:1px solid rgba(255,255,255,0.05);padding-top:10px;">' +
+              scBuildAnalysisHTML(s, existingWords, existingPhrases, 'hist' + i, { bare: true }) +
+              '</div>';
           }
 
           html += '</div>';
@@ -14625,6 +14687,10 @@ Return ONLY the JSON array, no other text.`;
       document.getElementById('sc-voices').innerHTML = SC_VOICES.map(v =>
         `<div class="sc-chip${scConfig.voice===v.id?' active':''}" onclick="scSelectChip(this,'voice','${v.id}')">${v.label}</div>`
       ).join('');
+
+      // Use-my-words toggle
+      var umwEl = document.getElementById('sc-use-my-words');
+      if (umwEl) umwEl.checked = scConfig.useMyWords !== false;
 
       scUpdateStartBtn();
     }
@@ -14733,6 +14799,32 @@ Return ONLY the JSON array, no other text.`;
 - If the user writes in Ukrainian, respond in English with the translation of what they meant`,
       };
 
+      // Gather the user's vocabulary so Sam can weave it into the conversation
+      scActiveWords = [];
+      let vocabPromptBlock = '';
+      if (scConfig.useMyWords !== false) {
+        try {
+          const uid = auth.currentUser.uid;
+          const wSnap = await db.collection('users').doc(uid).collection('words').orderBy('dateAdded', 'desc').limit(80).get();
+          const all = wSnap.docs.map(d => {
+            const data = d.data() || {};
+            const inter = data.interactions || 0;
+            const acc = inter > 0 ? (data.correctAnswers || 0) / inter * 100 : 0;
+            const mastered = acc > 90 && inter >= 10;
+            return { word: d.id, mastered: mastered, learning: inter >= 3 && !mastered };
+          });
+          // Prefer words still being learned (seen but not mastered), then newer words, then mastered
+          let pool = all.filter(w => w.learning).map(w => w.word);
+          if (pool.length < 12) pool = pool.concat(all.filter(w => !w.learning && !w.mastered).map(w => w.word));
+          if (pool.length < 8) pool = pool.concat(all.filter(w => w.mastered).map(w => w.word));
+          pool = [...new Set(pool)].sort(() => Math.random() - 0.5);
+          scActiveWords = pool.slice(0, 15);
+        } catch (e) { scActiveWords = []; }
+        if (scActiveWords.length >= 3) {
+          vocabPromptBlock = `\nVOCABULARY GOAL — the user is actively learning these English words: ${scActiveWords.join(', ')}.\n- Naturally weave SOME of these words into YOUR OWN messages where they fit the topic — aim for 1-2 per message, never a long list.\n- Only use a word when it genuinely fits; never force one and never just enumerate them. Spread them across the whole conversation.\n- Keep every sentence at the user's level (${scConfig.level}). These target words are the only "harder" words you may use.\n- Do NOT point out that you're using these words and do NOT translate them.\n`;
+        }
+      }
+
       const systemPrompt = `You are a native English speaker named Sam chatting casually. You have real hobbies, preferences, and stories. Talk like a real friend — share your opinion, tell anecdotes, react with emotion. Use contractions, colloquial phrases, slang. Do NOT interview the user — have a real back-and-forth conversation.
 
 RULES:
@@ -14747,7 +14839,7 @@ ${levelRules[scConfig.level] || levelRules['Intermediate']}
 - Do NOT explain grammar unless asked
 - Do NOT use markdown formatting
 - Be natural and conversational — like a real person, not an interviewer
-
+${vocabPromptBlock}
 Start the conversation with a greeting and an opening question about the topic.`;
 
       scChatHistory = [{ role:'system', content: systemPrompt }];
@@ -14826,14 +14918,13 @@ Start the conversation with a greeting and an opening question about the topic.`
         var links = '<span style="font-size:11px;color:rgba(240,237,232,0.3);cursor:pointer;text-decoration:underline;" onclick="scShowTextWithTranslation(\'' + uid + '\',\'' + msgId + '\')">показати текст</span>';
         div.innerHTML = '<div class="sc-msg-voice" style="cursor:pointer;" onclick="' + playAction + '">' +
           '<i class="fas ' + icon + '"></i> <span>' + label + '</span></div>' +
-          '<div class="sc-msg-text-under hidden" id="' + uid + '">' + scEscape(text) + '</div>' +
+          '<div class="sc-msg-text-under hidden" id="' + uid + '">' + (role === 'bot' ? scHighlightVocab(text) : scEscape(text)) + '</div>' +
           '<div style="margin-top:4px;">' + links + '</div>';
       } else {
         var msgId2 = 'sc-m-' + (++scMsgIdCounter);
         scMsgTexts[msgId2] = text;
         if (role === 'bot') {
-          var trId2 = msgId2 + '-tr';
-          div.textContent = text;
+          div.innerHTML = scHighlightVocab(text);
         } else {
           div.textContent = text;
         }
@@ -15183,11 +15274,11 @@ Respond ONLY with JSON:
 Rules:
 - "errors": find grammar, vocabulary, and phrasing mistakes. Max 8 errors. IGNORE punctuation and capitalization errors completely — this is a speaking club, messages may come from voice transcription.
 - MOST IMPORTANT: If the user wrote any words or sentences in Ukrainian or Russian (not English), extract those and provide the correct English translation. These are words/phrases the user didn't know in English and wanted to say.
-- "words": single English WORDS that the user should learn — especially words they tried to say in Ukrainian/Russian. Include Ukrainian translation.
-- "phrases": English PHRASES (2+ words, expressions, collocations) the user should learn — especially phrases they tried to express in Ukrainian/Russian. Include Ukrainian translation.
-- "grammar": recommend 1-4 grammar topics from the list above that the user should study or review based on their errors. Use EXACT topic IDs from the list. Explain in Ukrainian why.
+- "words": ALWAYS return 4-6 useful single English WORDS for this learner to study — never an empty list. Prioritize in this order: (1) words they tried to say in Ukrainian/Russian, (2) more natural or precise words than the simple ones they used, (3) useful vocabulary from the conversation topic suited to their level (${scConfig.level}). Include a Ukrainian translation for each.
+- "phrases": English PHRASES (2+ words, expressions, collocations) the user should learn — especially phrases they tried to express in Ukrainian/Russian, plus 1-3 natural expressions that fit the conversation. Include Ukrainian translation.
+- "grammar": ALWAYS recommend 2-4 grammar topics from the list above to study or review — never an empty list — based on their mistakes and their level (${scConfig.level}). Use EXACT topic IDs from the list. Explain in Ukrainian why.
 - "summary": brief encouraging summary in Ukrainian.
-- If no errors found, return empty arrays and praise them in summary.`;
+- Even if the user made no mistakes, still fill "words" and "grammar" with helpful recommendations so they keep improving, and praise them in the summary.`;
 
       try {
         const resp = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -15244,6 +15335,9 @@ Rules:
           errorsCount: (analysis.errors || []).length,
           summary: analysis.summary || '',
           errors: (analysis.errors || []).slice(0, 10),
+          words: (analysis.words || []).slice(0, 20),
+          phrases: (analysis.phrases || []).slice(0, 20),
+          grammar: (analysis.grammar || []).slice(0, 6),
         };
         var userDoc = await db.collection('users').doc(userId).get();
         var history = (userDoc.exists && userDoc.data().scHistory) ? userDoc.data().scHistory : [];
@@ -15252,82 +15346,95 @@ Rules:
         await db.collection('users').doc(userId).update({ scHistory: history });
       } catch(e) { console.error('Save session error:', e); }
 
-      let html = '';
+      document.getElementById('sc-analysis-content').innerHTML =
+        scBuildAnalysisHTML(analysis, existingWords, existingPhrases, 'current');
+    }
+
+    // Build the full analysis HTML (summary, errors, words, phrases, grammar).
+    // regKey namespaces the add-to-dictionary registry so several views can coexist
+    // (the post-session screen and any number of expanded history cards).
+    // opts.bare renders sections without the boxed .sc-analysis-card wrapper — used
+    // inside history cards so they don't look like boxes nested in a box.
+    function scBuildAnalysisHTML(analysis, existingWords, existingPhrases, regKey, opts) {
+      analysis = analysis || {};
+      existingWords = existingWords || new Set();
+      existingPhrases = existingPhrases || new Set();
+      opts = opts || {};
+      var openTag = opts.bare ? '<div style="margin-bottom:14px;">' : '<div class="sc-analysis-card">';
+
+      window._scRegistries = window._scRegistries || {};
+      var sugg = [];
+      window._scRegistries[regKey] = sugg;
+      var suggIdx = 0;
+      var html = '';
 
       // Summary
       if (analysis.summary) {
-        html += '<div class="sc-analysis-card"><h4>📊 Підсумок</h4><p style="font-size:14px;color:rgba(240,237,232,0.8);margin:0;">' +
+        html += openTag + '<h4>📊 Підсумок</h4><p style="font-size:14px;color:rgba(240,237,232,0.8);margin:0;">' +
           scEscape(analysis.summary) + '</p></div>';
       }
 
-      // Errors — add corrected phrases to suggested phrases
-      window._scSuggested = [];
-      var suggIdx = 0;
-
+      // Errors — corrected phrases also become phrase suggestions
       if (analysis.errors && analysis.errors.length > 0) {
-        html += '<div class="sc-analysis-card"><h4>✏️ Помилки</h4>';
-        analysis.errors.forEach(e => {
+        html += openTag + '<h4>✏️ Помилки</h4>';
+        analysis.errors.forEach(function(e) {
           html += '<div class="sc-error-item">' +
             '<div class="sc-error-side"><span class="sc-error-wrong">' + scEscape(e.original) + '</span></div>' +
             '<span class="sc-error-arrow">→</span>' +
             '<div class="sc-error-side"><span class="sc-error-correct">' + scEscape(e.corrected) + '</span>' +
             (e.explanation ? '<div style="font-size:11px;color:rgba(240,237,232,0.4);margin-top:3px;">' + scEscape(e.explanation) + '</div>' : '') +
             '</div></div>';
-          // Add corrected phrase to phrases suggestions
           if (e.corrected && e.translation) {
-            window._scSuggested.push({ text: e.corrected, translation: e.translation, type: 'phrase' });
+            sugg.push({ text: e.corrected, translation: e.translation, type: 'phrase' });
           }
         });
         html += '</div>';
       }
-      // Track suggIdx after errors
-      var errPhraseCount = suggIdx = window._scSuggested.length;
+      var errPhraseCount = suggIdx = sugg.length;
 
+      // Words to learn
       if (analysis.words && analysis.words.length > 0) {
-        html += '<div class="sc-analysis-card"><h4>📚 Слова для вивчення</h4><div style="display:flex;flex-wrap:wrap;">';
-        analysis.words.forEach(w => {
+        html += openTag + '<h4>📚 Слова для вивчення</h4><div style="display:flex;flex-wrap:wrap;">';
+        analysis.words.forEach(function(w) {
           var idx = suggIdx++;
-          var alreadyAdded = existingWords.has(w.word.toLowerCase());
-          window._scSuggested.push({ text: w.word, translation: w.translation, type: 'word' });
+          var alreadyAdded = existingWords.has((w.word || '').toLowerCase());
+          sugg.push({ text: w.word, translation: w.translation, type: 'word' });
           html += '<div class="sc-word-chip">' +
             '<i class="fas fa-volume-up" style="color:rgba(240,237,232,0.4);cursor:pointer;margin-right:4px;font-size:12px;" onclick="scSpeak(\'' + scEscape(w.word).replace(/'/g,"&#39;") + '\')"></i>' +
             '<strong>' + scEscape(w.word) + '</strong> - ' + scEscape(w.translation) +
-            (alreadyAdded ? ' <i class="fas fa-check sc-added"></i>' : ' <i class="fas fa-plus sc-add-word" onclick="scAddItem(this,' + idx + ')"></i>') + '</div>';
+            (alreadyAdded ? ' <i class="fas fa-check sc-added"></i>' : ' <i class="fas fa-plus sc-add-word" onclick="scAddItem(\'' + regKey + '\',' + idx + ',this)"></i>') + '</div>';
         });
         html += '</div></div>';
       }
 
-      // Merge error corrections + API phrases into one phrases block
+      // Phrases to learn = error corrections + API phrases, merged
       var allPhrases = [];
-      // Error corrections (already in _scSuggested from index 0 to errPhraseCount)
       for (var pi = 0; pi < errPhraseCount; pi++) {
-        allPhrases.push({ idx: pi, text: window._scSuggested[pi].text, translation: window._scSuggested[pi].translation });
+        allPhrases.push({ idx: pi, text: sugg[pi].text, translation: sugg[pi].translation });
       }
-      // API phrases
       if (analysis.phrases && analysis.phrases.length > 0) {
-        analysis.phrases.forEach(p => {
+        analysis.phrases.forEach(function(p) {
           var idx = suggIdx++;
-          window._scSuggested.push({ text: p.phrase, translation: p.translation, type: 'phrase' });
+          sugg.push({ text: p.phrase, translation: p.translation, type: 'phrase' });
           allPhrases.push({ idx: idx, text: p.phrase, translation: p.translation });
         });
       }
-
       if (allPhrases.length > 0) {
-        html += '<div class="sc-analysis-card"><h4>💬 Фрази для вивчення</h4><div style="display:flex;flex-wrap:wrap;">';
-        allPhrases.forEach(p => {
+        html += openTag + '<h4>💬 Фрази для вивчення</h4><div style="display:flex;flex-wrap:wrap;">';
+        allPhrases.forEach(function(p) {
           var phraseId = p.text.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
           var alreadyAdded = existingPhrases.has(phraseId);
           html += '<div class="sc-word-chip">' +
             '<i class="fas fa-volume-up" style="color:rgba(240,237,232,0.4);cursor:pointer;margin-right:4px;font-size:12px;" onclick="scSpeak(\'' + scEscape(p.text).replace(/'/g,"&#39;") + '\')"></i>' +
             '<strong>' + scEscape(p.text) + '</strong> - ' + scEscape(p.translation) +
-            (alreadyAdded ? ' <i class="fas fa-check sc-added"></i>' : ' <i class="fas fa-plus sc-add-word" onclick="scAddItem(this,' + p.idx + ')"></i>') + '</div>';
+            (alreadyAdded ? ' <i class="fas fa-check sc-added"></i>' : ' <i class="fas fa-plus sc-add-word" onclick="scAddItem(\'' + regKey + '\',' + p.idx + ',this)"></i>') + '</div>';
         });
         html += '</div></div>';
       }
 
       // Grammar recommendations
       if (analysis.grammar && analysis.grammar.length > 0) {
-        html += '<div class="sc-analysis-card"><h4>📖 Граматика для повторення</h4>';
+        html += openTag + '<h4>📖 Граматика для повторення</h4>';
         analysis.grammar.forEach(function(g) {
           var topic = grammarTopics.find(function(t) { return t.id === g.id; });
           if (topic) {
@@ -15342,11 +15449,12 @@ Rules:
         html += '</div>';
       }
 
-      document.getElementById('sc-analysis-content').innerHTML = html;
+      return html;
     }
 
-    async function scAddItem(btn, index) {
-      const item = window._scSuggested[index];
+    async function scAddItem(regKey, index, btn) {
+      var reg = (window._scRegistries && window._scRegistries[regKey]) || [];
+      const item = reg[index];
       if (!item) return;
       try {
         const userId = auth.currentUser.uid;
@@ -15438,6 +15546,20 @@ Rules:
       const d = document.createElement('div');
       d.textContent = text || '';
       return d.innerHTML;
+    }
+
+    // Highlight the user's vocabulary words inside Sam's (escaped) message text
+    function scHighlightVocab(text) {
+      var safe = scEscape(text);
+      if (!scActiveWords || !scActiveWords.length) return safe;
+      var parts = scActiveWords
+        .filter(Boolean)
+        .slice()
+        .sort(function(a, b) { return b.length - a.length; })
+        .map(function(w) { return w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
+      if (!parts.length) return safe;
+      var re = new RegExp('\\b(' + parts.join('|') + ')(s|es|ed|ing|d)?\\b', 'gi');
+      return safe.replace(re, '<span class="sc-vocab">$&</span>');
     }
 
   </script>
