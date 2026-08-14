@@ -2332,23 +2332,29 @@
       }
     }
 
-    /* Стилі для рекомендацій перекладу */
-    #translation-suggestions {
-      margin-top: 10px;
+    /* Стилі для рекомендацій перекладу.
+       Підказки з'являються під час набору (з паузою), а не по blur. Раніше вони
+       прилітали вже після того, як палець торкнувся «Додати»: список вставлявся
+       між полями, кнопка з'їжджала вниз — і тап проходив повз неї. */
+    .suggestion-list {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      flex-direction: column;
+      gap: 6px;
+      margin: 8px 0 0;
+    }
+
+    .suggestion-list:empty {
+      display: none;
     }
 
     .suggestion {
       background-color: rgba(255, 255, 255, 0.08);
       color: #F0EDE8;
-      padding: 8px 12px;
-      margin: 5px;
+      padding: 10px 12px;
+      margin: 0;
       cursor: pointer;
-      border-radius: 4px;
+      border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      flex: 1 1 calc(33% - 20px);
       text-align: center;
       transition: background-color 0.3s, transform 0.2s;
     }
@@ -5165,10 +5171,6 @@
           <div class="acc-tile-icon"><i class="fas fa-comments"></i></div>
           Speaking Club
         </button>
-        <button class="acc-tile acc-animate acc-delay-18" data-color="orange" onclick="showMagicNotes()">
-          <div class="acc-tile-icon"><i class="fas fa-file-lines"></i></div>
-          Конспект і тест
-        </button>
       </div>
 
     </div>
@@ -5556,22 +5558,23 @@
         </div>
         <div style="position:relative;margin:5px 0 15px 0;">
           <input type="text" id="english-word" placeholder="Англійське слово" style="margin:0;height:52px;box-sizing:border-box;padding-right:48px;"
-            onblur="getTranslationSuggestions(this.value)">
+            autocapitalize="none" autocorrect="off" spellcheck="false"
+            oninput="clearFieldError('english-word-error');getTranslationSuggestions(this.value)">
           <button onclick="startVoiceInput('en')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;font-size:18px;color:#E8A838;cursor:pointer;box-shadow:none;opacity:0.7;" title="Голосом (EN)">
             <i class="fas fa-microphone"></i>
           </button>
         </div>
         <div id="english-word-error" class="error-message"></div>
-        <div id="translation-suggestions"></div>
+        <div id="translation-suggestions" class="suggestion-list"></div>
         <div style="position:relative;margin:5px 0 15px 0;">
           <input type="text" id="translation" placeholder="Переклад" style="margin:0;height:52px;box-sizing:border-box;padding-right:48px;"
-            onblur="getReverseTranslation(this.value)">
+            oninput="clearFieldError('translation-error');getReverseTranslation(this.value)">
           <button onclick="startVoiceInput('uk')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;font-size:18px;color:#60a5fa;cursor:pointer;box-shadow:none;opacity:0.7;" title="Голосом (УК)">
             <i class="fas fa-microphone"></i>
           </button>
         </div>
         <div id="translation-error" class="error-message"></div>
-        <div id="reverse-translation-suggestions"></div>
+        <div id="reverse-translation-suggestions" class="suggestion-list"></div>
         <div id="example-toggle-wrap" style="margin-bottom:12px;">
           <a href="#" onclick="event.preventDefault();document.getElementById('example-expand').classList.toggle('hidden');this.classList.add('hidden');" style="font-size:13px;color:rgba(240,237,232,0.4);text-decoration:none;">+ Додати приклад</a>
           <div id="example-expand" class="hidden">
@@ -5599,12 +5602,29 @@
       <!-- Phrase form -->
       <div id="add-phrase-form" class="hidden">
         <input type="text" id="phrase-english-inline" placeholder="Фраза англійською"
-          onblur="getPhraseTranslationSuggestionsInline(this.value)">
+          autocapitalize="none" autocorrect="off" spellcheck="false"
+          oninput="clearFieldError('phrase-english-inline-error');getPhraseTranslationSuggestionsInline(this.value)">
         <div id="phrase-english-inline-error" class="error-message"></div>
-        <input type="text" id="phrase-translation-inline" placeholder="Переклад українською">
+        <div id="phrase-translation-suggestions-inline" class="suggestion-list"></div>
+        <input type="text" id="phrase-translation-inline" placeholder="Переклад українською"
+          oninput="clearFieldError('phrase-translation-inline-error')">
         <div id="phrase-translation-inline-error" class="error-message"></div>
-        <div id="phrase-translation-suggestions-inline"></div>
         <button onclick="addPhraseInline()">Додати</button>
+        <!-- Photo / Camera -->
+        <div style="margin-top:14px;">
+          <label id="phrase-photo-upload-label" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:transparent;border:1px dashed rgba(240,237,232,0.15);border-radius:12px;color:rgba(240,237,232,0.35);font-size:13px;cursor:pointer;margin:0;">
+            <span id="phrase-photo-upload-text"><i class="fas fa-camera" style="font-size:14px;"></i> або додай з фото</span>
+            <span id="phrase-photo-upload-loading" class="hidden"><i class="fas fa-spinner fa-spin" style="font-size:14px;"></i> Аналізую фото...</span>
+            <input type="file" accept="image/*" capture="environment" onchange="handlePhrasePhotoInput(event)" style="display:none;">
+          </label>
+        </div>
+        <div id="photo-phrases-preview" class="hidden" style="margin-top:12px;padding:14px;background:rgba(255,255,255,0.04);border-radius:12px;">
+          <p style="font-size:13px;color:rgba(240,237,232,0.5);margin-bottom:8px;">Фрази з фото (обери для додавання):</p>
+          <div id="photo-phrases-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+          <button id="bulk-add-photo-phrases" onclick="bulkAddPhotoPhrases()" class="hidden" style="margin-top:12px;width:100%;padding:12px;background:rgba(52,211,153,0.2);border:1px solid rgba(52,211,153,0.4);color:#34d399;border-radius:10px;font-weight:600;cursor:pointer;">
+            <i class="fas fa-plus" style="margin-right:6px;"></i>Додати обрані (<span id="photo-phrases-selected-count">0</span>)
+          </button>
+        </div>
       </div>
     </div>
     <!-- Секція "Додати фразу" -->
@@ -5617,11 +5637,13 @@
         <h2>Додати фразу</h2>
       </div>
       <input type="text" id="phrase-english" placeholder="Фраза англійською"
-        onblur="getPhraseTranslationSuggestions(this.value)">
+        autocapitalize="none" autocorrect="off" spellcheck="false"
+        oninput="clearFieldError('phrase-english-error');getPhraseTranslationSuggestions(this.value)">
       <div id="phrase-english-error" class="error-message"></div>
-      <input type="text" id="phrase-translation" placeholder="Переклад українською">
+      <div id="phrase-translation-suggestions" class="suggestion-list"></div>
+      <input type="text" id="phrase-translation" placeholder="Переклад українською"
+        oninput="clearFieldError('phrase-translation-error')">
       <div id="phrase-translation-error" class="error-message"></div>
-      <div id="phrase-translation-suggestions"></div>
       <button onclick="addPhrase()">Додати</button>
     </div>
 
@@ -5653,6 +5675,14 @@
         <h2 style="font-size:24px;">Граматика</h2>
       </div>
       <div id="grammar-topics">
+        <button class="grammar-topic" onclick="showCustomLessonForm()" style="margin-bottom:14px;background:rgba(232,168,56,0.08);border-color:rgba(232,168,56,0.35);">
+          <div class="topic-icon">✨</div>
+          <div class="topic-info">
+            <span class="topic-name" style="color:#E8A838;">Свій конспект</span>
+            <span class="topic-desc">Сфотографуй дошку чи сторінку — зроблю урок і тест</span>
+          </div>
+          <span class="topic-badge" style="background:rgba(232,168,56,0.15);color:#E8A838;"><i class="fas fa-plus"></i></span>
+        </button>
         <div class="grammar-level-tabs">
           <button class="grammar-level-tab active" onclick="filterGrammarLevel('all')">Всі</button>
           <button class="grammar-level-tab" onclick="filterGrammarLevel('Pre-A1')">Pre-A1</button>
@@ -5673,6 +5703,32 @@
           <i class="fas fa-book-open" style="margin-right:8px;"></i>Переглянути теорію
         </button>
       </div>
+      <!-- Свій конспект: урок будується з фото/тексту користувача -->
+      <div id="custom-lesson-input" class="hidden">
+        <a href="#" onclick="event.preventDefault();backToGrammarTopics();" style="display:inline-block;font-size:13px;color:rgba(240,237,232,0.4);text-decoration:none;margin-bottom:12px;"><i class="fas fa-arrow-left" style="font-size:11px;margin-right:4px;"></i>Всі теми</a>
+        <p style="font-size:14px;color:rgba(240,237,232,0.5);margin-bottom:12px;">Сфотографуй дошку, сторінку підручника або зошит — можна кілька фото одразу. Можеш ще додати текст. Урок і тест побудую саме з твого матеріалу.</p>
+
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(232,168,56,0.12);border:1px solid rgba(232,168,56,0.35);border-radius:12px;color:#E8A838;font-size:13px;font-weight:600;cursor:pointer;margin:0;">
+            <i class="fas fa-camera"></i> Зробити фото
+            <input type="file" accept="image/*" capture="environment" onchange="addCustomLessonImages(event)" style="display:none;">
+          </label>
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:rgba(240,237,232,0.7);font-size:13px;font-weight:600;cursor:pointer;margin:0;">
+            <i class="fas fa-images"></i> З галереї
+            <input type="file" accept="image/*" multiple onchange="addCustomLessonImages(event)" style="display:none;">
+          </label>
+        </div>
+
+        <div id="custom-lesson-images" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;"></div>
+
+        <textarea id="custom-lesson-text" placeholder="Або встав/додай текст: правило, конспект з уроку, приклади речень..." style="width:100%;min-height:120px;padding:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#F0EDE8;font-family:inherit;font-size:14px;resize:vertical;box-sizing:border-box;"></textarea>
+
+        <div id="custom-lesson-error" class="error-message"></div>
+        <button id="custom-lesson-generate-btn" onclick="generateCustomLesson()" style="margin-top:14px;width:100%;">
+          <i class="fas fa-wand-magic-sparkles" style="margin-right:6px;"></i>Створити урок
+        </button>
+      </div>
+
       <div id="grammar-lesson" class="hidden">
         <div id="grammar-lesson-content"></div>
         <button class="large-btn" onclick="startGrammarQuiz()" style="margin-top:16px;width:100%;background:rgba(232,168,56,0.2);border:1px solid #E8A838;color:#E8A838;">
@@ -6131,61 +6187,6 @@
         </div>
         <div id="sc-analysis-content" class="sc-analysis"></div>
         <button class="sc-start-btn" onclick="scFinish()" style="margin-top:16px;">Завершити</button>
-      </div>
-    </div>
-
-    <div id="magic-notes-section" class="hidden">
-      <div class="title-and-btn">
-        <button class="button-with-icon back-button" onclick="backToAccount()">
-          <i class="fas fa-arrow-left"></i>
-          <span>Назад</span>
-        </button>
-        <h2 style="font-size:24px;">Конспект і тест</h2>
-      </div>
-
-      <div id="magic-notes-list-step">
-        <button onclick="showMagicNotesCreateForm()" style="width:100%;margin-bottom:16px;">
-          <i class="fas fa-plus" style="margin-right:6px;"></i>Новий набір з тексту
-        </button>
-        <div id="magic-notes-list"></div>
-      </div>
-
-      <div id="magic-notes-input-step" class="hidden">
-        <a href="#" onclick="event.preventDefault();backToMagicNotesList();" style="display:inline-block;font-size:13px;color:rgba(240,237,232,0.4);text-decoration:none;margin-bottom:12px;"><i class="fas fa-arrow-left" style="font-size:11px;margin-right:4px;"></i>Мої набори</a>
-        <p style="font-size:14px;color:rgba(240,237,232,0.5);margin-bottom:12px;">Встав текст уроку чи статті, або завантаж відео/аудіо — AI зробить з цього конспект (набір слів) і тест.</p>
-        <textarea id="magic-notes-textarea" placeholder="Встав текст сюди..." style="width:100%;min-height:160px;padding:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#F0EDE8;font-family:inherit;font-size:14px;resize:vertical;box-sizing:border-box;"></textarea>
-        <div style="margin-top:10px;">
-          <label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:transparent;border:1px dashed rgba(240,237,232,0.15);border-radius:12px;color:rgba(240,237,232,0.35);font-size:13px;cursor:pointer;margin:0;">
-            <i class="fas fa-file-arrow-up" style="font-size:14px;"></i> або завантаж .txt файл
-            <input type="file" accept=".txt" onchange="handleMagicNotesFile(event)" style="display:none;">
-          </label>
-        </div>
-        <div style="margin-top:10px;">
-          <label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:transparent;border:1px dashed rgba(240,237,232,0.15);border-radius:12px;color:rgba(240,237,232,0.35);font-size:13px;cursor:pointer;margin:0;">
-            <span id="magic-notes-video-label-text"><i class="fas fa-video" style="font-size:14px;"></i> або завантаж відео/аудіо (будь-якої довжини)</span>
-            <input type="file" accept="video/*,audio/*" onchange="handleMagicNotesVideoFile(event)" style="display:none;">
-          </label>
-        </div>
-        <div id="magic-notes-extract-error" class="error-message"></div>
-        <button id="magic-notes-quicktest-btn" onclick="makeMagicNotesQuickTest()" style="margin-top:14px;">Зробити тест</button>
-      </div>
-
-      <div id="magic-notes-saved-step" class="hidden" style="margin-top:16px;text-align:center;">
-        <a href="#" onclick="event.preventDefault();backToMagicNotesList();" style="display:inline-block;font-size:13px;color:rgba(240,237,232,0.4);text-decoration:none;margin-bottom:12px;"><i class="fas fa-arrow-left" style="font-size:11px;margin-right:4px;"></i>Мої набори</a>
-        <div style="font-size:48px;margin-bottom:8px;">📚</div>
-        <p style="font-size:16px;color:#F0EDE8;font-weight:600;margin-bottom:16px;">«<span id="magic-notes-saved-title"></span>»</p>
-        <button onclick="generateMagicNotesQuiz()" style="width:100%;margin-bottom:10px;">
-          <i class="fas fa-pen" style="margin-right:6px;"></i>Пройти тест по тексту
-        </button>
-        <button onclick="showMagicNotesCreateForm()" style="width:100%;margin-top:8px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(240,237,232,0.5);">
-          Створити ще один набір
-        </button>
-      </div>
-
-      <div id="magic-notes-quiz" class="hidden">
-        <h3 style="text-align:center;font-size:18px;color:#F0EDE8;margin-bottom:16px;">Тест по тексту</h3>
-        <div id="magic-notes-quiz-container"></div>
-        <div id="magic-notes-quiz-result" class="quiz-result hidden"></div>
       </div>
     </div>
 
@@ -6661,7 +6662,6 @@
   document.getElementById('phrase-constructor-section').classList.add('hidden');
   document.getElementById('grammar-section').classList.add('hidden');
   document.getElementById('speaking-club-section').classList.add('hidden');
-  document.getElementById('magic-notes-section').classList.add('hidden');
 }
 
 
@@ -6829,6 +6829,13 @@ function exitSpeedTraining() {
     function clearErrors() {
       const errorElements = document.querySelectorAll('.error-message');
       errorElements.forEach(el => el.textContent = '');
+    }
+
+    // Прибирає помилку поля, щойно користувач почав його виправляти,
+    // щоб червоний текст не «залипав» над уже правильним значенням
+    function clearFieldError(errorId) {
+      const el = document.getElementById(errorId);
+      if (el) el.textContent = '';
     }
 
     // Оновлення інтерфейсу
@@ -8007,27 +8014,156 @@ Return ONLY the JSON array, no other text.`;
       speechRecognition.start();
     }
 
+    // ========== ПЕРЕКЛАД: підказки ==========
+    // Раніше підказки бралися напряму з matches[] MyMemory — це краудсорсна
+    // пам'ять перекладів, тому туди потрапляв сміттєвий контент: дублікати,
+    // жарти ("Чуть помєдлєнєє, коні."), рядки з чужих локалізацій
+    // ("shadeNote this is a KRunner keyword") і побитий UTF-8 ("ÐØÐ³Ð¼Ñ...").
+    // Тепер основне джерело — AI, а MyMemory лишився резервом і жорстко фільтрується.
+
+    const _translationCache = new Map();
+    const _suggestionRequestToken = {};
+    const _suggestionDebounce = {};
+
+    // Відсіює сміття: побиті кодування, чужий алфавіт, дублікати
+    function cleanTranslationVariants(list, target) {
+      const seen = new Set();
+      const out = [];
+      (list || []).forEach(raw => {
+        if (typeof raw !== 'string') return;
+        let s = raw.replace(/\s+/g, ' ').trim().replace(/^["'«»„“]+|["'«»„“.]+$/g, '').trim();
+        if (!s || s.length > 120) return;
+        if (/[¡-ÿ]/.test(s)) return;                       // mojibake (Ð, Ñ, Ã...)
+        if (/https?:\/\/|www\.|@|[<>{}\[\]|]/.test(s)) return;       // сміття з пам'яті перекладів
+        if (target === 'uk' && !/[Ѐ-ӿ]/.test(s)) return;   // має бути кирилиця
+        if (target === 'en' && !/^[A-Za-z0-9 ,.'’\-!?()]+$/.test(s)) return; // має бути латиниця
+        const key = s.toLowerCase();
+        if (seen.has(key)) return;                                   // дублікати
+        seen.add(key);
+        out.push(s);
+      });
+      return out.slice(0, 3);
+    }
+
+    async function aiTranslateVariants(text, target) {
+      const targetName = target === 'uk' ? 'Ukrainian' : 'English';
+      const sourceName = target === 'uk' ? 'English' : 'Ukrainian';
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          temperature: 0.2,
+          max_tokens: 200,
+          messages: [{
+            role: 'user',
+            content: `Translate from ${sourceName} to ${targetName}: "${text}"
+Give 1-3 different natural translations, most common meaning first.
+Rules: only the translation itself, no transliteration, no explanations, no source language.
+Return ONLY a JSON array of strings.`
+          }],
+        }),
+      });
+      const data = await response.json();
+      const raw = ((data.choices && data.choices[0] && data.choices[0].message.content) || '')
+        .replace(/```json/gi, '').replace(/```/g, '').trim();
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    }
+
+    // Резерв, якщо AI-ключ недоступний: беремо ЛИШЕ машинний переклад.
+    // matches[] — краудсорсна пам'ять, звідки й лізло сміття, тому її не читаємо взагалі.
+    async function memoryTranslateVariants(text, target) {
+      const pair = target === 'uk' ? 'en|uk' : 'uk|en';
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${pair}`;
+      const response = await axios.get(url);
+      const direct = response.data && response.data.responseData && response.data.responseData.translatedText;
+      return direct ? [direct] : [];
+    }
+
+    async function fetchTranslationVariants(text, target) {
+      const q = (text || '').trim();
+      if (q.length < 2) return [];
+      const cacheKey = target + '::' + q.toLowerCase();
+      if (_translationCache.has(cacheKey)) return _translationCache.get(cacheKey);
+
+      let variants = [];
+      if (openaiApiKey) {
+        try {
+          variants = cleanTranslationVariants(await aiTranslateVariants(q, target), target);
+        } catch (e) { console.log('AI translate error:', e); }
+      }
+      if (!variants.length) {
+        try {
+          variants = cleanTranslationVariants(await memoryTranslateVariants(q, target), target);
+        } catch (e) { console.log('Memory translate error:', e); }
+      }
+      if (variants.length) _translationCache.set(cacheKey, variants);
+      return variants;
+    }
+
+    // Єдиний рендер підказок для всіх форм
+    async function showTranslationSuggestions(containerId, inputId, text, target) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const q = (text || '').trim();
+      if (q.length < 2) { container.innerHTML = ''; return; }
+
+      // захист від гонки: відповідь на застарілий запит ігноруємо
+      const token = (_suggestionRequestToken[containerId] || 0) + 1;
+      _suggestionRequestToken[containerId] = token;
+
+      container.innerHTML = '<div class="suggestion" style="opacity:0.45;cursor:default;">Перекладаю…</div>';
+      const variants = await fetchTranslationVariants(q, target);
+      if (_suggestionRequestToken[containerId] !== token) return;
+
+      container.innerHTML = '';
+      if (!variants.length) return;
+      variants.forEach(variant => {
+        const div = document.createElement('div');
+        div.classList.add('suggestion');
+        div.textContent = variant;
+        div.onclick = () => {
+          const input = document.getElementById(inputId);
+          if (input) {
+            input.value = variant;
+            input.dispatchEvent(new Event('input'));
+          }
+          container.innerHTML = '';
+        };
+        container.appendChild(div);
+      });
+    }
+
+    // Закриває всі підказки й знецінює запити, що ще в дорозі, щоб пізня
+    // відповідь не намалювала список у вже очищеній формі.
+    // Викликається лише після дії користувача (слово додано, форма відкрита заново) —
+    // ніколи «на льоту», інакше зникнення списку знову зсуне кнопку під пальцем.
+    function closeAllSuggestions() {
+      document.querySelectorAll('.suggestion-list').forEach(el => {
+        clearTimeout(_suggestionDebounce[el.id]);
+        _suggestionRequestToken[el.id] = (_suggestionRequestToken[el.id] || 0) + 1;
+        el.innerHTML = '';
+      });
+    }
+
+    // Запит іде не на кожну літеру, а після паузи в наборі
+    function scheduleSuggestions(containerId, inputId, text, target) {
+      clearTimeout(_suggestionDebounce[containerId]);
+      const q = (text || '').trim();
+      if (q.length < 2) {
+        _suggestionRequestToken[containerId] = (_suggestionRequestToken[containerId] || 0) + 1;
+        const container = document.getElementById(containerId);
+        if (container) container.innerHTML = '';
+        return;
+      }
+      _suggestionDebounce[containerId] = setTimeout(
+        () => showTranslationSuggestions(containerId, inputId, q, target), 700);
+    }
+
     // Зворотній переклад: UK → EN
     function getReverseTranslation(text) {
-      if (!text || text.length < 2) return;
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=uk|en`;
-      axios.get(url)
-        .then(response => {
-          const suggestions = response.data.matches.slice(0, 3).map(m => m.translation);
-          const container = document.getElementById('reverse-translation-suggestions');
-          container.innerHTML = '';
-          suggestions.forEach(s => {
-            const div = document.createElement('div');
-            div.classList.add('suggestion');
-            div.textContent = s;
-            div.onclick = () => {
-              document.getElementById('english-word').value = s;
-              container.innerHTML = '';
-            };
-            container.appendChild(div);
-          });
-        })
-        .catch(e => console.log('Reverse translation error:', e));
+      scheduleSuggestions('reverse-translation-suggestions', 'english-word', text, 'en');
     }
 
     let photoWordsData = [];
@@ -8159,527 +8295,136 @@ Return ONLY the JSON array, no other text.`;
       } finally { hideLoading(); }
     }
 
-    // ========== MAGIC NOTES (текст → набір слів) ==========
-    let magicNotesSourceText = '';
-    let magicNotesSavedSetId = null;
-    let magicNotesCurrentSetQuiz = null;
-    let magicNotesQuizQuestions = [];
-    let currentMagicNotesQuizQuestion = 0;
-    let magicNotesQuizCorrectAnswers = 0;
+    // ========== ФРАЗИ З ФОТО ==========
+    let photoPhrasesData = [];
+    let selectedPhotoPhrases = new Set();
 
-    function showMagicNotes() {
-      toggleMainTitle();
-      document.getElementById('account-screen').classList.add('hidden');
-      document.getElementById('magic-notes-section').classList.remove('hidden');
-      backToMagicNotesList();
-    }
-
-    function backToMagicNotesList() {
-      document.getElementById('magic-notes-list-step').classList.remove('hidden');
-      document.getElementById('magic-notes-input-step').classList.add('hidden');
-      document.getElementById('magic-notes-saved-step').classList.add('hidden');
-      document.getElementById('magic-notes-quiz').classList.add('hidden');
-      magicNotesSourceText = '';
-      magicNotesSavedSetId = null;
-      magicNotesCurrentSetQuiz = null;
-      loadMyMagicNotesSets();
-    }
-
-    function showMagicNotesCreateForm() {
-      document.getElementById('magic-notes-list-step').classList.add('hidden');
-      document.getElementById('magic-notes-saved-step').classList.add('hidden');
-      document.getElementById('magic-notes-quiz').classList.add('hidden');
-      document.getElementById('magic-notes-input-step').classList.remove('hidden');
-      document.getElementById('magic-notes-textarea').value = '';
-      document.getElementById('magic-notes-extract-error').textContent = '';
-      magicNotesSourceText = '';
-      magicNotesSavedSetId = null;
-      magicNotesCurrentSetQuiz = null;
-    }
-
-    async function loadMyMagicNotesSets() {
-      const listEl = document.getElementById('magic-notes-list');
-      listEl.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,237,232,0.4);">Завантаження...</div>';
-      try {
-        const userId = auth.currentUser.uid;
-        const snapshot = await db.collection('sets').where('authorId', '==', userId).get();
-        const sets = snapshot.docs.map(d => Object.assign({ id: d.id }, d.data()));
-        sets.sort((a, b) => {
-          const aMs = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
-          const bMs = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
-          return bMs - aMs;
-        });
-        renderMagicNotesList(sets);
-      } catch (e) {
-        console.log('Load magic notes sets error:', e);
-        listEl.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,237,232,0.4);">Помилка завантаження</div>';
-      }
-    }
-
-    function renderMagicNotesList(sets) {
-      const listEl = document.getElementById('magic-notes-list');
-      if (sets.length === 0) {
-        listEl.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,237,232,0.4);font-size:14px;">Ще немає жодного набору</div>';
-        return;
-      }
-      listEl.innerHTML = sets.map(s => `
-        <button onclick="openMagicNotesSet('${s.id}')" style="display:block;width:100%;text-align:left;padding:14px 16px;margin-bottom:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#F0EDE8;cursor:pointer;">
-          <div style="font-weight:600;font-size:15px;margin-bottom:2px;">${escapeHtml(s.title)}${s.visibility === 'public' ? ' <i class="fas fa-globe" style="font-size:11px;color:#E8A838;"></i>' : ''}</div>
-          <div style="font-size:12px;color:rgba(240,237,232,0.45);">${(s.words || []).length} слів${s.quiz ? ' · тест готовий' : ''}</div>
-        </button>
-      `).join('');
-    }
-
-    async function openMagicNotesSet(setId) {
-      showLoading();
-      try {
-        const doc = await db.collection('sets').doc(setId).get();
-        if (!doc.exists) {
-          showNotification('Набір не знайдено', 'warning');
-          return;
-        }
-        const set = doc.data();
-        magicNotesSavedSetId = setId;
-        magicNotesSourceText = set.sourceText || '';
-        magicNotesCurrentSetQuiz = set.quiz || null;
-
-        document.getElementById('magic-notes-list-step').classList.add('hidden');
-        document.getElementById('magic-notes-input-step').classList.add('hidden');
-        document.getElementById('magic-notes-quiz').classList.add('hidden');
-        document.getElementById('magic-notes-saved-title').textContent = set.title;
-        document.getElementById('magic-notes-saved-step').classList.remove('hidden');
-      } catch (e) {
-        console.log('Open magic notes set error:', e);
-        showNotification('Помилка завантаження набору', 'warning');
-      } finally {
-        hideLoading();
-      }
-    }
-
-    function backToMagicNotesSetDetail() {
-      document.getElementById('magic-notes-quiz').classList.add('hidden');
-      document.getElementById('magic-notes-saved-step').classList.remove('hidden');
-    }
-
-    function handleMagicNotesFile(event) {
+    async function handlePhrasePhotoInput(event) {
       const file = event.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        document.getElementById('magic-notes-textarea').value = reader.result;
-      };
-      reader.readAsText(file);
-      event.target.value = '';
-    }
 
-    async function handleMagicNotesVideoFile(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      if (file.size > 25 * 1024 * 1024) {
-        await transcribeLongVideoViaRecorder(file, event);
-      } else {
-        await transcribeShortVideoViaWhisper(file, event);
-      }
-    }
-
-    async function transcribeShortVideoViaWhisper(file, event) {
-      const errorEl = document.getElementById('magic-notes-extract-error');
-      errorEl.textContent = '';
-      if (!openaiApiKey) await loadOpenAIKey();
-
-      const label = document.getElementById('magic-notes-video-label-text');
-      const originalLabel = label.innerHTML;
-      label.textContent = 'Розшифровую відео...';
       showLoading();
+      document.getElementById('phrase-photo-upload-text').classList.add('hidden');
+      document.getElementById('phrase-photo-upload-loading').classList.remove('hidden');
       try {
-        const formData = new FormData();
-        formData.append('file', file, file.name);
-        formData.append('model', 'whisper-1');
-
-        const response = await fetchWithRetry('https://api.openai.com/v1/audio/transcriptions', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${openaiApiKey}` },
-          body: formData,
+        const base64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.readAsDataURL(file);
         });
-
-        if (!response.ok) throw new Error('Whisper API error');
-        const result = await response.json();
-        const transcript = (result.text || '').trim();
-        if (!transcript) {
-          errorEl.textContent = 'Не вдалося розпізнати мову у файлі';
-        } else {
-          document.getElementById('magic-notes-textarea').value = transcript;
-        }
-      } catch (e) {
-        console.log('Magic notes video transcription error:', e);
-        errorEl.textContent = 'Помилка розшифровки. Спробуй ще раз.';
-      } finally {
-        hideLoading();
-        label.innerHTML = originalLabel;
-        event.target.value = '';
-      }
-    }
-
-    // ---- Long video (>25MB): upload to the Cloudflare Worker (R2 storage + VPS ffmpeg/Gemini
-    // pipeline, same one behind the screen-recorder app), then poll for the transcript. ----
-    let recorderWorkerUrl = null;
-    let recorderUploadToken = null;
-
-    async function loadRecorderConfig() {
-      try {
-        // Explicit doc ID (matches loadUnsplashKey's pattern) — NOT .limit(1), which would land
-        // on whatever doc in `config` happens to sort first (the one holding the OpenAI key).
-        const doc = await db.collection('config').doc('api_keys').get();
-        if (doc.exists) {
-          const data = doc.data();
-          recorderWorkerUrl = data.recorderWorkerUrl || null;
-          recorderUploadToken = data.recorderUploadToken || null;
-        }
-      } catch (error) { console.error('Error loading recorder config:', error); }
-    }
-
-    function generateRecorderFilename(ext) {
-      // Must match the Worker's /^[a-f0-9-]+\.(webm|mp4)$/ key validation.
-      const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = Math.random() * 16 | 0;
-        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-      });
-      return `${uuid}.${ext}`;
-    }
-
-    // Retries only network-level failures (fetch() throwing — dropped connection, DNS blip,
-    // timeout). An HTTP error response (4xx/5xx) resolves normally and is NOT retried here —
-    // callers check `.ok` themselves and fail fast on those, same as before.
-    async function fetchWithRetry(url, opts, attempts) {
-      attempts = attempts || 3;
-      let lastErr;
-      for (let i = 0; i < attempts; i++) {
-        try {
-          return await fetch(url, opts);
-        } catch (e) {
-          lastErr = e;
-          if (i < attempts - 1) await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
-        }
-      }
-      throw lastErr;
-    }
-
-    async function uploadLongVideoToRecorder(file, onProgress) {
-      if (!recorderWorkerUrl || !recorderUploadToken) await loadRecorderConfig();
-      if (!recorderWorkerUrl || !recorderUploadToken) throw new Error('Обробка довгих відео ще не налаштована');
-
-      const ext = /\.mp4$/i.test(file.name) || file.type.includes('mp4') ? 'mp4' : 'webm';
-      const filename = generateRecorderFilename(ext);
-      // Smaller parts survive a flaky connection better — less data to re-send per retry, and
-      // each individual request is quicker to time out and retry than one giant 50MB PUT.
-      const PART_SIZE = 8 * 1024 * 1024;
-
-      const initRes = await fetchWithRetry(`${recorderWorkerUrl}/upload-init`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': recorderUploadToken },
-        body: JSON.stringify({ filename, duration: '0', recordedAt: new Date().toISOString() }),
-      });
-      if (!initRes.ok) throw new Error('upload-init failed');
-      const { key, uploadId } = await initRes.json();
-
-      const parts = [];
-      const totalParts = Math.max(1, Math.ceil(file.size / PART_SIZE));
-      for (let i = 0; i < totalParts; i++) {
-        const start = i * PART_SIZE;
-        const chunk = file.slice(start, start + PART_SIZE);
-        const partRes = await fetchWithRetry(`${recorderWorkerUrl}/upload-part?key=${encodeURIComponent(key)}&uploadId=${encodeURIComponent(uploadId)}&partNumber=${i + 1}`, {
-          method: 'PUT',
-          headers: { 'X-Auth-Token': recorderUploadToken },
-          body: chunk,
-        });
-        if (!partRes.ok) throw new Error(`upload-part ${i + 1} failed`);
-        const partData = await partRes.json();
-        parts.push({ partNumber: partData.partNumber, etag: partData.etag });
-        if (onProgress) onProgress((i + 1) / totalParts);
-      }
-
-      const completeRes = await fetchWithRetry(`${recorderWorkerUrl}/upload-complete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': recorderUploadToken },
-        body: JSON.stringify({ key, uploadId, parts, duration: '0' }),
-      });
-      if (!completeRes.ok) throw new Error('upload-complete failed');
-      return key;
-    }
-
-    async function pollRecorderTranscript(key, intervalMs, timeoutMs) {
-      intervalMs = intervalMs || 8000;
-      timeoutMs = timeoutMs || 30 * 60 * 1000;
-      const startedAt = Date.now();
-      while (Date.now() - startedAt < timeoutMs) {
-        try {
-          const res = await fetch(`${recorderWorkerUrl}/transcript?key=${encodeURIComponent(key)}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.status === 'done' || data.status === 'failed' || data.status === 'skipped') return data;
-          }
-        } catch (e) {
-          // Transient network blip mid-poll — log and keep polling rather than aborting the
-          // whole wait on one dropped request.
-          console.log('Poll transcript network error, retrying:', e);
-        }
-        await new Promise((resolve) => setTimeout(resolve, intervalMs));
-      }
-      throw new Error('Час очікування вичерпано, спробуй ще раз пізніше');
-    }
-
-    async function deleteRecorderVideo(key) {
-      try {
-        await fetch(`${recorderWorkerUrl}/delete?key=${encodeURIComponent(key)}`, {
-          method: 'POST',
-          headers: { 'X-Auth-Token': recorderUploadToken },
-        });
-      } catch (e) {
-        console.log('Recorder video cleanup error:', e);
-      }
-    }
-
-    async function transcribeLongVideoViaRecorder(file, event) {
-      const errorEl = document.getElementById('magic-notes-extract-error');
-      errorEl.textContent = '';
-      const label = document.getElementById('magic-notes-video-label-text');
-      const originalLabel = label.innerHTML;
-      showLoading();
-      let key = null;
-      try {
-        label.textContent = 'Завантажую відео...';
-        key = await uploadLongVideoToRecorder(file, (pct) => {
-          label.textContent = `Завантажую відео... ${Math.round(pct * 100)}%`;
-        });
-
-        label.textContent = 'Розшифровую (для довгих відео — кілька хвилин)...';
-        const result = await pollRecorderTranscript(key);
-
-        if (result.status === 'failed') {
-          errorEl.textContent = result.summary || 'Не вдалося розшифрувати відео';
-          return;
-        }
-        const transcript = (result.transcript || []).map((t) => t.text).join(' ').trim();
-        if (!transcript) {
-          errorEl.textContent = result.summary || 'Не вдалося розпізнати мову у відео';
-        } else {
-          document.getElementById('magic-notes-textarea').value = transcript;
-        }
-      } catch (e) {
-        console.log('Long video transcription error:', e);
-        errorEl.textContent = 'Помилка обробки відео: ' + (e.message || 'спробуй ще раз');
-      } finally {
-        // Video has served its purpose either way (got a transcript, failed, or timed out) — it
-        // never needs to stick around. Fire-and-forget: don't make the user wait on cleanup.
-        if (key) deleteRecorderVideo(key);
-        hideLoading();
-        label.innerHTML = originalLabel;
-        event.target.value = '';
-      }
-    }
-
-    async function fetchExtractedWords(text) {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [{
-            role: 'user',
-            content: `Extract up to 30 of the most important/useful English vocabulary words or short phrases from this text, for a Ukrainian-speaking English learner. For each, provide the English word/phrase and its Ukrainian translation. Return ONLY valid JSON array: [{"english":"word","translation":"переклад"}]. If no useful words found, return [].\n\nText:\n"""${text.slice(0, 6000)}"""`,
-          }],
-          max_tokens: 2000,
-        }),
-      });
-      if (!response.ok) throw new Error('OpenAI API error');
-      const result = await response.json();
-      const content = result.choices[0].message.content.trim();
-      return JSON.parse(content.replace(/```json\n?/g, '').replace(/```/g, '').trim());
-    }
-
-    async function saveWordsAsSet(title, words) {
-      const userId = auth.currentUser.uid;
-      const setRef = await db.collection('sets').add({
-        title: title,
-        titleLower: title.toLowerCase(),
-        description: '',
-        tags: [],
-        words: words,
-        sourceText: magicNotesSourceText.slice(0, 6000),
-        authorId: userId,
-        authorName: userNickname || 'Анонім',
-        visibility: 'private',
-        createdAt: firebase.firestore.Timestamp.now(),
-        importCount: 0,
-      });
-      magicNotesSavedSetId = setRef.id;
-      magicNotesCurrentSetQuiz = null;
-      return setRef.id;
-    }
-
-    // One-click path: text/video in, test out — no manual word picking. Auto-extracts every
-    // word, saves them all as a set (so the test can be retaken later, same as any other set),
-    // then jumps straight into the quiz.
-    async function makeMagicNotesQuickTest() {
-      const text = document.getElementById('magic-notes-textarea').value.trim();
-      const errorEl = document.getElementById('magic-notes-extract-error');
-      errorEl.textContent = '';
-      if (!text) {
-        errorEl.textContent = 'Встав текст або завантаж файл';
-        return;
-      }
-      if (!openaiApiKey) await loadOpenAIKey();
-
-      const btn = document.getElementById('magic-notes-quicktest-btn');
-      const originalText = btn.textContent;
-      btn.disabled = true;
-      btn.textContent = 'Готую тест...';
-      showLoading();
-      try {
-        const words = await fetchExtractedWords(text);
-        magicNotesSourceText = text;
-        if (words.length === 0) {
-          errorEl.textContent = 'Слів не знайдено, спробуй інший текст';
-          return;
-        }
-        // Prefer the text's own first line as the title (most pasted lessons/articles start with
-        // one) — a raw character slice cuts mid-sentence and runs the heading into the body.
-        const firstLine = text.split('\n').map(l => l.trim()).find(l => l.length > 0) || text;
-        const title = firstLine.slice(0, 40).trim() || 'Набір слів';
-        const cleanWords = words.map(w => ({ english: w.english, translation: w.translation }));
-        await saveWordsAsSet(title, cleanWords);
-
-        document.getElementById('magic-notes-saved-title').textContent = title;
-        document.getElementById('magic-notes-input-step').classList.add('hidden');
-        await generateMagicNotesQuiz();
-      } catch (e) {
-        console.log('Magic notes quick test error:', e);
-        errorEl.textContent = 'Помилка створення тесту, спробуй ще раз';
-      } finally {
-        hideLoading();
-        btn.disabled = false;
-        btn.textContent = originalText;
-      }
-    }
-
-    async function generateMagicNotesQuiz() {
-      document.getElementById('magic-notes-saved-step').classList.add('hidden');
-      document.getElementById('magic-notes-quiz').classList.remove('hidden');
-      const container = document.getElementById('magic-notes-quiz-container');
-      container.classList.remove('hidden');
-      document.getElementById('magic-notes-quiz-result').classList.add('hidden');
-
-      if (magicNotesCurrentSetQuiz && magicNotesCurrentSetQuiz.length > 0) {
-        magicNotesQuizQuestions = magicNotesCurrentSetQuiz;
-        currentMagicNotesQuizQuestion = 0;
-        magicNotesQuizCorrectAnswers = 0;
-        showMagicNotesQuizQuestion();
-        return;
-      }
-
-      if (!magicNotesSourceText) {
-        container.innerHTML = '<p style="text-align:center;color:#ef4444;">Для цього набору немає тексту, тест недоступний.</p>';
-        return;
-      }
-
-      container.innerHTML = '<div style="text-align:center;padding:30px;color:rgba(240,237,232,0.5);">Генерую питання...</div>';
-
-      try {
-        const prompt = `Based on this text, generate exactly 5 multiple-choice questions in Ukrainian to test comprehension of the vocabulary. Each question should have 4 answer options with exactly one correct answer.
-
-Text: "${magicNotesSourceText.slice(0, 4000)}"
-
-Return ONLY valid JSON array in this exact format, no other text:
-[{"question":"...","options":["A","B","C","D"],"correct":0}]
-
-Where "correct" is the index (0-3) of the correct option.`;
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            messages: [{ role: 'user', content: prompt }],
             model: 'gpt-4o-mini',
-            temperature: 0.7,
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'text', text: 'Extract useful English phrases, expressions or short sentences from this image (any language). Not single words — phrases of 2-8 words. For each provide the English phrase and its Ukrainian translation. Return ONLY valid JSON array: [{"english":"phrase","translation":"переклад"}]. If the text is not English, translate the phrase into English first. Max 15 phrases. If no phrases found, return [].' },
+                { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64}` } }
+              ]
+            }],
             max_tokens: 800,
           }),
         });
 
         const result = await response.json();
         const content = result.choices[0].message.content.trim();
-        const jsonStr = content.replace(/```json\n?/g, '').replace(/```/g, '').trim();
-        magicNotesQuizQuestions = JSON.parse(jsonStr);
-        magicNotesCurrentSetQuiz = magicNotesQuizQuestions;
-        currentMagicNotesQuizQuestion = 0;
-        magicNotesQuizCorrectAnswers = 0;
-        if (magicNotesSavedSetId) {
-          db.collection('sets').doc(magicNotesSavedSetId).update({ quiz: magicNotesQuizQuestions })
-            .catch(e => console.log('Persist magic notes quiz error:', e));
+        photoPhrasesData = JSON.parse(content.replace(/```json\n?/g, '').replace(/```/g, '').trim());
+        selectedPhotoPhrases = new Set();
+
+        if (!photoPhrasesData.length) {
+          showNotification('Фрази не знайдено на фото', 'warning');
+        } else {
+          const userId = auth.currentUser.uid;
+          const existingSnapshot = await db.collection('users').doc(userId).collection('phrases').get();
+          const existingIds = new Set(existingSnapshot.docs.map(d => d.id));
+          photoPhrasesData.forEach(p => { p.exists = existingIds.has(phraseDocId(p.english)); });
+          renderPhotoPhrases();
         }
-        showMagicNotesQuizQuestion();
       } catch (e) {
-        console.log('Magic notes quiz generation error:', e);
-        container.innerHTML = '<p style="text-align:center;color:#ef4444;">Помилка генерації тесту. Спробуйте ще раз.</p>';
+        console.log('Phrase photo input error:', e);
+        showNotification('Помилка обробки фото', 'warning');
+      } finally {
+        hideLoading();
+        document.getElementById('phrase-photo-upload-text').classList.remove('hidden');
+        document.getElementById('phrase-photo-upload-loading').classList.add('hidden');
+        event.target.value = '';
       }
     }
 
-    function showMagicNotesQuizQuestion() {
-      if (currentMagicNotesQuizQuestion >= magicNotesQuizQuestions.length) {
-        showMagicNotesQuizResult();
-        return;
+    function phraseDocId(english) {
+      return english.trim().toLowerCase().replace(/\s+/g, '_');
+    }
+
+    function renderPhotoPhrases() {
+      const preview = document.getElementById('photo-phrases-preview');
+      const list = document.getElementById('photo-phrases-list');
+      preview.classList.remove('hidden');
+
+      list.innerHTML = photoPhrasesData.map((p, i) => {
+        const selected = selectedPhotoPhrases.has(i);
+        if (p.exists) {
+          return `<button disabled style="padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;color:rgba(240,237,232,0.3);font-size:13px;margin:0;width:100%;box-shadow:none;text-align:left;line-height:1.4;cursor:default;opacity:0.6;">
+            <i class="fas fa-check" style="color:#34d399;font-size:10px;margin-right:4px;"></i><strong>${escapeHtml(p.english)}</strong><br><span style="font-size:11px;color:rgba(240,237,232,0.3);">${escapeHtml(p.translation)}</span>
+          </button>`;
+        }
+        return `<button onclick="togglePhotoPhrase(${i})" style="padding:10px 14px;background:${selected ? 'rgba(52,211,153,0.2)' : 'rgba(255,255,255,0.06)'};border:1px solid ${selected ? 'rgba(52,211,153,0.5)' : 'rgba(255,255,255,0.12)'};border-radius:10px;color:#F0EDE8;font-size:13px;cursor:pointer;margin:0;width:100%;box-shadow:none;text-align:left;line-height:1.4;">
+          <strong>${escapeHtml(p.english)}</strong><br><span style="font-size:11px;color:rgba(240,237,232,0.5);">${escapeHtml(p.translation)}</span>
+        </button>`;
+      }).join('');
+
+      const bulkBtn = document.getElementById('bulk-add-photo-phrases');
+      const countEl = document.getElementById('photo-phrases-selected-count');
+      if (selectedPhotoPhrases.size > 0) {
+        bulkBtn.classList.remove('hidden');
+        countEl.textContent = selectedPhotoPhrases.size;
+      } else {
+        bulkBtn.classList.add('hidden');
       }
-      const q = magicNotesQuizQuestions[currentMagicNotesQuizQuestion];
-      const container = document.getElementById('magic-notes-quiz-container');
-      container.innerHTML = `
-        <p style="font-size:15px;color:rgba(240,237,232,0.5);margin-bottom:8px;">Питання ${currentMagicNotesQuizQuestion + 1}/${magicNotesQuizQuestions.length}</p>
-        <p style="font-size:17px;color:#F0EDE8;font-weight:600;margin-bottom:16px;">${escapeHtml(q.question)}</p>
-        ${q.options.map((opt, i) => `<button class="quiz-option-button" onclick="answerMagicNotesQuiz(${i}, ${q.correct})" style="display:block;width:100%;text-align:left;margin-bottom:8px;padding:14px 16px;">${escapeHtml(opt)}</button>`).join('')}
-      `;
     }
 
-    function answerMagicNotesQuiz(selected, correct) {
-      const isCorrect = selected === correct;
-      if (isCorrect) magicNotesQuizCorrectAnswers++;
-
-      const buttons = document.querySelectorAll('#magic-notes-quiz-container .quiz-option-button');
-      buttons.forEach((btn, i) => {
-        btn.disabled = true;
-        if (i === correct) btn.style.background = 'rgba(52, 211, 153, 0.3)';
-        if (i === selected && !isCorrect) btn.style.background = 'rgba(239, 68, 68, 0.3)';
-      });
-
-      playSound(isCorrect);
-      setTimeout(() => {
-        currentMagicNotesQuizQuestion++;
-        showMagicNotesQuizQuestion();
-      }, 1000);
+    function togglePhotoPhrase(index) {
+      if (selectedPhotoPhrases.has(index)) {
+        selectedPhotoPhrases.delete(index);
+      } else {
+        selectedPhotoPhrases.add(index);
+      }
+      renderPhotoPhrases();
     }
 
-    function showMagicNotesQuizResult() {
-      const container = document.getElementById('magic-notes-quiz-container');
-      container.classList.add('hidden');
-      const result = document.getElementById('magic-notes-quiz-result');
-      result.classList.remove('hidden');
-
-      const total = magicNotesQuizQuestions.length;
-      const pct = Math.round((magicNotesQuizCorrectAnswers / total) * 100);
-      const xpEarned = magicNotesQuizCorrectAnswers * 15;
-      let emoji = '', message = '', scoreClass = '';
-
-      if (pct >= 90) { emoji = '🔥'; message = 'Неймовірно!'; scoreClass = 'great'; }
-      else if (pct >= 70) { emoji = '💪'; message = 'Чудово!'; scoreClass = 'great'; }
-      else if (pct >= 50) { emoji = '👏'; message = 'Непогано!'; scoreClass = 'good'; }
-      else { emoji = '📚'; message = 'Спробуй ще раз!'; scoreClass = 'low'; }
-
-      addXP(xpEarned);
-
-      result.innerHTML = `
-        <div style="font-size:80px;text-align:center;margin-bottom:8px;">${emoji}</div>
-        <div class="quiz-result-score ${scoreClass}">${magicNotesQuizCorrectAnswers}/${total}</div>
-        <div class="quiz-result-xp">+${xpEarned} XP</div>
-        <div class="quiz-result-message">${message}</div>
-        <button class="finish-button" onclick="backToMagicNotesSetDetail()">Завершити</button>
-      `;
+    async function bulkAddPhotoPhrases() {
+      if (selectedPhotoPhrases.size === 0) return;
+      showLoading();
+      try {
+        const userId = auth.currentUser.uid;
+        let added = 0;
+        for (const idx of selectedPhotoPhrases) {
+          const p = photoPhrasesData[idx];
+          const phraseId = phraseDocId(p.english);
+          const existing = await db.collection('users').doc(userId).collection('phrases').doc(phraseId).get();
+          if (!existing.exists) {
+            await db.collection('users').doc(userId).collection('phrases').doc(phraseId).set({
+              english: p.english.trim(),
+              translation: p.translation,
+              interactions: 0,
+              correctAnswers: 0,
+              priority: 0,
+              dateAdded: firebase.firestore.Timestamp.now(),
+            });
+            added++;
+          }
+        }
+        playSound(true);
+        showNotification(`Додано ${added} фраз!`);
+        document.getElementById('photo-phrases-preview').classList.add('hidden');
+        selectedPhotoPhrases = new Set();
+        photoPhrasesData = [];
+      } catch (e) {
+        console.log('Bulk add phrases error:', e);
+        showNotification('Помилка додавання', 'warning');
+      } finally { hideLoading(); }
     }
 
     // ========== GRAMMAR ==========
@@ -8735,14 +8480,22 @@ Where "correct" is the index (0-3) of the correct option.`;
       toggleMainTitle();
       document.getElementById('account-screen').classList.add('hidden');
       document.getElementById('grammar-section').classList.remove('hidden');
+      backToGrammarTopics();
+      loadGrammarProgress();
+      renderGrammarTopics();
+      loadCustomLessons();
+    }
+
+    function backToGrammarTopics() {
       document.getElementById('grammar-topics').classList.remove('hidden');
+      document.getElementById('custom-lesson-input').classList.add('hidden');
       document.getElementById('grammar-lesson').classList.add('hidden');
       document.getElementById('grammar-quiz').classList.add('hidden');
+      document.getElementById('grammar-quiz-container').classList.remove('hidden');
+      document.getElementById('grammar-quiz-result').classList.add('hidden');
       const choiceEl = document.getElementById('grammar-choice');
       choiceEl.classList.add('hidden');
       choiceEl.style.display = 'none';
-      loadGrammarProgress();
-      renderGrammarTopics();
     }
 
     let grammarTheoryRead = {};
@@ -8774,7 +8527,22 @@ Where "correct" is the index (0-3) of the correct option.`;
         ? grammarTopics
         : grammarTopics.filter(t => t.level === currentGrammarLevel);
 
-      list.innerHTML = filtered.map(t => {
+      const myLessons = customLessons.filter(l => currentGrammarLevel === 'all' || l.level === currentGrammarLevel);
+      const myHtml = myLessons.map(l => {
+        const done = grammarCompletedTopics[l.id];
+        return `<div class="grammar-topic" style="background:rgba(232,168,56,0.06);">
+          <div class="topic-icon" onclick="openCustomLesson('${l.id}')" style="cursor:pointer;">📄</div>
+          <div class="topic-info" onclick="openCustomLesson('${l.id}')" style="cursor:pointer;">
+            <span class="topic-name">${escapeHtml(l.title)}</span>
+            <span class="topic-desc">Мій конспект${l.level ? ' · ' + escapeHtml(l.level) : ''}${done ? ' · пройдено ✓' : ''}</span>
+          </div>
+          <button onclick="deleteCustomLesson('${l.id}')" title="Видалити" style="width:34px;min-width:34px;height:34px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;box-shadow:none;color:rgba(240,237,232,0.3);font-size:14px;cursor:pointer;">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>`;
+      }).join('');
+
+      list.innerHTML = myHtml + filtered.map(t => {
         const quizDone = grammarCompletedTopics[t.id];
         const theoryDone = grammarTheoryRead[t.id];
         let badge;
@@ -8794,6 +8562,244 @@ Where "correct" is the index (0-3) of the correct option.`;
           ${badge}
         </button>`;
       }).join('');
+    }
+
+    // ========== СВІЙ КОНСПЕКТ (урок з фото/тексту користувача) ==========
+    let customLessons = [];
+    let customLessonImages = [];
+
+    async function loadCustomLessons() {
+      try {
+        const userId = auth.currentUser.uid;
+        const snap = await db.collection('users').doc(userId).collection('customLessons')
+          .orderBy('createdAt', 'desc').limit(30).get();
+        customLessons = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        renderGrammarTopics();
+      } catch (e) { console.log('Custom lessons load error:', e); }
+    }
+
+    function showCustomLessonForm() {
+      customLessonImages = [];
+      document.getElementById('custom-lesson-text').value = '';
+      document.getElementById('custom-lesson-error').textContent = '';
+      renderCustomLessonImages();
+      document.getElementById('grammar-topics').classList.add('hidden');
+      document.getElementById('custom-lesson-input').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Стискаємо фото перед відправкою — знімок з телефона інакше важить кілька МБ
+    function compressImage(file, maxSide = 1280, quality = 0.75) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = reject;
+          img.src = reader.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function addCustomLessonImages(event) {
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+      const MAX_IMAGES = 6;
+      showLoading();
+      try {
+        for (const file of files) {
+          if (customLessonImages.length >= MAX_IMAGES) {
+            showNotification(`Максимум ${MAX_IMAGES} фото`, 'warning');
+            break;
+          }
+          customLessonImages.push(await compressImage(file));
+        }
+        document.getElementById('custom-lesson-error').textContent = '';
+        renderCustomLessonImages();
+      } catch (e) {
+        console.log('Image add error:', e);
+        showNotification('Не вдалося прочитати фото', 'warning');
+      } finally {
+        hideLoading();
+        event.target.value = '';
+      }
+    }
+
+    function renderCustomLessonImages() {
+      const wrap = document.getElementById('custom-lesson-images');
+      wrap.innerHTML = customLessonImages.map((src, i) => `
+        <div style="position:relative;width:74px;height:74px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.12);">
+          <img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;">
+          <button onclick="removeCustomLessonImage(${i})" style="position:absolute;top:2px;right:2px;width:22px;min-width:22px;height:22px;padding:0;margin:0;border-radius:50%;background:rgba(0,0,0,0.65);border:none;box-shadow:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+        </div>`).join('');
+    }
+
+    function removeCustomLessonImage(index) {
+      customLessonImages.splice(index, 1);
+      renderCustomLessonImages();
+    }
+
+    async function generateCustomLesson() {
+      const text = document.getElementById('custom-lesson-text').value.trim();
+      const errorEl = document.getElementById('custom-lesson-error');
+      errorEl.textContent = '';
+
+      if (!customLessonImages.length && text.length < 20) {
+        errorEl.textContent = 'Додай хоча б одне фото або текст (від 20 символів).';
+        return;
+      }
+      if (!openaiApiKey) {
+        errorEl.textContent = 'AI недоступний. Спробуй пізніше.';
+        return;
+      }
+
+      const btn = document.getElementById('custom-lesson-generate-btn');
+      const btnHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>Будую урок...';
+      showLoading();
+
+      try {
+        const prompt = `You are an English teacher for Ukrainian-speaking learners.
+Build a grammar mini-lesson STRICTLY from the material provided below (photos and/or text). Do NOT invent topics that are absent from the material — the whole lesson structure must come from what the learner gave you.
+
+Steps: read the material, find the grammar topic(s) it demonstrates, then teach exactly those.
+
+Return ONLY valid JSON, no markdown:
+{"title":"коротка назва теми українською","level":"A1","pages":[{"heading":"заголовок","paragraphs":["пояснення"],"examples":[{"en":"English sentence","uk":"переклад"}],"tip":"коротка порада"}],"quiz":[{"question":"питання українською","options":["A","B","C","D"],"correct":0,"optionExplanations":["чому","чому","чому","чому"]}]}
+
+Rules:
+- 2-4 pages, one idea per page
+- paragraphs: Ukrainian, simple, no heavy terminology, 1-3 sentences; wrap key words in **asterisks**
+- examples: take sentences from the material where possible; en = English, uk = Ukrainian translation
+- tip: optional, may be omitted
+- quiz: exactly 5 questions about THIS material, questions in Ukrainian, options in English, "correct" is the index 0-3
+- optionExplanations: Ukrainian, max 7 words each, explain like to a 10-year-old
+- level: CEFR level of the material (Pre-A1, A1, A2, B1 or B2)
+If the material has no English learning content at all, return {"error":"коротке пояснення українською"}.
+
+${text ? 'Text from the learner:\n"""\n' + text + '\n"""' : 'The material is on the photos.'}`;
+
+        const content = [{ type: 'text', text: prompt }];
+        customLessonImages.forEach(src => content.push({ type: 'image_url', image_url: { url: src } }));
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'user', content: content }],
+            temperature: 0.4,
+            max_tokens: 2500,
+          }),
+        });
+
+        const result = await response.json();
+        if (result.error) throw new Error(result.error.message || 'API error');
+        const raw = result.choices[0].message.content.trim()
+          .replace(/```json\n?/gi, '').replace(/```/g, '').trim();
+        const data = JSON.parse(raw);
+
+        if (data.error) { errorEl.textContent = data.error; return; }
+        if (!Array.isArray(data.pages) || !data.pages.length) {
+          errorEl.textContent = 'Не вдалося зрозуміти матеріал. Спробуй чіткіше фото або більше тексту.';
+          return;
+        }
+
+        const lesson = {
+          title: (data.title || 'Мій конспект').slice(0, 80),
+          level: ['Pre-A1', 'A1', 'A2', 'B1', 'B2'].includes(data.level) ? data.level : 'A1',
+          pages: data.pages,
+          quiz: Array.isArray(data.quiz) ? data.quiz : [],
+          sourceText: text.slice(0, 4000),
+          createdAt: firebase.firestore.Timestamp.now(),
+        };
+
+        const userId = auth.currentUser.uid;
+        const ref = await db.collection('users').doc(userId).collection('customLessons').add(lesson);
+        lesson.id = ref.id;
+        customLessons.unshift(lesson);
+        renderGrammarTopics();
+
+        customLessonImages = [];
+        document.getElementById('custom-lesson-text').value = '';
+        renderCustomLessonImages();
+        playSound(true);
+        openCustomLesson(lesson.id);
+      } catch (e) {
+        console.log('Custom lesson error:', e);
+        errorEl.textContent = 'Помилка створення уроку. Спробуй ще раз.';
+      } finally {
+        hideLoading();
+        btn.disabled = false;
+        btn.innerHTML = btnHtml;
+      }
+    }
+
+    // **жирний** → <b>, з екрануванням HTML
+    function formatLessonText(text) {
+      return escapeHtml(String(text || '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+    }
+
+    function buildCustomLessonPages(lesson) {
+      return (lesson.pages || []).map(page => {
+        let html = '<div class="grammar-lesson-block">';
+        if (page.heading) html += `<h3>${formatLessonText(page.heading)}</h3>`;
+        (page.paragraphs || []).forEach(p => { html += `<p>${formatLessonText(p)}</p>`; });
+        (page.examples || []).forEach(ex => {
+          if (!ex || !ex.en) return;
+          html += `<div class="example"><b>${formatLessonText(ex.en)}</b>${ex.uk ? ' — ' + formatLessonText(ex.uk) : ''}</div>`;
+        });
+        if (page.tip) {
+          html += `<p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;margin-top:10px;">💡 ${formatLessonText(page.tip)}</p>`;
+        }
+        return html + '</div>';
+      });
+    }
+
+    function openCustomLesson(lessonId) {
+      const lesson = customLessons.find(l => l.id === lessonId);
+      if (!lesson) return;
+      grammarLessons[lesson.id] = buildCustomLessonPages(lesson);
+      currentGrammarTopic = {
+        id: lesson.id,
+        name: lesson.title,
+        level: lesson.level || 'A1',
+        custom: true,
+        quiz: lesson.quiz || [],
+      };
+      currentGrammarPage = 0;
+      document.getElementById('grammar-topics').classList.add('hidden');
+      document.getElementById('custom-lesson-input').classList.add('hidden');
+      document.getElementById('grammar-lesson').classList.remove('hidden');
+      showGrammarPage();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function deleteCustomLesson(lessonId) {
+      const lesson = customLessons.find(l => l.id === lessonId);
+      if (!lesson) return;
+      if (!confirm(`Видалити конспект «${lesson.title}»?`)) return;
+      try {
+        const userId = auth.currentUser.uid;
+        await db.collection('users').doc(userId).collection('customLessons').doc(lessonId).delete();
+        customLessons = customLessons.filter(l => l.id !== lessonId);
+        delete grammarLessons[lessonId];
+        renderGrammarTopics();
+        showNotification('Конспект видалено');
+      } catch (e) {
+        console.log('Delete custom lesson error:', e);
+        showNotification('Не вдалося видалити', 'warning');
+      }
     }
 
     const grammarLessons = {
@@ -10374,8 +10380,19 @@ Answer in Ukrainian, simply and friendly (like explaining to a friend). Keep it 
     async function startGrammarQuiz() {
       document.getElementById('grammar-lesson').classList.add('hidden');
       document.getElementById('grammar-quiz').classList.remove('hidden');
+      document.getElementById('grammar-quiz-container').classList.remove('hidden');
       document.getElementById('grammar-quiz-container').innerHTML = '<div style="text-align:center;padding:30px;color:rgba(240,237,232,0.5);">Генерую тест...</div>';
       document.getElementById('grammar-quiz-result').classList.add('hidden');
+
+      // Свій конспект: тест уже згенеровано разом з уроком — саме з матеріалу користувача
+      if (currentGrammarTopic && currentGrammarTopic.custom
+          && Array.isArray(currentGrammarTopic.quiz) && currentGrammarTopic.quiz.length) {
+        grammarQuizQuestions = currentGrammarTopic.quiz;
+        currentGrammarQuizQ = 0;
+        grammarQuizCorrect = 0;
+        showGrammarQuizQuestion();
+        return;
+      }
 
       try {
         const prompt = `Generate 5 multiple-choice grammar questions about "${currentGrammarTopic.name}" for English learners. Each question tests practical usage.
@@ -10720,22 +10737,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
     }
 
     function getPhraseTranslationSuggestions(phrase) {
-      if (!phrase) return;
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(phrase)}&langpair=en|uk`;
-      axios.get(url)
-        .then(response => {
-          const suggestions = response.data.matches.slice(0, 3).map(m => m.translation);
-          const container = document.getElementById('phrase-translation-suggestions');
-          container.innerHTML = '';
-          suggestions.forEach(t => {
-            const div = document.createElement('div');
-            div.classList.add('suggestion');
-            div.textContent = t;
-            div.onclick = () => { document.getElementById('phrase-translation').value = t; container.innerHTML = ''; };
-            container.appendChild(div);
-          });
-        })
-        .catch(e => console.log('Phrase translation error:', e));
+      scheduleSuggestions('phrase-translation-suggestions', 'phrase-translation', phrase, 'uk');
     }
 
     async function addPhrase() {
@@ -10774,7 +10776,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
           });
           document.getElementById('phrase-english').value = '';
           document.getElementById('phrase-translation').value = '';
-          document.getElementById('phrase-translation-suggestions').innerHTML = '';
+          closeAllSuggestions();
           playSound(true);
           showNotification(`Фразу "${english}" додано!`);
         }
@@ -11612,27 +11614,12 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
       toggleMainTitle();
       document.getElementById('account-screen').classList.add('hidden');
       document.getElementById('add-word-section').classList.remove('hidden');
-      document.getElementById('translation-suggestions').innerHTML = '';
+      closeAllSuggestions();
       switchAddTab('word');
     }
 
     function getPhraseTranslationSuggestionsInline(phrase) {
-      if (!phrase || phrase.length < 2) return;
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(phrase)}&langpair=en|uk`;
-      axios.get(url)
-        .then(response => {
-          const suggestions = response.data.matches.slice(0, 3).map(m => m.translation);
-          const container = document.getElementById('phrase-translation-suggestions-inline');
-          container.innerHTML = '';
-          suggestions.forEach(t => {
-            const div = document.createElement('div');
-            div.classList.add('suggestion');
-            div.textContent = t;
-            div.onclick = () => { document.getElementById('phrase-translation-inline').value = t; container.innerHTML = ''; };
-            container.appendChild(div);
-          });
-        })
-        .catch(e => console.log('Phrase translation error:', e));
+      scheduleSuggestions('phrase-translation-suggestions-inline', 'phrase-translation-inline', phrase, 'uk');
     }
 
     async function addPhraseInline() {
@@ -11671,7 +11658,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
           });
           document.getElementById('phrase-english-inline').value = '';
           document.getElementById('phrase-translation-inline').value = '';
-          document.getElementById('phrase-translation-suggestions-inline').innerHTML = '';
+          closeAllSuggestions();
           playSound(true);
           showNotification(`Фразу "${english}" додано!`);
         }
@@ -11687,10 +11674,12 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
       const translation = document.getElementById('translation').value.trim();
       const example = document.getElementById('example').value.trim();
 
-      const englishRegex = /^[A-Za-z\s]{1,50}$/;
+      const englishRegex = /^[A-Za-z][A-Za-z\s'’\-]{0,49}$/;
       let valid = true;
       if (!englishRegex.test(englishWord)) {
-        document.getElementById('english-word-error').textContent = 'Введіть коректне англійське слово.';
+        document.getElementById('english-word-error').textContent = /[Ѐ-ӿ]/.test(englishWord)
+          ? 'Тут потрібне слово англійською (латиницею).'
+          : 'Введіть коректне англійське слово.';
         valid = false;
       }
       if (!translation) {
@@ -11720,7 +11709,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
           document.getElementById('english-word').value = '';
           document.getElementById('translation').value = '';
           document.getElementById('example').value = '';
-          document.getElementById('translation-suggestions').innerHTML = '';
+          closeAllSuggestions();
 
           await loadWordsPool();
           playSound(true);
@@ -12730,32 +12719,7 @@ async function translateStory() {
 
     // Отримання рекомендацій перекладу
     function getTranslationSuggestions(word) {
-      if (!word) return;
-      const apiKey = 'YOUR_TRANSLATION_API_KEY';
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|uk`;
-      axios.get(url)
-        .then(response => {
-          const suggestions = response.data.matches.slice(0, 3).map(match => match.translation);
-          displayTranslationSuggestions(suggestions);
-        })
-        .catch(error => {
-          console.error('Помилка отримання перекладу:', error);
-        });
-    }
-    // Відображення рекомендацій перекладу
-    function displayTranslationSuggestions(translations) {
-      const suggestionsContainer = document.getElementById('translation-suggestions');
-      suggestionsContainer.innerHTML = '';
-      translations.forEach(translation => {
-        const suggestion = document.createElement('div');
-        suggestion.classList.add('suggestion');
-        suggestion.textContent = translation;
-        suggestion.onclick = () => {
-          document.getElementById('translation').value = translation;
-          suggestionsContainer.innerHTML = '';
-        };
-        suggestionsContainer.appendChild(suggestion);
-      });
+      scheduleSuggestions('translation-suggestions', 'translation', word, 'uk');
     }
     // Показати тренування на слух
     function startListeningTraining() {
