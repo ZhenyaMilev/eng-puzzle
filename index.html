@@ -5742,40 +5742,10 @@
       font-size: 13px;
     }
 
-    .miniapp-merge {
-      margin-top: 22px;
-      padding: 14px 16px;
-      border-radius: 14px;
-      background: rgba(232, 168, 56, 0.07);
-      border: 1px solid rgba(232, 168, 56, 0.25);
-    }
-    .miniapp-merge strong {
-      display: block;
-      font-size: 14px;
-      color: #F0EDE8;
-    }
-    .miniapp-merge p {
-      margin: 4px 0 10px;
-      font-size: 12px;
-      line-height: 1.45;
-      color: rgba(240, 237, 232, 0.55);
-    }
-    .miniapp-merge input {
+    #merge-modal input {
       width: 100%;
       margin-bottom: 8px;
       box-sizing: border-box;
-    }
-    .miniapp-merge button {
-      width: 100%;
-      margin: 0;
-      padding: 11px 16px;
-      border: none;
-      border-radius: 10px;
-      background: #E8A838;
-      color: #1a1a1a;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
     }
 
     /* Усередині Telegram немає адресного рядка, зате є власні відступи */
@@ -6208,20 +6178,8 @@
         </button>
       </div>
 
-      <!-- Той, хто вже мав акаунт поштою, інакше отримав би другий, порожній -->
-      <div class="miniapp-merge hidden" id="miniapp-merge">
-        <strong>Вже маєш акаунт?</strong>
-        <p>Увійди поштою один раз — словник і підписка переїдуть сюди.</p>
-        <div id="merge-form" class="hidden">
-          <input type="email" id="merge-email" placeholder="Email" autocomplete="email">
-          <input type="password" id="merge-password" placeholder="Пароль" autocomplete="current-password">
-          <div id="merge-error" class="error-message"></div>
-          <button onclick="mergeTelegramAccount()">Підключити</button>
-        </div>
-        <button id="merge-open" onclick="document.getElementById('merge-form').classList.remove('hidden'); this.classList.add('hidden');">Підключити старий акаунт</button>
-      </div>
-
-      <!-- Нагадування живуть у Telegram: пуші в браузері на iOS не працюють -->
+      <!-- Нагадування живуть у Telegram: пуші в браузері на iOS не працюють.
+           Усередині самого Telegram цей рядок зайвий — там і так усе підключено. -->
       <div class="acc-telegram" id="acc-telegram">
         <div class="acc-telegram-text">
           <strong id="acc-telegram-title">Нагадування в Telegram</strong>
@@ -6233,6 +6191,8 @@
       </div>
 
       <div class="acc-footer">
+        <button class="legal-link hidden" id="merge-link" onclick="openMergeDialog()">Підключити старий акаунт</button>
+        <span class="hidden" id="merge-link-dot">·</span>
         <button class="legal-link" onclick="showLegal('offer')">Оферта</button>
         <span>·</span>
         <button class="legal-link" onclick="showLegal('refund')">Повернення коштів</button>
@@ -7150,6 +7110,22 @@
     </div>
 
 
+    <!-- Злиття акаунтів: рідкісна дія, тож живе у вікні, а не на головному екрані -->
+    <div id="merge-modal" class="app-modal hidden">
+      <div class="app-modal-box">
+        <h3>Підключити старий акаунт</h3>
+        <p>Якщо ти вже користувався застосунком через пошту — увійди один раз,
+        і словник із підпискою переїдуть сюди.</p>
+        <input type="email" id="merge-email" placeholder="Email" autocomplete="email">
+        <input type="password" id="merge-password" placeholder="Пароль" autocomplete="current-password">
+        <div id="merge-error" class="error-message"></div>
+        <div class="app-modal-actions">
+          <button class="secondary" onclick="closeMergeDialog()">Скасувати</button>
+          <button class="primary" onclick="mergeTelegramAccount()">Підключити</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Секція "Документи": оферта, повернення, конфіденційність, контакти -->
     <div id="legal-section" class="hidden">
       <div class="title-and-btn">
@@ -7939,17 +7915,30 @@
      * акаунт. Поки словник порожній — пропонуємо забрати старий.
      */
     async function maybeOfferAccountMerge() {
+      const link = document.getElementById('merge-link');
+      const dot = document.getElementById('merge-link-dot');
+      if (!link) return;
       if (!isMiniApp() || !auth.currentUser) return;
-      const row = document.getElementById('miniapp-merge');
-      if (!row) return;
 
+      // Показуємо лише поки словник порожній: у того, хто вже щось додав,
+      // це радше спосіб втратити свої слова, ніж знайти старі
       try {
         const words = await db.collection('users').doc(auth.currentUser.uid)
           .collection('words').limit(1).get();
-        row.classList.toggle('hidden', !words.empty);
+        link.classList.toggle('hidden', !words.empty);
+        dot.classList.toggle('hidden', !words.empty);
       } catch (e) {
-        row.classList.add('hidden');
+        link.classList.add('hidden');
       }
+    }
+
+    function openMergeDialog() {
+      document.getElementById('merge-error').textContent = '';
+      document.getElementById('merge-modal').classList.remove('hidden');
+    }
+
+    function closeMergeDialog() {
+      document.getElementById('merge-modal').classList.add('hidden');
     }
 
     async function mergeTelegramAccount() {
@@ -7974,7 +7963,9 @@
         });
         if (!response.ok) throw new Error('merge failed');
 
-        document.getElementById('miniapp-merge').classList.add('hidden');
+        closeMergeDialog();
+        document.getElementById('merge-link').classList.add('hidden');
+        document.getElementById('merge-link-dot').classList.add('hidden');
         showNotification('Готово — це твій старий акаунт із усім словником.');
         updateUI();
       } catch (error) {
@@ -8021,6 +8012,14 @@
       const title = document.getElementById('acc-telegram-title');
       const sub = document.getElementById('acc-telegram-sub');
       if (!row || !btn) return;
+
+      // Усередині Telegram цей рядок нічого не додає: підключати нема чого,
+      // а кнопка «Відкрити бот» з самого бота веде по колу
+      if (isMiniApp()) {
+        row.classList.add('hidden');
+        return;
+      }
+      row.classList.remove('hidden');
 
       const linked = !!(userData && userData.telegramId);
       row.classList.toggle('connected', linked);
@@ -8149,7 +8148,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.1';
+    const APP_VERSION = '2026-08-16.2';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
