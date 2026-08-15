@@ -1021,7 +1021,7 @@
 
     .buttons-right-corner {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-shrink: 0;
     }
 
@@ -1212,17 +1212,50 @@
       font-weight: 300;
     }
 
-    #account-screen .subscription-info {
-      text-align: left;
-      margin-bottom: 20px;
-      font-weight: 500;
-      color: var(--acc-amber);
-      font-size: 13px;
-      background: var(--acc-amber-soft);
-      border: 1px solid rgba(232, 168, 56, 0.2);
-      border-radius: 12px;
-      padding: 10px 14px;
-      backdrop-filter: blur(8px);
+    /* Статус підписки живе прямо на зірочці в шапці.
+       Тримаємо бейдж вузьким: на мобільному .title-main має flex-wrap,
+       і зайві кілька пікселів зіштовхують кнопки на другий рядок. */
+    .buttons-right-corner button#subscription-badge {
+      gap: 5px;
+      padding: 12px 8px;
+    }
+
+    #subscription-badge-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+
+    #subscription-badge-label:empty {
+      display: none;
+    }
+
+    #subscription-badge.sub-lifetime,
+    #subscription-badge.sub-active {
+      background: rgba(232, 168, 56, 0.15);
+      border: 1px solid rgba(232, 168, 56, 0.45);
+      color: #E8A838;
+    }
+
+    #subscription-badge.sub-trial {
+      background: rgba(96, 165, 250, 0.12);
+      border: 1px solid rgba(96, 165, 250, 0.4);
+      color: #60a5fa;
+    }
+
+    #subscription-badge.sub-trial .fa-star:before {
+      color: #60a5fa;
+    }
+
+    #subscription-badge.sub-expired {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+    }
+
+    #subscription-badge.sub-expired .fa-star:before {
+      color: #ef4444;
     }
 
     /* Quick action buttons row */
@@ -2552,6 +2585,33 @@
       font-size: 28px !important;
       font-weight: bold;
       margin: 0;
+    }
+
+    #crossword-direction-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: auto;
+      margin: 0 auto 10px;
+      padding: 8px 16px;
+      background: rgba(102, 126, 234, 0.12);
+      border: 1px solid rgba(102, 126, 234, 0.35);
+      border-radius: 20px;
+      color: #8b9dff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: none;
+    }
+
+    #crossword-direction-toggle:active {
+      background: rgba(102, 126, 234, 0.2);
+    }
+
+    #crossword-direction-toggle i {
+      font-size: 11px;
+      opacity: 0.7;
     }
 
     .crossword-note {
@@ -5055,8 +5115,9 @@
     <div class="title-main">
       <h1>Мій словник</h1>
       <div class="buttons-right-corner hidden">
-        <button class="button-with-icon premium-icon" onclick="showTariffs()">
+        <button id="subscription-badge" class="button-with-icon premium-icon" onclick="showTariffs()">
           <i class="fas fa-star"></i>
+          <span id="subscription-badge-label"></span>
         </button>
         <button class="button-with-icon logout-button" onclick="logout()">
           <i class="fas fa-sign-out-alt"></i>
@@ -5097,7 +5158,6 @@
       <!-- Greeting -->
       <h2 class="acc-greeting acc-animate acc-delay-1"><span class="acc-wave">👋</span> Привіт!</h2>
       <div class="acc-email acc-animate acc-delay-2"><span class="user-email"></span></div>
-      <div class="subscription-info acc-animate acc-delay-3" id="subscription-info"></div>
 
       <!-- Gamification Stats -->
       <div class="acc-gamification acc-animate acc-delay-3">
@@ -5859,6 +5919,12 @@
         </button>
       </div>
       <p class="crossword-note">* Не впливає на статистику слів</p>
+
+      <!-- Куди зараз пишемо. Тап по клітинці на перетині вдруге теж перемикає -->
+      <button id="crossword-direction-toggle" onclick="toggleCrosswordDirection()">
+        <span id="crossword-direction-label">→ Пишемо вправо</span>
+        <i class="fas fa-arrows-rotate"></i>
+      </button>
 
       <!-- Сітка кросворда зверху -->
       <div id="crossword-container">
@@ -6951,23 +7017,60 @@ function exitSpeedTraining() {
       }
     }
 
-    // Перевірка підписки
-    function checkSubscription(userData) {
-      // Перевірка на lifetime підписку
+    // Статус підписки показуємо на зірочці в шапці, окремого рядка більше немає
+    let currentSubscriptionData = null;
+
+    // Пробний період — це 3 дні, які видаються при реєстрації. Окремого прапорця
+    // в старих записах немає, тож упізнаємо його по тому, що строк не виходить
+    // за межі реєстрації + 3 дні (після покупки він завжди більший).
+    function isTrialSubscription(userData, expiration) {
+      if (userData.subscriptionPlan === 'paid') return false;
+      const registration = userData.registrationDate && userData.registrationDate.toDate
+        ? userData.registrationDate.toDate() : null;
+      if (!registration) return false;
+      return (expiration - registration) <= 3.5 * 24 * 60 * 60 * 1000;
+    }
+
+    // Повертає true, поки доступ активний
+    function renderSubscriptionBadge(userData) {
+      const badge = document.getElementById('subscription-badge');
+      const label = document.getElementById('subscription-badge-label');
+      if (!badge || !label) return true;
+
+      badge.classList.remove('sub-lifetime', 'sub-active', 'sub-trial', 'sub-expired');
+
       if (userData.lifetime === true) {
-        document.getElementById('subscription-info').textContent = 'Підписка: Безкоштовно назавжди ∞';
-        return;
+        label.textContent = 'PRO ∞';
+        badge.classList.add('sub-lifetime');
+        badge.title = 'PRO назавжди';
+        return true;
       }
 
-      const subscriptionExpiration = userData.subscriptionExpiration.toDate();
-      const currentDate = new Date();
-      const timeDiff = subscriptionExpiration - currentDate;
-      const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-      if (daysLeft > 0) {
-        document.getElementById('subscription-info').textContent =
-          `Залишилось днів підписки: ${daysLeft}`;
-      } else {
-        document.getElementById('subscription-info').textContent = 'Підписка закінчилася.';
+      const expiration = userData.subscriptionExpiration && userData.subscriptionExpiration.toDate
+        ? userData.subscriptionExpiration.toDate() : null;
+      const daysLeft = expiration
+        ? Math.ceil((expiration - new Date()) / (1000 * 60 * 60 * 24)) : 0;
+
+      if (daysLeft <= 0) {
+        label.textContent = 'Оплата';
+        badge.classList.add('sub-expired');
+        badge.title = 'Підписка закінчилася';
+        return false;
+      }
+
+      const trial = isTrialSubscription(userData, expiration);
+      label.textContent = `${trial ? 'Проба' : 'PRO'} ${daysLeft}д`;
+      badge.classList.add(trial ? 'sub-trial' : 'sub-active');
+      badge.title = trial
+        ? `Пробний період, залишилось днів: ${daysLeft}`
+        : `PRO, залишилось днів: ${daysLeft}`;
+      return true;
+    }
+
+    // Перевірка підписки
+    function checkSubscription(userData) {
+      currentSubscriptionData = userData;
+      if (!renderSubscriptionBadge(userData)) {
         document.getElementById('account-screen').classList.add('hidden');
         document.getElementById('payment-section').classList.remove('hidden');
       }
@@ -12321,7 +12424,8 @@ function copyStory() {
       const newExpiration = new Date(currentDate);
       newExpiration.setDate(newExpiration.getDate() + days);
       db.collection('users').doc(userId).update({
-          subscriptionExpiration: firebase.firestore.Timestamp.fromDate(newExpiration)
+          subscriptionExpiration: firebase.firestore.Timestamp.fromDate(newExpiration),
+          subscriptionPlan: 'paid'
         })
         .then(() => {
           alert('Підписку оновлено!');
@@ -13696,7 +13800,9 @@ async function translateStory() {
               <input type="text" maxlength="1" data-row="${r}" data-col="${c}"
                      inputmode="text" enterkeyhint="next"
                      onkeyup="handleCrosswordInput(event, this)"
-                     onfocus="highlightCrosswordWord(${r},${c})"
+                     onkeydown="onCrosswordKeyDown(event, this)"
+                     onfocus="onCrosswordCellFocus(${r},${c})"
+                     onclick="onCrosswordCellClick(${r},${c})"
                      autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
             </td>`;
           } else {
@@ -13716,7 +13822,7 @@ async function translateStory() {
       let downHtml = '';
 
       placedWords.forEach((word, index) => {
-        const clue = `<li><strong>${index + 1}.</strong> ${word.translation}</li>`;
+        const clue = `<li onclick="focusCrosswordWordByIndex(${index})"><strong>${index + 1}.</strong> ${escapeHtml(word.translation)}</li>`;
         if (word.direction === 'across') {
           acrossHtml += clue;
         } else {
@@ -13726,10 +13832,121 @@ async function translateStory() {
 
       acrossClues.innerHTML = acrossHtml || '<li>Немає слів</li>';
       downClues.innerHTML = downHtml || '<li>Немає слів</li>';
+
+      cwDirection = 'across';
+      cwActiveCell = null;
+      updateCrosswordDirectionLabel();
     }
 
-    // Track current crossword direction for smart navigation
+    // ===== Навігація по кросворду =====
+    // Напрямок «залипає» на слові, поки користувач сам його не змінить.
+    // Раніше highlightCrosswordWord() перезаписував напрямок на кожен focus,
+    // тож на перетині слів курсор зістрибував: писав вниз — і раптом пішов вправо.
     let cwDirection = 'across';
+    let cwProgrammaticFocus = false;  // фокус від автопереходу, а не від пальця
+    let cwJustFocused = false;        // щоб перший тап не рахувався за повторний
+    let cwActiveCell = null;
+
+    // Усі слова, яким належить клітинка (на перетині їх два)
+    function crosswordWordsAt(row, col) {
+      return placedWords.filter(pw => {
+        if (pw.direction === 'across') {
+          return row === pw.row && col >= pw.col && col <= pw.col + pw.english.length - 1;
+        }
+        return col === pw.col && row >= pw.row && row <= pw.row + pw.english.length - 1;
+      });
+    }
+
+    function crosswordActiveWord(row, col) {
+      const words = crosswordWordsAt(row, col);
+      return words.find(w => w.direction === cwDirection) || words[0] || null;
+    }
+
+    function focusCrosswordInput(input) {
+      if (!input) return;
+      cwProgrammaticFocus = true;
+      input.focus();
+      input.select();
+      cwProgrammaticFocus = false;
+    }
+
+    function crosswordInputAt(row, col) {
+      return document.querySelector(`.crossword-cell input[data-row="${row}"][data-col="${col}"]`);
+    }
+
+    // Тап пальцем/мишею: напрямок міняємо лише якщо в цьому напрямку слова немає
+    function onCrosswordCellFocus(row, col) {
+      if (!cwProgrammaticFocus) {
+        const words = crosswordWordsAt(row, col);
+        if (words.length && !words.some(w => w.direction === cwDirection)) {
+          cwDirection = words[0].direction;
+          updateCrosswordDirectionLabel();
+        }
+        cwJustFocused = true;
+        cwActiveCell = `${row}-${col}`;
+      }
+      highlightCrosswordWord(row, col);
+    }
+
+    // Повторний тап по вже активній клітинці на перетині — перемикає напрямок
+    function onCrosswordCellClick(row, col) {
+      if (cwJustFocused) { cwJustFocused = false; return; }
+      if (crosswordWordsAt(row, col).length > 1) {
+        cwDirection = cwDirection === 'across' ? 'down' : 'across';
+        updateCrosswordDirectionLabel();
+      }
+      cwActiveCell = `${row}-${col}`;
+      highlightCrosswordWord(row, col);
+    }
+
+    function toggleCrosswordDirection() {
+      cwDirection = cwDirection === 'across' ? 'down' : 'across';
+      updateCrosswordDirectionLabel();
+      const active = document.activeElement;
+      if (active && active.dataset && active.dataset.row !== undefined) {
+        highlightCrosswordWord(parseInt(active.dataset.row), parseInt(active.dataset.col));
+      }
+    }
+
+    function updateCrosswordDirectionLabel() {
+      const label = document.getElementById('crossword-direction-label');
+      if (label) {
+        label.textContent = cwDirection === 'across' ? '→ Пишемо вправо' : '↓ Пишемо вниз';
+      }
+    }
+
+    // Клік по підказці — перехід на початок слова і його напрямок
+    function focusCrosswordWordByIndex(index) {
+      const word = placedWords[index];
+      if (!word) return;
+      cwDirection = word.direction;
+      cwActiveCell = `${word.row}-${word.col}`;
+      updateCrosswordDirectionLabel();
+      focusCrosswordInput(crosswordInputAt(word.row, word.col));
+      highlightCrosswordWord(word.row, word.col);
+    }
+
+    // Стрілки на десктопі: рухають і водночас задають напрямок
+    function onCrosswordKeyDown(event, input) {
+      const arrows = { ArrowLeft: ['across', -1], ArrowRight: ['across', 1], ArrowUp: ['down', -1], ArrowDown: ['down', 1] };
+      const move = arrows[event.key];
+      if (!move) return;
+      event.preventDefault();
+      const [dir, step] = move;
+      const row = parseInt(input.dataset.row);
+      const col = parseInt(input.dataset.col);
+      if (cwDirection !== dir) {
+        cwDirection = dir;
+        updateCrosswordDirectionLabel();
+        highlightCrosswordWord(row, col);
+      }
+      const next = findNextCrosswordInput(row, col, dir, step);
+      if (next) {
+        cwActiveCell = `${next.dataset.row}-${next.dataset.col}`;
+        focusCrosswordInput(next);
+        highlightCrosswordWord(parseInt(next.dataset.row), parseInt(next.dataset.col));
+      }
+    }
 
     function handleCrosswordInput(event, input) {
       input.value = input.value.toUpperCase().replace(/[^A-Z]/g, '');
@@ -13738,22 +13955,34 @@ async function translateStory() {
       const col = parseInt(input.dataset.col);
 
       if (input.value && event.key !== 'Backspace') {
-        // Move to next cell in current word direction
         const nextInput = findNextCrosswordInput(row, col, cwDirection, 1);
-        if (nextInput) nextInput.focus();
+        if (nextInput) focusCrosswordInput(nextInput);
       }
 
       if (event.key === 'Backspace' && !input.value) {
         const prevInput = findNextCrosswordInput(row, col, cwDirection, -1);
-        if (prevInput) prevInput.focus();
+        if (prevInput) focusCrosswordInput(prevInput);
       }
     }
 
+    // Крок лишається всередині поточного слова, щоб курсор не вилітав
+    // у сусіднє слово, що просто торкається кінця цього
     function findNextCrosswordInput(row, col, direction, step) {
       const nextR = direction === 'down' ? row + step : row;
       const nextC = direction === 'across' ? col + step : col;
-      const sel = `.crossword-cell input[data-row="${nextR}"][data-col="${nextC}"]`;
-      return document.querySelector(sel);
+
+      const word = placedWords.find(pw => pw.direction === direction && (
+        direction === 'across'
+          ? row === pw.row && col >= pw.col && col <= pw.col + pw.english.length - 1
+          : col === pw.col && row >= pw.row && row <= pw.row + pw.english.length - 1
+      ));
+      if (word) {
+        const endR = word.direction === 'down' ? word.row + word.english.length - 1 : word.row;
+        const endC = word.direction === 'across' ? word.col + word.english.length - 1 : word.col;
+        if (nextR < word.row || nextR > endR || nextC < word.col || nextC > endC) return null;
+      }
+
+      return crosswordInputAt(nextR, nextC);
     }
 
     function highlightCrosswordWord(row, col) {
@@ -13761,19 +13990,8 @@ async function translateStory() {
       document.querySelectorAll('.crossword-cell.highlight').forEach(c => c.classList.remove('highlight'));
       document.querySelectorAll('.clues-list li.clue-active').forEach(c => c.classList.remove('clue-active'));
 
-      // Find which word(s) this cell belongs to
-      let matchedWord = null;
-      for (const pw of placedWords) {
-        const endR = pw.direction === 'down' ? pw.row + pw.english.length - 1 : pw.row;
-        const endC = pw.direction === 'across' ? pw.col + pw.english.length - 1 : pw.col;
-        if (pw.direction === 'across' && row === pw.row && col >= pw.col && col <= endC) {
-          matchedWord = pw; cwDirection = 'across'; break;
-        }
-        if (pw.direction === 'down' && col === pw.col && row >= pw.row && row <= endR) {
-          matchedWord = pw; cwDirection = 'down'; break;
-        }
-      }
-
+      // Підсвічуємо слово в поточному напрямку — напрямок тут НЕ змінюємо
+      const matchedWord = crosswordActiveWord(row, col);
       if (!matchedWord) return;
 
       // Highlight cells of matched word
@@ -13979,13 +14197,12 @@ async function translateStory() {
     function startSubscriptionTimer(subscriptionExpiration) {
       function updateDaysLeft() {
         const currentDate = new Date();
-        const timeDiff = subscriptionExpiration - currentDate;
-        const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+        const daysLeft = Math.ceil((subscriptionExpiration - currentDate) / (1000 * 60 * 60 * 24));
         if (daysLeft > 0) {
-          document.getElementById('subscription-info').textContent =
-            `Залишилось днів підписки: ${daysLeft}`;
+          if (currentSubscriptionData) renderSubscriptionBadge(currentSubscriptionData);
         } else {
           clearInterval(timer);
+          if (currentSubscriptionData) renderSubscriptionBadge(currentSubscriptionData);
           document.getElementById('account-screen').classList.add('hidden');
           document.getElementById('payment-section').classList.remove('hidden');
         }
