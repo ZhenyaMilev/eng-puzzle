@@ -1,11 +1,15 @@
-# The site is the single index.html at the repo root; the functions exist only
-# because payments cannot be done from the browser — the merchant secret and the
-# subscription write both have to stay server-side.
+# The site is the single index.html at the repo root; the functions exist because
+# two things cannot happen in the browser — the WayForPay merchant secret with the
+# subscription write, and the OpenAI key with the quota that guards it.
 
 [build]
   publish = "."
   command = "echo 'static site, nothing to build'"
   functions = "netlify/functions"
+
+[build.environment]
+  # ai.js uses global fetch/FormData/Blob, which need Node 18+
+  NODE_VERSION = "20"
 
 [functions]
   node_bundler = "esbuild"
