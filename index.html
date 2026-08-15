@@ -2347,6 +2347,44 @@
       display: none;
     }
 
+    /* Вибір джерела фото: зняти камерою або взяти з галереї */
+    .photo-pick-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .photo-pick-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px;
+      background: transparent;
+      border: 1px dashed rgba(240, 237, 232, 0.15);
+      border-radius: 12px;
+      color: rgba(240, 237, 232, 0.35);
+      font-size: 13px;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .photo-pick-btn:active {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .photo-pick-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      border: 1px dashed rgba(232, 168, 56, 0.3);
+      border-radius: 12px;
+      color: #E8A838;
+      font-size: 13px;
+    }
+
     .suggestion {
       background-color: rgba(255, 255, 255, 0.08);
       color: #F0EDE8;
@@ -5585,11 +5623,20 @@
         <button onclick="addWord()">Додати</button>
         <!-- Photo / Camera -->
         <div style="margin-top:14px;">
-          <label id="photo-upload-label" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:transparent;border:1px dashed rgba(240,237,232,0.15);border-radius:12px;color:rgba(240,237,232,0.35);font-size:13px;cursor:pointer;margin:0;">
-            <span id="photo-upload-text"><i class="fas fa-camera" style="font-size:14px;"></i> або додай з фото</span>
-            <span id="photo-upload-loading" class="hidden"><i class="fas fa-spinner fa-spin" style="font-size:14px;"></i> Аналізую фото...</span>
-            <input type="file" accept="image/*" capture="environment" onchange="handlePhotoInput(event)" style="display:none;">
-          </label>
+          <p style="font-size:12px;color:rgba(240,237,232,0.3);text-align:center;margin:0 0 8px;">або додай з фото</p>
+          <div id="photo-upload-row" class="photo-pick-row">
+            <label id="photo-upload-label" class="photo-pick-btn">
+              <i class="fas fa-camera" style="font-size:14px;"></i> Сфотографувати
+              <input type="file" accept="image/*" capture="environment" onchange="handlePhotoInput(event)" style="display:none;">
+            </label>
+            <label id="photo-gallery-label" class="photo-pick-btn">
+              <i class="fas fa-images" style="font-size:14px;"></i> З галереї
+              <input type="file" accept="image/*" onchange="handlePhotoInput(event)" style="display:none;">
+            </label>
+          </div>
+          <div id="photo-upload-loading" class="photo-pick-loading hidden">
+            <i class="fas fa-spinner fa-spin" style="font-size:14px;"></i> Аналізую фото...
+          </div>
         </div>
         <div id="photo-words-preview" class="hidden" style="margin-top:12px;padding:14px;background:rgba(255,255,255,0.04);border-radius:12px;">
           <p style="font-size:13px;color:rgba(240,237,232,0.5);margin-bottom:8px;">Слова з фото (обери для додавання):</p>
@@ -5612,11 +5659,20 @@
         <button onclick="addPhraseInline()">Додати</button>
         <!-- Photo / Camera -->
         <div style="margin-top:14px;">
-          <label id="phrase-photo-upload-label" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:transparent;border:1px dashed rgba(240,237,232,0.15);border-radius:12px;color:rgba(240,237,232,0.35);font-size:13px;cursor:pointer;margin:0;">
-            <span id="phrase-photo-upload-text"><i class="fas fa-camera" style="font-size:14px;"></i> або додай з фото</span>
-            <span id="phrase-photo-upload-loading" class="hidden"><i class="fas fa-spinner fa-spin" style="font-size:14px;"></i> Аналізую фото...</span>
-            <input type="file" accept="image/*" capture="environment" onchange="handlePhrasePhotoInput(event)" style="display:none;">
-          </label>
+          <p style="font-size:12px;color:rgba(240,237,232,0.3);text-align:center;margin:0 0 8px;">або додай з фото</p>
+          <div id="phrase-photo-upload-row" class="photo-pick-row">
+            <label id="phrase-photo-upload-label" class="photo-pick-btn">
+              <i class="fas fa-camera" style="font-size:14px;"></i> Сфотографувати
+              <input type="file" accept="image/*" capture="environment" onchange="handlePhrasePhotoInput(event)" style="display:none;">
+            </label>
+            <label id="phrase-photo-gallery-label" class="photo-pick-btn">
+              <i class="fas fa-images" style="font-size:14px;"></i> З галереї
+              <input type="file" accept="image/*" onchange="handlePhrasePhotoInput(event)" style="display:none;">
+            </label>
+          </div>
+          <div id="phrase-photo-upload-loading" class="photo-pick-loading hidden">
+            <i class="fas fa-spinner fa-spin" style="font-size:14px;"></i> Аналізую фото...
+          </div>
         </div>
         <div id="photo-phrases-preview" class="hidden" style="margin-top:12px;padding:14px;background:rgba(255,255,255,0.04);border-radius:12px;">
           <p style="font-size:13px;color:rgba(240,237,232,0.5);margin-bottom:8px;">Фрази з фото (обери для додавання):</p>
@@ -8174,7 +8230,7 @@ Return ONLY a JSON array of strings.`
       if (!file) return;
 
       showLoading();
-      document.getElementById('photo-upload-text').classList.add('hidden');
+      document.getElementById('photo-upload-row').classList.add('hidden');
       document.getElementById('photo-upload-loading').classList.remove('hidden');
       try {
         const base64 = await new Promise((resolve) => {
@@ -8219,7 +8275,7 @@ Return ONLY a JSON array of strings.`
         showNotification('Помилка обробки фото', 'warning');
       } finally {
         hideLoading();
-        document.getElementById('photo-upload-text').classList.remove('hidden');
+        document.getElementById('photo-upload-row').classList.remove('hidden');
         document.getElementById('photo-upload-loading').classList.add('hidden');
         event.target.value = '';
       }
@@ -8304,7 +8360,7 @@ Return ONLY a JSON array of strings.`
       if (!file) return;
 
       showLoading();
-      document.getElementById('phrase-photo-upload-text').classList.add('hidden');
+      document.getElementById('phrase-photo-upload-row').classList.add('hidden');
       document.getElementById('phrase-photo-upload-loading').classList.remove('hidden');
       try {
         const base64 = await new Promise((resolve) => {
@@ -8348,7 +8404,7 @@ Return ONLY a JSON array of strings.`
         showNotification('Помилка обробки фото', 'warning');
       } finally {
         hideLoading();
-        document.getElementById('phrase-photo-upload-text').classList.remove('hidden');
+        document.getElementById('phrase-photo-upload-row').classList.remove('hidden');
         document.getElementById('phrase-photo-upload-loading').classList.add('hidden');
         event.target.value = '';
       }
