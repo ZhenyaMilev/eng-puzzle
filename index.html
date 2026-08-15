@@ -1141,6 +1141,29 @@
       margin-top: 10px;
     }
 
+    /* Кнопка в шапці секції: квадратна, як решта кнопок застосунку */
+    .header-action-btn {
+      width: 44px;
+      min-width: 44px;
+      height: 44px;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      box-shadow: none;
+      color: rgba(240, 237, 232, 0.7);
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .header-action-btn:active {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
     .info-btn-small {
       background: #37474F;
       color: white;
@@ -2224,11 +2247,12 @@
       white-space: nowrap;
     }
 
+    /* Було 32px — замалі, щоб упевнено влучити пальцем */
     .grammar-topic .topic-row-action {
-      flex: 0 0 32px;
-      width: 32px;
-      min-width: 32px;
-      height: 32px;
+      flex: 0 0 44px;
+      width: 44px;
+      min-width: 44px;
+      height: 44px;
       padding: 0;
       margin: 0;
       border-radius: 8px;
@@ -6204,11 +6228,14 @@
     <!-- Секція "Граматика" -->
     <div id="grammar-section" class="hidden">
       <div class="title-and-btn">
-        <button class="button-with-icon back-button" onclick="backToAccount()">
+        <button class="button-with-icon back-button" onclick="grammarBack()">
           <i class="fas fa-arrow-left"></i>
           <span>Назад</span>
         </button>
         <h2 style="font-size:24px;">Граматика</h2>
+        <button id="grammar-share-btn" class="header-action-btn hidden" onclick="shareOpenLesson()" title="Поділитися уроком">
+          <i class="fas fa-share-nodes"></i>
+        </button>
       </div>
       <div id="grammar-topics">
         <div class="vocab-tabs" style="margin-bottom:12px;">
@@ -6673,7 +6700,7 @@
           <span>Назад</span>
         </button>
         <h2 style="font-size:24px;">Speaking Club</h2>
-        <button class="info-btn-small" id="sc-history-btn" onclick="scShowHistoryScreen()" title="Історія розмов">
+        <button class="header-action-btn" id="sc-history-btn" onclick="scShowHistoryScreen()" title="Історія розмов">
           <i class="fas fa-history"></i>
         </button>
       </div>
@@ -6992,7 +7019,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.6';
+    const APP_VERSION = '2026-08-15.7';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -9296,7 +9323,28 @@ Return ONLY a JSON array of strings.`
       loadCustomLessons();
     }
 
+    // «Назад» з уроку чи тесту веде до списку тем, а не одразу на головний екран
+    function grammarBack() {
+      const inLesson = !document.getElementById('grammar-lesson').classList.contains('hidden')
+        || !document.getElementById('grammar-quiz').classList.contains('hidden')
+        || !document.getElementById('custom-lesson-input').classList.contains('hidden')
+        || document.getElementById('grammar-choice').style.display === 'flex';
+      if (inLesson) {
+        backToGrammarTopics();
+        renderGrammarTopics();
+        return;
+      }
+      backToAccount();
+    }
+
+    // Ділимося саме тим уроком, який зараз відкритий
+    function shareOpenLesson() {
+      if (currentGrammarTopic && currentGrammarTopic.custom) shareCustomLesson(currentGrammarTopic.id);
+    }
+
     function backToGrammarTopics() {
+      const share = document.getElementById('grammar-share-btn');
+      if (share) share.classList.add('hidden');
       document.getElementById('grammar-topics').classList.remove('hidden');
       document.getElementById('custom-lesson-input').classList.add('hidden');
       document.getElementById('grammar-lesson').classList.add('hidden');
@@ -9360,9 +9408,6 @@ Return ONLY a JSON array of strings.`
             <span class="topic-name">${escapeHtml(l.title)}</span>
             <span class="topic-desc">${escapeHtml(l.level || 'A1')}${done ? ' · пройдено ✓' : ''}</span>
           </div>
-          <button class="topic-row-action" onclick="shareCustomLesson('${l.id}')" title="Поділитися">
-            <i class="fas fa-share-nodes"></i>
-          </button>
           <button class="topic-row-action" onclick="deleteCustomLesson('${l.id}')" title="Видалити">
             <i class="fas fa-trash"></i>
           </button>
@@ -9721,8 +9766,11 @@ ${source}
     }
 
     function updateExtendButton() {
+      const custom = !!(currentGrammarTopic && currentGrammarTopic.custom);
       const btn = document.getElementById('grammar-extend-btn');
-      if (btn) btn.classList.toggle('hidden', !(currentGrammarTopic && currentGrammarTopic.custom));
+      if (btn) btn.classList.toggle('hidden', !custom);
+      const share = document.getElementById('grammar-share-btn');
+      if (share) share.classList.toggle('hidden', !custom);
     }
 
     async function shareCustomLesson(lessonId) {
