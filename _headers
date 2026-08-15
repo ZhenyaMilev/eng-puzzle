@@ -1,0 +1,16 @@
+# Netlify headers.
+#
+# The app is a single index.html. Home-screen shortcuts on iOS kept serving an
+# old copy of it for days: Netlify's default "max-age=0, must-revalidate" still
+# lets the webclip reuse a cached response, and a standalone web app is resumed
+# rather than reloaded, so the revalidation never happened.
+# no-store forbids keeping a copy at all, so every launch fetches the real file.
+
+/
+  Cache-Control: no-store, max-age=0, must-revalidate
+
+/index.html
+  Cache-Control: no-store, max-age=0, must-revalidate
+
+/version.json
+  Cache-Control: no-store, max-age=0, must-revalidate

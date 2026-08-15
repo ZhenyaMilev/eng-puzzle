@@ -1735,6 +1735,43 @@
     }
 
     /* Words/Phrases tab switcher */
+    /* Плашка «є нова версія» */
+    #app-update-banner {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: #171a22;
+      border: 1px solid rgba(232, 168, 56, 0.4);
+      border-radius: 12px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+      color: #F0EDE8;
+      font-size: 14px;
+    }
+
+    #app-update-banner span {
+      flex: 1;
+    }
+
+    #app-update-banner button {
+      width: auto;
+      margin: 0;
+      padding: 8px 16px;
+      background: rgba(232, 168, 56, 0.2);
+      border: 1px solid #E8A838;
+      border-radius: 9px;
+      color: #E8A838;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
     /* ===== Вибір режиму (напрямок / спосіб) ===== */
     .mode-group-label {
       font-size: 13px;
@@ -5603,6 +5640,14 @@
       </div><!-- /vocab-words-content -->
 
       <div id="vocab-phrases-content" class="hidden">
+        <div id="folder-bar-phrases" class="folder-bar"></div>
+        <div id="folder-toolbar-phrases" class="folder-toolbar hidden">
+          <div class="folder-toolbar-actions">
+            <button onclick="shareCurrentFolder()" title="Поділитися"><i class="fas fa-share-nodes"></i></button>
+            <button onclick="renameCurrentFolder()" title="Перейменувати"><i class="fas fa-pen"></i></button>
+            <button onclick="deleteCurrentFolder()" title="Видалити"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
         <input type="text" id="phrase-search-input" placeholder="Пошук фрази...">
         <div class="word-count-row" style="justify-content:flex-end;">
           <button class="info-btn-small" onclick="showPhrasesInfo()">
@@ -6510,6 +6555,13 @@
 
       <!-- Config screen -->
       <div id="sc-config-screen">
+        <div id="sc-memory-badge" class="hidden" style="display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:14px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:10px;color:#34d399;font-size:13px;">
+          <i class="fas fa-brain"></i>
+          <span style="flex:1;">Sam тебе пам'ятає — розмов разом: <b id="sc-memory-count">0</b></span>
+          <button onclick="scForgetMemory()" title="Забути" style="width:28px;min-width:28px;height:28px;padding:0;margin:0;border-radius:7px;background:transparent;border:none;box-shadow:none;color:rgba(240,237,232,0.35);font-size:12px;cursor:pointer;">
+            <i class="fas fa-eraser"></i>
+          </button>
+        </div>
         <div class="sc-config">
           <div>
             <div class="sc-config-label">Тема розмови</div>
@@ -6752,6 +6804,48 @@
 
     // Глобальна змінна для OpenAI API ключа
     let openaiApiKey = null;
+
+    // ===== Оновлення застосунку =====
+    // Ярлик на робочому столі телефона не перезавантажує сторінку — його просто
+    // згортають і розгортають, тож користувач місяцями сидів на старій версії.
+    // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
+    // і перевіряємо її при кожному поверненні у застосунок.
+    const APP_VERSION = '2026-08-15.1';
+    let appUpdateNoticed = false;
+
+    async function checkForAppUpdate() {
+      if (appUpdateNoticed) return;
+      try {
+        const response = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data.version && data.version !== APP_VERSION) {
+          appUpdateNoticed = true;
+          showUpdateBanner();
+        }
+      } catch (e) { /* офлайн — не заважаємо */ }
+    }
+
+    function showUpdateBanner() {
+      if (document.getElementById('app-update-banner')) return;
+      const bar = document.createElement('div');
+      bar.id = 'app-update-banner';
+      bar.innerHTML = `<span>Вийшла нова версія</span>
+        <button onclick="applyAppUpdate()">Оновити</button>`;
+      document.body.appendChild(bar);
+    }
+
+    function applyAppUpdate() {
+      // ?v= гарантує, що з кешу нічого не підхопиться навіть у вебклипі
+      location.replace(location.pathname + '?v=' + Date.now());
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) checkForAppUpdate();
+    });
+    window.addEventListener('focus', checkForAppUpdate);
+    setTimeout(checkForAppUpdate, 4000);
+    setInterval(checkForAppUpdate, 30 * 60 * 1000);
 
     // Функція для отримання API ключа з Firestore
     async function loadOpenAIKey() {
@@ -8929,6 +9023,7 @@ Return ONLY a JSON array of strings.`
               interactions: 0,
               correctAnswers: 0,
               priority: 0,
+              folders: currentFolderId ? [currentFolderId] : [],
               dateAdded: firebase.firestore.Timestamp.now(),
             });
             added++;
@@ -11223,7 +11318,11 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
     let phraseCorrectAnswers = 0;
     let phraseSelectedWords = [];
 
+    let currentVocabTab = 'words';
+
     function switchVocabTab(tab) {
+      currentVocabTab = tab;
+      renderFolderBar();
       document.getElementById('vocab-tab-words').classList.toggle('active', tab === 'words');
       document.getElementById('vocab-tab-phrases').classList.toggle('active', tab === 'phrases');
       document.getElementById('vocab-words-content').classList.toggle('hidden', tab !== 'words');
@@ -11260,6 +11359,20 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
 
     async function loadNextPhrasePage() {
       const userId = auth.currentUser.uid;
+
+      if (currentFolderId) {
+        const snapshot = await db.collection('users').doc(userId).collection('phrases')
+          .where('folders', 'array-contains', currentFolderId).get();
+        const phrases = snapshot.docs.map(doc => Object.assign({ id: doc.id }, doc.data())).sort((a, b) =>
+          ((b.dateAdded && b.dateAdded.seconds) || 0) - ((a.dateAdded && a.dateAdded.seconds) || 0));
+        allPhrases = phrases;
+        allPhrasesLoaded = true;
+        document.getElementById('phrases').innerHTML = '';
+        renderPhrases(phrases);
+        document.getElementById('load-more-phrases').classList.add('hidden');
+        return;
+      }
+
       let query = db.collection('users').doc(userId).collection('phrases')
         .orderBy('dateAdded', 'desc')
         .limit(phrasesPerPage);
@@ -11378,6 +11491,17 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
         phraseInfo.innerHTML = `<strong>${escapeHtml(p.english)}</strong><br><span style="color:rgba(240,237,232,0.5);font-size:13px;">${escapeHtml(p.translation)}</span>`;
         li.appendChild(phraseInfo);
 
+        if ((p.folders || []).length) {
+          const folderBtn = document.createElement('i');
+          folderBtn.classList.add('fas', 'fa-folder', 'word-folder-btn', 'has-folder');
+          folderBtn.title = 'Папки';
+          folderBtn.onclick = (e) => {
+            e.stopPropagation();
+            openFolderPicker(p.id, 'phrase');
+          };
+          li.appendChild(folderBtn);
+        }
+
         // Delete button
         const deleteBtn = document.createElement('i');
         deleteBtn.classList.add('fas', 'fa-trash');
@@ -11438,8 +11562,10 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
             interactions: 0,
             correctAnswers: 0,
             priority: 0,
+            folders: currentFolderId ? [currentFolderId] : [],
             dateAdded: firebase.firestore.Timestamp.now(),
           });
+          if (currentFolderId) refreshFolderCount(currentFolderId);
           document.getElementById('phrase-english').value = '';
           document.getElementById('phrase-translation').value = '';
           closeAllSuggestions();
@@ -11467,11 +11593,14 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
       const interactions = phrase.interactions || 0;
       const correctAnswers = phrase.correctAnswers || 0;
       const percentage = interactions > 0 ? Math.round((correctAnswers / interactions) * 100) : 0;
+      // Іконки папки в рядку немає, поки фраза нікуди не належить — тож шлях у папки звідси
+      const phraseArg = JSON.stringify(phrase.id).replace(/"/g, '&quot;');
       showInfoPopup(phrase.english, `
         <p style="font-size:15px;margin-bottom:12px;">${escapeHtml(phrase.translation)}</p>
         <p>Кількість взаємодій: ${interactions}</p>
         <p>Правильних відповідей: ${correctAnswers}</p>
         <p>Відсоток правильних: ${percentage}%</p>
+        <button onclick="closeAllInfoPopups();openFolderPicker(${phraseArg}, 'phrase')" style="margin-top:14px;width:100%;padding:13px;background:rgba(232,168,56,0.15);color:#E8A838;border:1px solid rgba(232,168,56,0.4);border-radius:10px;font-size:15px;font-weight:600;box-shadow:none;cursor:pointer;"><i class="fas fa-folder" style="margin-right:8px;"></i>Папки</button>
       `);
     }
 
@@ -12074,6 +12203,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     let userFolders = [];
     let currentFolderId = null;
     let folderPickerWord = null;
+    let folderPickerType = 'word';
 
     function mapWordDoc(doc) {
       const data = doc.data();
@@ -12099,27 +12229,34 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       } catch (e) { console.log('Folders load error:', e); }
     }
 
+    // Папка спільна для слів і фраз, тож смужка малюється в обидві вкладки,
+    // а число на чипі показує вміст саме тієї вкладки, де ти зараз
     function renderFolderBar() {
-      const bar = document.getElementById('folder-bar');
-      if (!bar) return;
+      const isPhrases = currentVocabTab === 'phrases';
       const chips = [`<button class="folder-chip ${currentFolderId ? '' : 'active'}" onclick="selectFolder(null)">Всі</button>`];
       userFolders.forEach(f => {
+        const count = isPhrases ? (f.phraseCount || 0) : (f.wordCount || 0);
         chips.push(`<button class="folder-chip ${currentFolderId === f.id ? 'active' : ''}" onclick="selectFolder('${f.id}')">
           <i class="fas fa-folder"></i>${escapeHtml(f.name)}
-          <span class="folder-chip-count">${f.wordCount || 0}</span>
+          <span class="folder-chip-count">${count}</span>
         </button>`);
       });
       chips.push(`<button class="folder-chip" onclick="createFolderPrompt()" title="Нова папка"><i class="fas fa-plus"></i></button>`);
-      bar.innerHTML = chips.join('');
 
-      const toolbar = document.getElementById('folder-toolbar');
-      toolbar.classList.toggle('hidden', !userFolders.some(f => f.id === currentFolderId));
+      const open = userFolders.some(f => f.id === currentFolderId);
+      ['', '-phrases'].forEach(suffix => {
+        const bar = document.getElementById('folder-bar' + suffix);
+        if (bar) bar.innerHTML = chips.join('');
+        const toolbar = document.getElementById('folder-toolbar' + suffix);
+        if (toolbar) toolbar.classList.toggle('hidden', !open);
+      });
     }
 
     async function selectFolder(folderId) {
       currentFolderId = folderId;
       renderFolderBar();
-      await fetchWordsPaged();
+      if (currentVocabTab === 'phrases') await loadPhrases();
+      else await fetchWordsPaged();
     }
 
     async function createFolderPrompt() {
@@ -12169,12 +12306,14 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       if (!ok) return;
       try {
         const userId = auth.currentUser.uid;
-        const snap = await db.collection('users').doc(userId).collection('words')
-          .where('folders', 'array-contains', folder.id).get();
-        for (const doc of snap.docs) {
-          await doc.ref.update({
-            folders: (doc.data().folders || []).filter(id => id !== folder.id),
-          });
+        for (const coll of ['words', 'phrases']) {
+          const snap = await db.collection('users').doc(userId).collection(coll)
+            .where('folders', 'array-contains', folder.id).get();
+          for (const doc of snap.docs) {
+            await doc.ref.update({
+              folders: (doc.data().folders || []).filter(id => id !== folder.id),
+            });
+          }
         }
         await db.collection('users').doc(userId).collection('folders').doc(folder.id).delete();
         userFolders = userFolders.filter(f => f.id !== folder.id);
@@ -12189,32 +12328,46 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     async function refreshFolderCount(folderId) {
       try {
         const userId = auth.currentUser.uid;
-        const snap = await db.collection('users').doc(userId).collection('words')
-          .where('folders', 'array-contains', folderId).get();
+        const [wSnap, pSnap] = await Promise.all([
+          db.collection('users').doc(userId).collection('words')
+            .where('folders', 'array-contains', folderId).get(),
+          db.collection('users').doc(userId).collection('phrases')
+            .where('folders', 'array-contains', folderId).get(),
+        ]);
         await db.collection('users').doc(userId).collection('folders').doc(folderId)
-          .update({ wordCount: snap.size });
+          .update({ wordCount: wSnap.size, phraseCount: pSnap.size });
         const folder = userFolders.find(f => f.id === folderId);
-        if (folder) folder.wordCount = snap.size;
+        if (folder) { folder.wordCount = wSnap.size; folder.phraseCount = pSnap.size; }
         renderFolderBar();
       } catch (e) { console.log('Folder count error:', e); }
     }
 
     // ----- вибір папок для конкретного слова -----
-    function openFolderPicker(english) {
-      folderPickerWord = english;
-      document.getElementById('folder-pick-word').textContent = english;
+    function openFolderPicker(id, type) {
+      folderPickerWord = id;
+      folderPickerType = type || 'word';
+      const item = folderPickerItem();
+      document.getElementById('folder-pick-word').textContent =
+        folderPickerType === 'phrase' ? ((item && item.english) || id) : id;
       renderFolderPicker();
       document.getElementById('folder-pick-modal').classList.remove('hidden');
     }
 
+    function folderPickerItem() {
+      return folderPickerType === 'phrase'
+        ? allPhrases.find(p => p.id === folderPickerWord)
+        : allWords.find(w => w.english === folderPickerWord);
+    }
+
     function closeFolderPicker() {
       document.getElementById('folder-pick-modal').classList.add('hidden');
+      const wasPhrase = folderPickerType === 'phrase';
       folderPickerWord = null;
-      fetchWordsPaged();
+      if (wasPhrase) loadPhrases(); else fetchWordsPaged();
     }
 
     function renderFolderPicker() {
-      const word = allWords.find(w => w.english === folderPickerWord);
+      const word = folderPickerItem();
       const picked = (word && word.folders) || [];
       const list = document.getElementById('folder-pick-list');
       if (!userFolders.length) {
@@ -12237,15 +12390,17 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
 
     async function toggleWordFolder(folderId) {
       if (!folderPickerWord) return;
-      const word = allWords.find(w => w.english === folderPickerWord);
+      const word = folderPickerItem();
       if (!word) return;
       const folders = word.folders || [];
       const next = folders.includes(folderId)
         ? folders.filter(id => id !== folderId)
         : folders.concat(folderId);
       try {
+        const coll = folderPickerType === 'phrase' ? 'phrases' : 'words';
+        const docId = folderPickerType === 'phrase' ? word.id : word.english;
         await db.collection('users').doc(auth.currentUser.uid)
-          .collection('words').doc(word.english).update({ folders: next });
+          .collection(coll).doc(docId).update({ folders: next });
         word.folders = next;
         renderFolderPicker();
         updateWordFolderIcon(word);
@@ -12268,14 +12423,22 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       showLoading();
       try {
         const userId = auth.currentUser.uid;
-        const snap = await db.collection('users').doc(userId).collection('words')
-          .where('folders', 'array-contains', folder.id).get();
-        const words = snap.docs.map(d => ({
+        const [wSnap, pSnap] = await Promise.all([
+          db.collection('users').doc(userId).collection('words')
+            .where('folders', 'array-contains', folder.id).get(),
+          db.collection('users').doc(userId).collection('phrases')
+            .where('folders', 'array-contains', folder.id).get(),
+        ]);
+        const words = wSnap.docs.map(d => ({
           english: d.id,
           translation: d.data().translation || '',
           example: d.data().example || '',
         }));
-        if (!words.length) {
+        const phrases = pSnap.docs.map(d => ({
+          english: d.data().english || d.id,
+          translation: d.data().translation || '',
+        }));
+        if (!words.length && !phrases.length) {
           showNotification('У папці ще немає слів', 'warning');
           return;
         }
@@ -12283,6 +12446,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
           type: 'folder',
           title: folder.name,
           words: words,
+          phrases: phrases,
           authorId: userId,
           visibility: 'public',
           importCount: 0,
@@ -12353,15 +12517,17 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       const isFolder = set.type === 'folder';
       document.getElementById('import-set-title').textContent =
         isFolder ? `Папка «${set.title}»` : `Конспект «${set.title}»`;
+      const itemCount = (set.words || []).length + (set.phrases || []).length;
       document.getElementById('import-set-text').textContent = isFolder
-        ? `${(set.words || []).length} слів. Додати папку і всі її слова у свій словник?`
+        ? `${itemCount} слів і фраз. Додати папку і весь її вміст у свій словник?`
         : 'Додати цей урок з тестом до своєї граматики?';
 
       const preview = document.getElementById('import-set-preview');
+      const previewItems = (set.words || []).concat(set.phrases || []);
       preview.innerHTML = isFolder
-        ? (set.words || []).slice(0, 6).map(w =>
+        ? previewItems.slice(0, 6).map(w =>
             `<div class="folder-pick-row" style="cursor:default;"><span><b>${escapeHtml(w.english)}</b> — ${escapeHtml(w.translation)}</span></div>`).join('')
-          + ((set.words || []).length > 6 ? `<p style="margin:8px 0 0;">…і ще ${(set.words || []).length - 6}</p>` : '')
+          + (previewItems.length > 6 ? `<p style="margin:8px 0 0;">…і ще ${previewItems.length - 6}</p>` : '')
         : '';
 
       document.getElementById('import-set-confirm').onclick = isFolder ? importSharedFolder : importSharedLesson;
@@ -12406,10 +12572,33 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
             added++;
           }
         }
+        for (const ph of (set.phrases || [])) {
+          const english = (ph.english || '').trim();
+          if (!english) continue;
+          const phraseId = phraseDocId(english);
+          const ref = db.collection('users').doc(userId).collection('phrases').doc(phraseId);
+          const existing = await ref.get();
+          if (existing.exists) {
+            const folders = existing.data().folders || [];
+            if (!folders.includes(folderId)) await ref.update({ folders: folders.concat(folderId) });
+          } else {
+            await ref.set({
+              english: english,
+              translation: ph.translation || '',
+              interactions: 0,
+              correctAnswers: 0,
+              priority: 0,
+              folders: [folderId],
+              dateAdded: firebase.firestore.Timestamp.now(),
+            });
+            added++;
+          }
+        }
+
         bumpImportCount(set.id);
         await refreshFolderCount(folderId);
         playSound(true);
-        showNotification(`Папку «${set.title}» додано, нових слів: ${added}`);
+        showNotification(`Папку «${set.title}» додано, нового: ${added}`);
         closeImportSetModal();
         if (!document.getElementById('my-words-section').classList.contains('hidden')) selectFolder(folderId);
       } catch (e) {
@@ -12594,7 +12783,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
           folderBtn.title = 'Папки';
           folderBtn.onclick = (e) => {
             e.stopPropagation();
-            openFolderPicker(word.english);
+            openFolderPicker(word.english, 'word');
           };
           li.appendChild(folderBtn);
         }
@@ -12636,7 +12825,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       <p>Кількість взаємодій: ${interactions}</p>
       <p>Правильних відповідей: ${correctAnswers}</p>
       <p>Відсоток правильних відповідей: ${percentage}%</p>
-      <button style="margin-top: 20px; width: 100%; padding: 15px; background: rgba(232,168,56,0.15); color: #E8A838; border: 1px solid rgba(232,168,56,0.4); border-radius: 10px; font-size: 16px; font-weight: 600;" onclick="closePopupWord();openFolderPicker(${wordArg})"><i class="fas fa-folder" style="margin-right:8px;"></i>Папки</button>
+      <button style="margin-top: 20px; width: 100%; padding: 15px; background: rgba(232,168,56,0.15); color: #E8A838; border: 1px solid rgba(232,168,56,0.4); border-radius: 10px; font-size: 16px; font-weight: 600;" onclick="closePopupWord();openFolderPicker(${wordArg}, 'word')"><i class="fas fa-folder" style="margin-right:8px;"></i>Папки</button>
       <button style="margin-top: 10px; width: 100%; padding: 15px; background: #333; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600;" onclick="closePopupWord()">Закрити</button>
     </div>
   `;
@@ -12948,8 +13137,10 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
             interactions: 0,
             correctAnswers: 0,
             priority: 0,
+            folders: currentFolderId ? [currentFolderId] : [],
             dateAdded: firebase.firestore.Timestamp.now(),
           });
+          if (currentFolderId) refreshFolderCount(currentFolderId);
           document.getElementById('phrase-english-inline').value = '';
           document.getElementById('phrase-translation-inline').value = '';
           closeAllSuggestions();
@@ -16508,6 +16699,104 @@ Return ONLY the JSON array, no other text.`;
     let scVoiceTranscripts = []; // store user voice transcriptions for pronunciation analysis
     let scActiveWords = []; // user's vocabulary words for Sam to weave into the conversation
 
+    // ===== Пам'ять співрозмовника =====
+    // Раніше Sam щоразу знайомився заново. Тепер після кожної розмови
+    // він оновлює короткий профіль учня і наступного разу читає його.
+    let scMemory = { profile: '', conversations: 0 };
+    const SC_MEMORY_LIMIT = 1400; // далі профіль не росте, а ущільнюється
+
+    async function scLoadMemory() {
+      try {
+        const doc = await db.collection('users').doc(auth.currentUser.uid).get();
+        const saved = doc.exists && doc.data().scMemory;
+        scMemory = {
+          profile: (saved && saved.profile) || '',
+          conversations: (saved && saved.conversations) || 0,
+        };
+      } catch (e) { scMemory = { profile: '', conversations: 0 }; }
+      scRenderMemoryBadge();
+    }
+
+    function scRenderMemoryBadge() {
+      const el = document.getElementById('sc-memory-badge');
+      if (!el) return;
+      if (!scMemory.conversations) {
+        el.classList.add('hidden');
+        return;
+      }
+      el.classList.remove('hidden');
+      document.getElementById('sc-memory-count').textContent = scMemory.conversations;
+    }
+
+    async function scForgetMemory() {
+      const ok = await appConfirm('Sam забуде тебе?', 'Він більше не пам\'ятатиме попередні розмови і почне знайомство спочатку.', 'Забути');
+      if (!ok) return;
+      try {
+        await db.collection('users').doc(auth.currentUser.uid)
+          .update({ scMemory: { profile: '', conversations: 0 } });
+        scMemory = { profile: '', conversations: 0 };
+        scRenderMemoryBadge();
+        showNotification('Пам\'ять очищено');
+      } catch (e) { showNotification('Не вдалося очистити', 'warning'); }
+    }
+
+    // Профіль перезбирається цілком, а не дописується, — інакше він
+    // розповзається і повторюється від розмови до розмови
+    async function scUpdateMemory(analysis) {
+      if (!openaiApiKey) return;
+      const transcript = scChatHistory
+        .filter(m => m.role !== 'system')
+        .map(m => (m.role === 'user' ? 'Learner: ' : 'Sam: ') + m.content)
+        .join('\n')
+        .slice(-6000);
+      if (!transcript) return;
+
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            temperature: 0.2,
+            max_tokens: 600,
+            messages: [{
+              role: 'user',
+              content: `You keep a private profile of an English learner for their conversation partner Sam.
+
+CURRENT PROFILE:
+"""
+${scMemory.profile || '(empty — this is your first conversation with them)'}
+"""
+
+LATEST CONVERSATION:
+"""
+${transcript}
+"""
+${analysis && analysis.summary ? '\nTeacher note on this conversation: ' + analysis.summary : ''}
+
+Rewrite the profile so it merges the old one with anything new. Keep it as compact plain text under ${SC_MEMORY_LIMIT} characters — if it would grow past that, drop the least useful details rather than truncating mid-sentence.
+
+Keep only what helps Sam talk to them like someone he knows:
+- name, where they live, job or studies, family, pets
+- interests, plans, things they said they like or dislike
+- what you have already talked about (so Sam does not repeat topics)
+- their English level and the mistakes they keep making
+Write it in English, as short factual lines. No headings, no markdown, no commentary.`
+            }],
+          }),
+        });
+        const data = await response.json();
+        const profile = ((data.choices && data.choices[0] && data.choices[0].message.content) || '').trim();
+        if (!profile) return;
+
+        scMemory = {
+          profile: profile.slice(0, SC_MEMORY_LIMIT),
+          conversations: (scMemory.conversations || 0) + 1,
+        };
+        await db.collection('users').doc(auth.currentUser.uid).update({ scMemory: scMemory });
+      } catch (e) { console.log('Speaking memory error:', e); }
+    }
+
     async function showSpeakingClub() {
       toggleMainTitle();
       document.getElementById('account-screen').classList.add('hidden');
@@ -16517,6 +16806,7 @@ Return ONLY the JSON array, no other text.`;
       document.getElementById('sc-analysis-screen').classList.add('hidden');
       document.getElementById('sc-history-screen').classList.add('hidden');
       document.getElementById('sc-history-btn').classList.remove('hidden');
+      scLoadMemory();
       // Load saved config
       try {
         const userId = auth.currentUser.uid;
@@ -16782,6 +17072,10 @@ Return ONLY the JSON array, no other text.`;
         }
       }
 
+      const memoryBlock = scMemory.profile
+        ? `\nWHAT YOU ALREADY KNOW ABOUT THIS PERSON — you have chatted ${scMemory.conversations} time(s) before and you remember them:\n${scMemory.profile}\n- Greet them as someone you already know; do NOT introduce yourself again and do NOT ask things you already know.\n- Bring up what you remember naturally, the way a friend would. Never say you have "notes", "a profile" or "memory", and never recite the list.\n- Prefer topics you have NOT covered yet.\n`
+        : '';
+
       const systemPrompt = `You are a native English speaker named Sam chatting casually. You have real hobbies, preferences, and stories. Talk like a real friend — share your opinion, tell anecdotes, react with emotion. Use contractions, colloquial phrases, slang. Do NOT interview the user — have a real back-and-forth conversation.
 
 RULES:
@@ -16796,7 +17090,7 @@ ${levelRules[scConfig.level] || levelRules['Intermediate']}
 - Do NOT explain grammar unless asked
 - Do NOT use markdown formatting
 - Be natural and conversational — like a real person, not an interviewer
-${vocabPromptBlock}
+${vocabPromptBlock}${memoryBlock}
 Start the conversation with a greeting and an opening question about the topic.`;
 
       scChatHistory = [{ role:'system', content: systemPrompt }];
@@ -17250,6 +17544,7 @@ Rules:
         const content = data.choices[0].message.content.trim();
         const jsonStr = content.replace(/```json?\n?/g,'').replace(/```/g,'').trim();
         const analysis = JSON.parse(jsonStr);
+        scUpdateMemory(analysis);
         scShowAnalysis(analysis, xpEarned);
       } catch(e) {
         console.error('Analysis error:', e);
