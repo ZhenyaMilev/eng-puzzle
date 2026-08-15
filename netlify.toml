@@ -1,0 +1,11 @@
+# The site is the single index.html at the repo root; the functions exist only
+# because payments cannot be done from the browser — the merchant secret and the
+# subscription write both have to stay server-side.
+
+[build]
+  publish = "."
+  command = "echo 'static site, nothing to build'"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"

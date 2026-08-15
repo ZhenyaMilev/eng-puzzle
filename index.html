@@ -7225,7 +7225,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.10';
+    const APP_VERSION = '2026-08-15.11';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -8029,6 +8029,7 @@ function exitSpeedTraining() {
     }
     // Слідкуємо за змінами стану автентифікації
     completeRedirectSignIn();
+    checkReturnFromPayment();
 
     auth.onAuthStateChanged(user => {
       updateUI();
@@ -14351,23 +14352,59 @@ function copyStory() {
       document.getElementById('tariffs-section').classList.remove('hidden');
     }
     // Придбати підписку
-    function purchaseSubscription(days) {
-      const userId = auth.currentUser.uid;
-      const currentDate = new Date();
-      const newExpiration = new Date(currentDate);
-      newExpiration.setDate(newExpiration.getDate() + days);
-      db.collection('users').doc(userId).update({
-          subscriptionExpiration: firebase.firestore.Timestamp.fromDate(newExpiration),
-          subscriptionPlan: 'paid'
-        })
-        .then(() => {
-          alert('Підписку оновлено!');
-          updateUI();
-        })
-        .catch(error => {
-          console.error('Помилка оновлення підписки:', error);
-          hideLoading();
+    // Раніше підписка продовжувалася прямо звідси — тобто будь-хто міг видати
+    // її собі з консолі. Тепер клієнт лише каже, який тариф обрано; ціну,
+    // підпис і продовження робить сервер, а сюди повертається форма для оплати.
+    async function purchaseSubscription(days) {
+      if (!auth.currentUser) return;
+      showLoading();
+      try {
+        const token = await auth.currentUser.getIdToken();
+        const response = await fetch('/.netlify/functions/create-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ plan: days }),
         });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'payment init failed');
+        submitPaymentForm(data.action, data.payload);
+      } catch (error) {
+        console.log('Purchase error:', error);
+        showNotification('Не вдалося відкрити оплату. Спробуй пізніше.', 'warning');
+        hideLoading();
+      }
+    }
+
+    // WayForPay приймає лише POST-форму, тож збираємо її та відправляємо
+    function submitPaymentForm(action, payload) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = action;
+      form.acceptCharset = 'utf-8';
+
+      Object.keys(payload).forEach(key => {
+        const value = payload[key];
+        const values = Array.isArray(value) ? value : [value];
+        values.forEach(item => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = Array.isArray(value) ? key + '[]' : key;
+          input.value = item;
+          form.appendChild(input);
+        });
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+    }
+
+    // Повернення з оплати: гроші зараховує callback, тут лише чекаємо на нього
+    function checkReturnFromPayment() {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has('paid')) return;
+      history.replaceState({}, '', location.pathname);
+      showNotification('Дякуємо! Щойно платіж підтвердиться, підписка оновиться.');
+      setTimeout(() => { if (auth.currentUser) updateUI(); }, 4000);
     }
     // Почати тренування знань
     function startQuiz() {
