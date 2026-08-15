@@ -968,6 +968,21 @@
       cursor: pointer;
     }
 
+    /* Дрібна вторинна дія праворуч над кнопкою входу */
+    .auth-forgot {
+      display: block;
+      width: auto;
+      margin: 2px 0 14px auto;
+      padding: 0;
+      background: none;
+      border: none;
+      box-shadow: none;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(240, 237, 232, 0.55);
+      cursor: pointer;
+    }
+
     .auth-inapp-note {
       margin-top: 12px;
       padding: 12px 14px;
@@ -1406,6 +1421,43 @@
 
     #subscription-badge.sub-expired .fa-star:before {
       color: #ef4444;
+    }
+
+    .acc-sub-note {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 14px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(96, 165, 250, 0.1);
+      border: 1px solid rgba(96, 165, 250, 0.28);
+      font-size: 13px;
+      line-height: 1.35;
+      color: rgba(240, 237, 232, 0.85);
+    }
+
+    .acc-sub-note.sub-note-paid {
+      background: rgba(232, 168, 56, 0.1);
+      border-color: rgba(232, 168, 56, 0.28);
+    }
+
+    .acc-sub-note #acc-sub-note-text {
+      flex: 1;
+    }
+
+    .acc-sub-note button {
+      flex-shrink: 0;
+      width: auto;
+      padding: 8px 14px;
+      margin: 0;
+      border: none;
+      border-radius: 9px;
+      background: #FFD700;
+      color: #1a1a1a;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
     }
 
     /* Quick action buttons row */
@@ -5619,6 +5671,76 @@
     }
     .sc-word-chip .sc-added { color:rgba(240,237,232,0.3); }
 
+    /* Плитка, яка ще не відкрилася: видно одразу, а не після входу */
+    .acc-tile.acc-tile-locked {
+      opacity: 0.55;
+    }
+    .acc-tile-need {
+      display: block;
+      margin-top: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.25;
+      color: #FFD700;
+      opacity: 0.95;
+    }
+
+    /* Екран «бракує слів»: не глухий кут, а крок, який видно */
+    .not-enough {
+      text-align: center;
+      padding: 34px 20px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .not-enough i {
+      font-size: 40px;
+      color: #FFD700;
+      margin-bottom: 14px;
+    }
+    .not-enough h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      color: #F0EDE8;
+    }
+    .not-enough p {
+      margin: 0 0 6px;
+      color: rgba(240, 237, 232, 0.72);
+      font-size: 15px;
+      line-height: 1.45;
+    }
+    .not-enough-gap {
+      display: inline-block;
+      margin: 12px 0 18px !important;
+      padding: 7px 16px;
+      border-radius: 999px;
+      background: rgba(255, 215, 0, 0.14);
+      color: #FFD700 !important;
+      font-weight: 600;
+    }
+    .not-enough-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .not-enough-cta {
+      padding: 14px 22px;
+      border: none;
+      border-radius: 12px;
+      background: #FFD700;
+      color: #1a1a1a;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .not-enough-back {
+      padding: 12px 22px;
+      border: 1px solid rgba(240, 237, 232, 0.22);
+      border-radius: 12px;
+      background: transparent;
+      color: rgba(240, 237, 232, 0.8);
+      font-size: 15px;
+      cursor: pointer;
+    }
   </style>
 
 </head>
@@ -5747,6 +5869,7 @@
         <div id="login-email-error" class="error-message"></div>
         <input type="password" id="login-password" placeholder="Пароль" autocomplete="current-password">
         <div id="login-password-error" class="error-message"></div>
+        <button class="auth-forgot" id="forgot-password-btn" onclick="resetPassword()">Забув пароль?</button>
         <button class="auth-primary" onclick="login()">Увійти</button>
 
         <div class="auth-divider"><span>або</span></div>
@@ -5782,6 +5905,12 @@
     <!-- Головний екран облікового запису -->
     <div id="account-screen" class="hidden">
       <div class="acc-email acc-animate acc-delay-2"><span class="user-email"></span></div>
+
+      <!-- «Проба 3д» на зірочці ні про що не говорить, тож статус живе ще й тут — словами -->
+      <div class="acc-sub-note acc-animate acc-delay-2 hidden" id="acc-sub-note">
+        <span id="acc-sub-note-text"></span>
+        <button id="acc-sub-note-cta" onclick="showTariffs()">Оформити</button>
+      </div>
 
       <!-- Gamification Stats -->
       <!-- Daily Goal -->
@@ -5830,23 +5959,23 @@
 
       <!-- Exercise Tiles -->
       <div class="acc-tiles">
-        <button class="acc-tile acc-animate acc-delay-6" data-color="amber" onclick="startQuiz()">
+        <button class="acc-tile acc-animate acc-delay-6" data-color="amber" onclick="startQuiz()" data-needs="30">
           <div class="acc-tile-icon"><i class="fas fa-pen"></i></div>
           Тестування
         </button>
-        <button class="acc-tile acc-animate acc-delay-7" data-color="blue" onclick="startPictureQuiz()">
+        <button class="acc-tile acc-animate acc-delay-7" data-color="blue" onclick="startPictureQuiz()" data-needs="10">
           <div class="acc-tile-icon"><i class="fas fa-image"></i></div>
           Картинки
         </button>
-        <button class="acc-tile acc-animate acc-delay-8" data-color="rose" onclick="startSpeedTraining()">
+        <button class="acc-tile acc-animate acc-delay-8" data-color="rose" onclick="startSpeedTraining()" data-needs="60">
           <div class="acc-tile-icon"><i class="fas fa-stopwatch"></i></div>
           На швидкість
         </button>
-        <button class="acc-tile acc-animate acc-delay-9" data-color="violet" onclick="startListeningTraining()">
+        <button class="acc-tile acc-animate acc-delay-9" data-color="violet" onclick="startListeningTraining()" data-needs="10">
           <div class="acc-tile-icon"><i class="fas fa-headphones"></i></div>
           На слух
         </button>
-        <button class="acc-tile acc-animate acc-delay-10" data-color="emerald" onclick="startWordConstructorTraining()">
+        <button class="acc-tile acc-animate acc-delay-10" data-color="emerald" onclick="startWordConstructorTraining()" data-needs="10">
           <div class="acc-tile-icon"><i class="fas fa-puzzle-piece"></i></div>
           Конструктор
         </button>
@@ -5854,19 +5983,19 @@
           <div class="acc-tile-icon"><i class="fas fa-scroll"></i></div>
           Генеративний текст
         </button>
-        <button class="acc-tile acc-animate acc-delay-12" data-color="sky" onclick="startCrossword()">
+        <button class="acc-tile acc-animate acc-delay-12" data-color="sky" onclick="startCrossword()" data-needs="5">
           <div class="acc-tile-icon"><i class="fas fa-th"></i></div>
           Кросворд
         </button>
-        <button class="acc-tile acc-animate acc-delay-14" data-color="pink" onclick="startFillBlanksTraining()">
+        <button class="acc-tile acc-animate acc-delay-14" data-color="pink" onclick="startFillBlanksTraining()" data-needs="10">
           <div class="acc-tile-icon"><i class="fas fa-pen-fancy"></i></div>
           Вставте слово
         </button>
-        <button class="acc-tile acc-animate acc-delay-14" data-color="lime" onclick="startDefinitionQuiz()">
+        <button class="acc-tile acc-animate acc-delay-14" data-color="lime" onclick="startDefinitionQuiz()" data-needs="10">
           <div class="acc-tile-icon"><i class="fas fa-lightbulb"></i></div>
           Вгадай слово
         </button>
-        <button class="acc-tile acc-animate acc-delay-15" data-color="sky" onclick="startPhraseConstructor()">
+        <button class="acc-tile acc-animate acc-delay-15" data-color="sky" onclick="startPhraseConstructor()" data-needs="5" data-needs-kind="phrases">
           <div class="acc-tile-icon"><i class="fas fa-layer-group"></i></div>
           Фрази
         </button>
@@ -7225,7 +7354,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.11';
+    const APP_VERSION = '2026-08-15.12';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -7264,32 +7393,28 @@
 
     // Функція для отримання API ключа з Firestore
     async function loadOpenAIKey() {
+      // Нічого з ключа — ні значення, ні довжини, ні початку — у консоль не пишемо
       try {
-        console.log('Loading API key from Firestore...');
         const snapshot = await db.collection('config').limit(1).get();
-        console.log('Snapshot empty:', snapshot.empty);
-        if (!snapshot.empty) {
-          const data = snapshot.docs[0].data();
-          console.log('Document data fields:', Object.keys(data));
-          console.log('Document data:', data);
-          // Підтримуємо різні назви полів
-          openaiApiKey = data.openaiKey || data.api || data.key || data.apiKey;
-          // Видаляємо можливі зайві пробіли, лапки, переноси рядків
-          if (openaiApiKey) {
-            openaiApiKey = openaiApiKey
-              .trim()
-              .replace(/^["']|["']$/g, '')
-              .replace(/[\r\n\t]/g, '')
-              .replace(/\s+/g, '');
-            console.log('OpenAI API key loaded, length:', openaiApiKey.length);
-          } else {
-            console.error('API key field not found. Available fields:', Object.keys(data));
-          }
+        if (snapshot.empty) {
+          console.error('Не вдалося прочитати конфігурацію');
+          return;
+        }
+        const data = snapshot.docs[0].data();
+        // Підтримуємо різні назви полів
+        openaiApiKey = data.openaiKey || data.api || data.key || data.apiKey;
+        // Видаляємо можливі зайві пробіли, лапки, переноси рядків
+        if (openaiApiKey) {
+          openaiApiKey = openaiApiKey
+            .trim()
+            .replace(/^["']|["']$/g, '')
+            .replace(/[\r\n\t]/g, '')
+            .replace(/\s+/g, '');
         } else {
-          console.error('No documents found in config collection');
+          console.error('Не вдалося прочитати конфігурацію');
         }
       } catch (error) {
-        console.error('Error loading API key:', error);
+        console.error('Не вдалося прочитати конфігурацію');
       }
     }
 
@@ -7348,13 +7473,13 @@
         document.getElementById('ukr-to-eng-button').disabled = true;
         document.getElementById('eng-to-ukr-button').disabled = true;
 
-        // Проверяем, есть ли уже параграф с классом 'training-error'
-        if (!speedTrainingInfo.querySelector(`.${errorClass}`)) {
-          const errorParagraph = document.createElement('p');
-          errorParagraph.classList.add(errorClass);
-          errorParagraph.textContent = 'У вас недостатньо слів для тренування.';
-          speedTrainingInfo.appendChild(errorParagraph);
+        let errorBlock = speedTrainingInfo.querySelector(`.${errorClass}`);
+        if (!errorBlock) {
+          errorBlock = document.createElement('div');
+          errorBlock.classList.add(errorClass);
+          speedTrainingInfo.appendChild(errorBlock);
         }
+        errorBlock.innerHTML = notEnoughHtml(allWords.length, 60);
       } else {
         // Включаем кнопки
         document.getElementById('ukr-to-eng-button').disabled = false;
@@ -7386,9 +7511,7 @@
 
       if (speedTrainingWords.length < 60) {
         document.getElementById('speed-training-quiz').classList.add('hidden');
-        document.getElementById('speed-training-info').classList.remove('hidden');
-        document.getElementById('speed-training-info').innerHTML +=
-          '<p style="color: red;">У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+        showNotEnoughPanel('speed-training-section', 'speed-training-info', speedTrainingWords.length, 60);
         return;
       }
 
@@ -7637,6 +7760,7 @@ function hideAllAppSections() {
   // Клавіатура конструктора лежить поза секціями, тож ховати її треба окремо —
   // інакше вона лишалася поверх словника після виходу з вправи
   hideConstructorKeyboard();
+  clearNotEnoughPanels();
   [
     'my-words-section', 'daily-words-section', 'add-word-section', 'quiz-section',
     'picture-quiz-section', 'payment-section', 'listening-training-section',
@@ -7676,6 +7800,83 @@ function exitSpeedTraining() {
       backToAccount();
       showDailyWords();
     }
+
+    // 1 слово, 2 слова, 5 слів
+    function pluralUa(n, one, few, many) {
+      const mod10 = n % 10, mod100 = n % 100;
+      if (mod10 === 1 && mod100 !== 11) return one;
+      if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+      return many;
+    }
+
+    function goAddWords() {
+      backToAccount();
+      showDailyWords();
+    }
+
+    function goAddPhrases() {
+      backToAccount();
+      showAddPhrase();
+    }
+
+    /**
+     * Жодна вправа не має бути глухим кутом. Замість «недостатньо слів»
+     * кажемо, скільки саме бракує, і одразу даємо кнопку, якою це виправити.
+     */
+    /**
+     * Той самий блок, але для екранів, чий вміст не перемальовується заново:
+     * ховаємо оригінал, показуємо підказку поруч і повертаємо все на виході.
+     */
+    function showNotEnoughPanel(sectionId, hideId, have, need, options) {
+      const section = document.getElementById(sectionId);
+      if (!section) return;
+      const covered = document.getElementById(hideId);
+      if (covered) covered.classList.add('hidden');
+
+      let panel = section.querySelector('.not-enough-panel');
+      if (!panel) {
+        panel = document.createElement('div');
+        panel.className = 'not-enough-panel';
+        section.appendChild(panel);
+      }
+      panel.dataset.covers = hideId || '';
+      panel.innerHTML = notEnoughHtml(have, need, options);
+    }
+
+    function clearNotEnoughPanels() {
+      document.querySelectorAll('.not-enough-panel').forEach(panel => {
+        const covered = panel.dataset.covers && document.getElementById(panel.dataset.covers);
+        if (covered) covered.classList.remove('hidden');
+        panel.remove();
+      });
+    }
+
+    function notEnoughHtml(have, need, options) {
+      const opts = options || {};
+      const short = Math.max(0, need - have);
+      const isPhrases = opts.kind === 'phrases';
+      const noun = isPhrases
+        ? pluralUa(need, 'фраза', 'фрази', 'фраз')
+        : pluralUa(need, 'слово', 'слова', 'слів');
+      const shortNoun = isPhrases
+        ? pluralUa(short, 'фрази', 'фраз', 'фраз')
+        : pluralUa(short, 'слова', 'слів', 'слів');
+      const addLabel = isPhrases ? 'Додати фрази' : 'Додати слова';
+      const addAction = isPhrases ? 'goAddPhrases()' : 'goAddWords()';
+      const need_ = opts.needText || (need + ' ' + noun);
+
+      return `
+        <div class="not-enough">
+          <i class="fa-solid fa-seedling"></i>
+          <h3>Ще трохи — і відкриється</h3>
+          <p>Для цього тренування потрібно ${need_}. Зараз у словнику: ${have}.</p>
+          <div class="not-enough-gap">Бракує ще ${short} ${shortNoun}</div>
+          <div class="not-enough-actions">
+            <button class="not-enough-cta" onclick="${addAction}">${addLabel}</button>
+            <button class="not-enough-back" onclick="backToAccount()">Обрати інше тренування</button>
+          </div>
+        </div>`;
+    }
     // Ініціалізація Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
@@ -7708,6 +7909,56 @@ function exitSpeedTraining() {
       document.getElementById('login-form').classList.remove('hidden');
     }
     // Реєстрація користувача
+    /**
+     * Firebase говорить кодами й англійською. Учень має прочитати,
+     * ЩО не так і що з цим робити — і побачити це біля потрібного поля.
+     */
+    const AUTH_ERRORS = {
+      'auth/invalid-email': ['email', 'Схоже, в адресі помилка. Перевір email.'],
+      'auth/missing-email': ['email', 'Введи email.'],
+      'auth/user-not-found': ['email', 'Акаунта з таким email немає. Перевір адресу або зареєструйся.'],
+      'auth/email-already-in-use': ['email', 'Цей email вже зареєстрований — увійди замість реєстрації.'],
+      'auth/user-disabled': ['email', 'Цей акаунт заблоковано. Напиши в підтримку.'],
+      'auth/wrong-password': ['password', 'Невірний пароль. Спробуй ще раз або натисни «Забув пароль?».'],
+      'auth/invalid-credential': ['password', 'Невірний email або пароль.'],
+      'auth/invalid-login-credentials': ['password', 'Невірний email або пароль.'],
+      'auth/missing-password': ['password', 'Введи пароль.'],
+      'auth/weak-password': ['password', 'Пароль закороткий — потрібно щонайменше 6 символів.'],
+      'auth/too-many-requests': ['password', 'Забагато спроб поспіль. Зачекай кілька хвилин і спробуй знову.'],
+      'auth/network-request-failed': ['password', 'Немає зв\'язку із сервером. Перевір інтернет і спробуй ще раз.'],
+      'auth/operation-not-allowed': ['password', 'Цей спосіб входу вимкнено. Напиши в підтримку.'],
+      'auth/popup-closed-by-user': ['password', 'Вікно входу закрилося. Спробуй ще раз.'],
+      'auth/account-exists-with-different-credential': ['email', 'Цей email вже прив\'язаний до іншого способу входу. Увійди поштою й паролем.'],
+    };
+
+    function authError(error) {
+      const known = AUTH_ERRORS[error && error.code];
+      if (known) return { field: known[0], text: known[1] };
+      return { field: 'password', text: 'Не вдалося виконати дію. Спробуй ще раз.' };
+    }
+
+    // Відновлення пароля: без нього забутий пароль означав втрачений акаунт
+    async function resetPassword() {
+      clearErrors();
+      const email = document.getElementById('login-email').value.trim();
+      if (!email) {
+        document.getElementById('login-email-error').textContent =
+          'Введи свій email — надішлемо на нього лист для відновлення.';
+        document.getElementById('login-email').focus();
+        return;
+      }
+
+      showLoading();
+      try {
+        await auth.sendPasswordResetEmail(email);
+        showNotification(`Лист для відновлення пароля надіслано на ${email}. Перевір пошту, зокрема теку «Спам».`);
+      } catch (error) {
+        showAuthError(error);
+      } finally {
+        hideLoading();
+      }
+    }
+
     async function register() {
       clearErrors();
       const email = document.getElementById('register-email').value;
@@ -7740,7 +7991,7 @@ function exitSpeedTraining() {
 
         updateUI();
       } catch (error) {
-        document.getElementById('register-password-error').textContent = error.message;
+        showAuthError(error);
       } finally {
         hideLoading();
       }
@@ -7768,7 +8019,7 @@ function exitSpeedTraining() {
         await auth.signInWithEmailAndPassword(email, password);
         updateUI();
       } catch (error) {
-        document.getElementById('login-password-error').textContent = error.message;
+        showAuthError(error);
       } finally {
         hideLoading();
       }
@@ -7831,11 +8082,12 @@ function exitSpeedTraining() {
       });
     }
 
-    function showAuthError(message) {
-      const loginForm = document.getElementById('login-form');
-      const targetId = loginForm.classList.contains('hidden') ? 'register-password-error' : 'login-password-error';
-      const el = document.getElementById(targetId);
-      if (el) el.textContent = message;
+    // Помилка лягає під те поле, яке її спричинило, і тією формою, що на екрані
+    function showAuthError(error) {
+      const { field, text } = authError(error);
+      const onRegister = document.getElementById('login-form').classList.contains('hidden');
+      const el = document.getElementById(`${onRegister ? 'register' : 'login'}-${field}-error`);
+      if (el) el.textContent = text;
     }
 
     // Спливаюче вікно на телефоні часто блокується або губить сесію,
@@ -7862,7 +8114,7 @@ function exitSpeedTraining() {
         await ensureUserDoc(result.user);
         updateUI();
       } catch (error) {
-        if (error.code !== 'auth/popup-closed-by-user') showAuthError(error.message);
+        if (error.code !== 'auth/popup-closed-by-user') showAuthError(error);
       } finally {
         hideLoading();
       }
@@ -7877,7 +8129,7 @@ function exitSpeedTraining() {
           updateUI();
         }
       } catch (error) {
-        showAuthError(error.message);
+        showAuthError(error);
       }
     }
 
@@ -7995,6 +8247,7 @@ function exitSpeedTraining() {
         label.textContent = 'PRO ∞';
         badge.classList.add('sub-lifetime');
         badge.title = 'PRO назавжди';
+        renderSubscriptionNote({ kind: 'lifetime' });
         return true;
       }
 
@@ -8007,6 +8260,7 @@ function exitSpeedTraining() {
         label.textContent = 'Оплата';
         badge.classList.add('sub-expired');
         badge.title = 'Підписка закінчилася';
+        renderSubscriptionNote({ kind: 'expired' });
         return false;
       }
 
@@ -8016,7 +8270,48 @@ function exitSpeedTraining() {
       badge.title = trial
         ? `Пробний період, залишилось днів: ${daysLeft}`
         : `PRO, залишилось днів: ${daysLeft}`;
+      renderSubscriptionNote({ kind: trial ? 'trial' : 'paid', daysLeft });
       return true;
+    }
+
+    /**
+     * Бейдж у шапці мусить лишатися вузьким (інакше кнопки переносяться
+     * на другий рядок), тож повний текст статусу живе окремим рядком.
+     */
+    function renderSubscriptionNote(state) {
+      const note = document.getElementById('acc-sub-note');
+      const text = document.getElementById('acc-sub-note-text');
+      const cta = document.getElementById('acc-sub-note-cta');
+      if (!note || !text || !cta) return;
+
+      const days = state.daysLeft || 0;
+      const dayWord = pluralUa(days, 'день', 'дні', 'днів');
+
+      note.classList.remove('hidden', 'sub-note-paid');
+      cta.classList.remove('hidden');
+
+      if (state.kind === 'lifetime') {
+        note.classList.add('hidden');
+        return;
+      }
+      if (state.kind === 'expired') {
+        text.textContent = 'Пробний період завершився. Щоб продовжити навчання, оформи підписку.';
+        cta.textContent = 'Оформити';
+        return;
+      }
+      if (state.kind === 'trial') {
+        text.textContent = `Безкоштовний пробний період: залишилось ${days} ${dayWord}. Далі — від 99 ₴ на місяць.`;
+        cta.textContent = 'Оформити';
+        return;
+      }
+      // Оплаченій підписці нагадувати нема про що, поки не близько кінця
+      if (days > 14) {
+        note.classList.add('hidden');
+        return;
+      }
+      note.classList.add('sub-note-paid');
+      text.textContent = `Підписка PRO активна ще ${days} ${dayWord}. Продовж, щоб не втратити доступ.`;
+      cta.textContent = 'Продовжити';
     }
 
     // Перевірка підписки
@@ -8085,6 +8380,12 @@ function exitSpeedTraining() {
     }
 
     // === Daily Words System ===
+    // Модель і так повертає близько 50 слів — раніше 45 з них викидалися,
+    // і щоб відкрити перше тренування (30 слів) доводилося генерувати 7 разів
+    const DAILY_WORDS_TARGET = 30;
+    // Слова, які вже показувалися і які учень не додав: без цього
+    // «Згенерувати інші» повертало майже той самий набір
+    const seenDailyWords = new Set();
     let userLearningProfile = null;
     let currentDailyWords = [];
 
@@ -8184,10 +8485,10 @@ function exitSpeedTraining() {
       let newWords = [];
 
       for (let attempt = 0; attempt < 3; attempt++) {
-        const allExclude = [...existingSet, ...newWords.map(w => w.word.toLowerCase())];
-        const excludeSample = allExclude.slice(-300).join(', ');
+        const allExclude = [...existingSet, ...seenDailyWords, ...newWords.map(w => w.word.toLowerCase())];
+        const excludeSample = allExclude.slice(-400).join(', ');
 
-        const prompt = `Generate exactly 50 different English words for a Ukrainian-speaking learner.
+        const prompt = `Generate exactly 60 different English words for a Ukrainian-speaking learner.
 
 Level: ${levelDesc}
 Goals: ${goalDesc}
@@ -8195,7 +8496,7 @@ Interested topics: ${topicNames}${noteText}
 
 IMPORTANT: Do NOT include these words: ${excludeSample}
 
-Return ONLY a valid JSON array with exactly 50 objects, each having:
+Return ONLY a valid JSON array with exactly 60 objects, each having:
 - "word": the English word
 - "translation": Ukrainian translation
 
@@ -8225,10 +8526,12 @@ Return ONLY the JSON array, no other text.`;
           const generated = JSON.parse(jsonStr);
 
           for (const w of generated) {
-            if (w && w.word && w.translation && !existingSet.has(w.word.toLowerCase())) {
+            if (w && w.word && w.translation
+                && !existingSet.has(w.word.toLowerCase())
+                && !seenDailyWords.has(w.word.toLowerCase())) {
               if (!newWords.some(nw => nw.word.toLowerCase() === w.word.toLowerCase())) {
                 newWords.push(w);
-                if (newWords.length >= 5) break;
+                if (newWords.length >= DAILY_WORDS_TARGET) break;
               }
             }
           }
@@ -8236,10 +8539,12 @@ Return ONLY the JSON array, no other text.`;
           console.error(`Attempt ${attempt + 1} failed:`, error);
         }
 
-        if (newWords.length >= 5) break;
+        if (newWords.length >= DAILY_WORDS_TARGET) break;
       }
 
       hideLoading();
+
+      newWords.forEach(w => seenDailyWords.add(w.word.toLowerCase()));
 
       if (newWords.length === 0) {
         currentDailyWords = [];
@@ -8248,7 +8553,7 @@ Return ONLY the JSON array, no other text.`;
         return;
       }
 
-      currentDailyWords = newWords.slice(0, 5);
+      currentDailyWords = newWords.slice(0, DAILY_WORDS_TARGET);
       const today = new Date().toISOString().split('T')[0];
       await db.collection('users').doc(userId).update({
         dailyWords: { date: today, words: currentDailyWords }
@@ -8946,11 +9251,46 @@ Return ONLY the JSON array, no other text.`;
       setTimeout(() => toast.remove(), 1600);
     }
 
+    /**
+     * Плитка вправи має сама сказати, чого їй бракує: інакше учень
+     * тицяє в дванадцять однакових кнопок і всюди впирається в стіну.
+     */
+    function refreshTileRequirements(wordCount, phraseCount) {
+      document.querySelectorAll('.acc-tile[data-needs]').forEach(tile => {
+        const need = Number(tile.dataset.needs);
+        const isPhrases = tile.dataset.needsKind === 'phrases';
+        const have = isPhrases ? phraseCount : wordCount;
+
+        let badge = tile.querySelector('.acc-tile-need');
+        if (have >= need) {
+          tile.classList.remove('acc-tile-locked');
+          if (badge) badge.remove();
+          return;
+        }
+
+        const short = need - have;
+        const noun = isPhrases
+          ? pluralUa(short, 'фраза', 'фрази', 'фраз')
+          : pluralUa(short, 'слово', 'слова', 'слів');
+        tile.classList.add('acc-tile-locked');
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'acc-tile-need';
+          tile.appendChild(badge);
+        }
+        badge.textContent = `ще ${short} ${noun}`;
+      });
+    }
+
     // Завантаження зведення мастерства слів
     async function loadMasterySummary() {
       try {
         const userId = auth.currentUser.uid;
-        const snapshot = await db.collection('users').doc(userId).collection('words').get();
+        const [snapshot, phraseSnapshot] = await Promise.all([
+          db.collection('users').doc(userId).collection('words').get(),
+          db.collection('users').doc(userId).collection('phrases').get().catch(() => ({ size: 0 })),
+        ]);
+        refreshTileRequirements(snapshot.size, phraseSnapshot.size || 0);
         let mastered = 0, good = 0, learning = 0, newW = 0;
 
         snapshot.docs.forEach(doc => {
@@ -12229,7 +12569,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
 
         if (allPhrases.length < 5) {
           document.getElementById('phrase-constructor-container').innerHTML =
-            '<p style="text-align:center;padding:30px;color:rgba(240,237,232,0.5);">Потрібно мінімум 5 фраз у словнику. Зараз: ' + allPhrases.length + '</p>';
+            notEnoughHtml(allPhrases.length, 5, { kind: 'phrases' });
           hideLoading();
           return;
         }
@@ -14443,7 +14783,7 @@ function copyStory() {
         .then(querySnapshot => {
           if (querySnapshot.size < 30) {
             document.getElementById('quiz-container').innerHTML =
-              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+              notEnoughHtml(querySnapshot.size, 30);
             hideLoading();
             return;
           }
@@ -14867,7 +15207,7 @@ async function translateStory() {
         .then(querySnapshot => {
           if (querySnapshot.size < 10) {
             document.getElementById('listening-quiz-container').innerHTML =
-              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+              notEnoughHtml(querySnapshot.size, 10);
             hideLoading();
             return;
           }
@@ -15012,7 +15352,7 @@ async function translateStory() {
         .then(querySnapshot => {
           if (querySnapshot.size < 10) {
             document.getElementById('word-constructor-quiz-container').innerHTML =
-              '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+              notEnoughHtml(querySnapshot.size, 10);
             hideLoading();
             return;
           }
@@ -15391,7 +15731,7 @@ async function translateStory() {
 
         if (querySnapshot.size < 10) {
           document.getElementById('picture-quiz-container').innerHTML =
-            '<p>У вас недостатньо слів для тренування. Додайте більше слів до словника.</p>';
+            notEnoughHtml(querySnapshot.size, 10);
           hideLoading();
           return;
         }
@@ -15603,7 +15943,7 @@ async function translateStory() {
 
         if (wordsArray.length < 5) {
           document.getElementById('crossword-grid').innerHTML =
-            '<p style="text-align:center;padding:20px;">Потрібно мінімум 5 підходящих слів у словнику для кросворда.</p>';
+            notEnoughHtml(wordsArray.length, 5, { needText: '5 слів завдовжки від 3 до 10 літер' });
           hideLoading();
           return;
         }
@@ -16604,8 +16944,8 @@ async function generateStory() {
         .get();
 
       if (querySnapshot.size < 10) {
-        showNotification('Потрібно мінімум 10 слів у словнику для цього тренування.', 'warning');
         resetFillBlanksTraining();
+        showNotEnoughPanel('fill-blanks-section', 'fill-blanks-mode-selection', querySnapshot.size, 10);
         return;
       }
 
@@ -16946,8 +17286,8 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
         .get();
 
       if (querySnapshot.size < 10) {
-        showNotification('Потрібно мінімум 10 слів у словнику для цього тренування.', 'warning');
         resetDefinitionQuiz();
+        showNotEnoughPanel('definition-quiz-section', 'definition-quiz-mode-selection', querySnapshot.size, 10);
         return;
       }
 
@@ -16995,8 +17335,6 @@ Return ONLY a valid JSON array:
 ]
 Return ONLY the JSON array, no other text.`;
       }
-
-      console.log('API key before fetch:', openaiApiKey ? 'Key exists, length: ' + openaiApiKey.length + ', starts with: ' + openaiApiKey.substring(0, 10) : 'NULL');
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
