@@ -5686,9 +5686,9 @@
         <div id="folder-bar" class="folder-bar"></div>
         <div id="folder-toolbar" class="folder-toolbar hidden">
           <div class="folder-toolbar-actions">
-            <button onclick="shareCurrentFolder()" title="Поділитися"><i class="fas fa-share-nodes"></i></button>
-            <button onclick="renameCurrentFolder()" title="Перейменувати"><i class="fas fa-pen"></i></button>
-            <button onclick="deleteCurrentFolder()" title="Видалити"><i class="fas fa-trash"></i></button>
+            <button onclick="shareCurrentFolder('words')" title="Поділитися"><i class="fas fa-share-nodes"></i></button>
+            <button onclick="renameCurrentFolder('words')" title="Перейменувати"><i class="fas fa-pen"></i></button>
+            <button onclick="deleteCurrentFolder('words')" title="Видалити"><i class="fas fa-trash"></i></button>
           </div>
         </div>
         <input type="text" id="search-input" placeholder="Пошук слова...">
@@ -5713,9 +5713,9 @@
         <div id="folder-bar-phrases" class="folder-bar"></div>
         <div id="folder-toolbar-phrases" class="folder-toolbar hidden">
           <div class="folder-toolbar-actions">
-            <button onclick="shareCurrentFolder()" title="Поділитися"><i class="fas fa-share-nodes"></i></button>
-            <button onclick="renameCurrentFolder()" title="Перейменувати"><i class="fas fa-pen"></i></button>
-            <button onclick="deleteCurrentFolder()" title="Видалити"><i class="fas fa-trash"></i></button>
+            <button onclick="shareCurrentFolder('phrases')" title="Поділитися"><i class="fas fa-share-nodes"></i></button>
+            <button onclick="renameCurrentFolder('phrases')" title="Перейменувати"><i class="fas fa-pen"></i></button>
+            <button onclick="deleteCurrentFolder('phrases')" title="Видалити"><i class="fas fa-trash"></i></button>
           </div>
         </div>
         <input type="text" id="phrase-search-input" placeholder="Пошук фрази...">
@@ -6956,7 +6956,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.4';
+    const APP_VERSION = '2026-08-15.5';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -7697,7 +7697,7 @@ function exitSpeedTraining() {
       toggleMainTitle();
       document.getElementById('account-screen').classList.add('hidden');
       document.getElementById('my-words-section').classList.remove('hidden');
-      loadFolders();
+      loadAllFolders();
       fetchWordsPaged();
       loadMasterySummary();
       loadVocabCounts();
@@ -9051,7 +9051,7 @@ Return ONLY a JSON array of strings.`
               interactions: 0,
               correctAnswers: 0,
               priority: 0,
-              folders: currentFolderId ? [currentFolderId] : [],
+              folders: currentWordFolderId() ? [currentWordFolderId()] : [],
               dateAdded: firebase.firestore.Timestamp.now(),
             });
             added++;
@@ -9184,7 +9184,7 @@ Return ONLY a JSON array of strings.`
               interactions: 0,
               correctAnswers: 0,
               priority: 0,
-              folders: currentFolderId ? [currentFolderId] : [],
+              folders: currentPhraseFolderId() ? [currentPhraseFolderId()] : [],
               dateAdded: firebase.firestore.Timestamp.now(),
             });
             added++;
@@ -11491,7 +11491,8 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
 
     function switchVocabTab(tab) {
       currentVocabTab = tab;
-      renderFolderBar();
+      // Кожна вкладка малює свою смужку папок — вони більше не спільні
+      renderFolderBar(tab === 'phrases' ? 'phrases' : 'words');
       document.getElementById('vocab-tab-words').classList.toggle('active', tab === 'words');
       document.getElementById('vocab-tab-phrases').classList.toggle('active', tab === 'phrases');
       document.getElementById('vocab-words-content').classList.toggle('hidden', tab !== 'words');
@@ -11529,9 +11530,9 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
     async function loadNextPhrasePage() {
       const userId = auth.currentUser.uid;
 
-      if (currentFolderId) {
+      if (currentPhraseFolderId()) {
         const snapshot = await db.collection('users').doc(userId).collection('phrases')
-          .where('folders', 'array-contains', currentFolderId).get();
+          .where('folders', 'array-contains', currentPhraseFolderId()).get();
         const phrases = snapshot.docs.map(doc => Object.assign({ id: doc.id }, doc.data())).sort((a, b) =>
           ((b.dateAdded && b.dateAdded.seconds) || 0) - ((a.dateAdded && a.dateAdded.seconds) || 0));
         allPhrases = phrases;
@@ -11731,10 +11732,10 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
             interactions: 0,
             correctAnswers: 0,
             priority: 0,
-            folders: currentFolderId ? [currentFolderId] : [],
+            folders: currentPhraseFolderId() ? [currentPhraseFolderId()] : [],
             dateAdded: firebase.firestore.Timestamp.now(),
           });
-          if (currentFolderId) refreshFolderCount(currentFolderId);
+          if (currentPhraseFolderId()) refreshFolderCount('phrases', currentPhraseFolderId());
           document.getElementById('phrase-english').value = '';
           document.getElementById('phrase-translation').value = '';
           closeAllSuggestions();
@@ -11765,7 +11766,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
       // Іконки папки в рядку немає, поки фраза нікуди не належить — тож шлях у папки звідси
       const phraseArg = JSON.stringify(phrase.id).replace(/"/g, '&quot;');
       const phraseFolders = (phrase.folders || [])
-        .map(id => (userFolders.find(f => f.id === id) || {}).name)
+        .map(id => (folderState.phrases.list.find(f => f.id === id) || {}).name)
         .filter(Boolean);
       const phraseFoldersHtml = phraseFolders.length
         ? `<p style="margin-top:12px;color:#E8A838;"><i class="fas fa-folder" style="margin-right:6px;"></i>Вже у папках: ${escapeHtml(phraseFolders.join(', '))}</p>`
@@ -12374,12 +12375,41 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     }
 
     // ========== ПАПКИ СЛОВНИКА ==========
-    // users/{uid}/folders/{id} — сама папка, а належність слова живе
-    // в масиві folders самого слова, щоб слово могло бути в кількох папках.
-    let userFolders = [];
-    let currentFolderId = null;
+    // Слова і фрази мають РІЗНІ папки: users/{uid}/folders для слів і
+    // users/{uid}/phraseFolders для фраз. Належність живе в масиві folders
+    // самого запису, щоб він міг лежати в кількох папках свого виду.
+    const FOLDER_SCOPES = {
+      words: {
+        collection: 'folders',
+        items: 'words',
+        countField: 'wordCount',
+        bar: 'folder-bar',
+        toolbar: 'folder-toolbar',
+        emptyMessage: 'У папці ще немає слів',
+      },
+      phrases: {
+        collection: 'phraseFolders',
+        items: 'phrases',
+        countField: 'phraseCount',
+        bar: 'folder-bar-phrases',
+        toolbar: 'folder-toolbar-phrases',
+        emptyMessage: 'У папці ще немає фраз',
+      },
+    };
+
+    const folderState = {
+      words: { list: [], current: null },
+      phrases: { list: [], current: null },
+    };
+
     let folderPickerWord = null;
     let folderPickerType = 'word';
+
+    // Зручні псевдоніми — рештa коду читає саме їх
+    function wordFolders() { return folderState.words.list; }
+    function currentWordFolderId() { return folderState.words.current; }
+    function currentPhraseFolderId() { return folderState.phrases.current; }
+    function pickerScope() { return folderPickerType === 'phrase' ? 'phrases' : 'words'; }
 
     function mapWordDoc(doc) {
       const data = doc.data();
@@ -12394,65 +12424,67 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       };
     }
 
-    async function loadFolders() {
+    async function loadFolders(scope) {
+      const cfg = FOLDER_SCOPES[scope];
       try {
         const userId = auth.currentUser.uid;
-        const snap = await db.collection('users').doc(userId).collection('folders').get();
-        userFolders = snap.docs
+        const snap = await db.collection('users').doc(userId).collection(cfg.collection).get();
+        folderState[scope].list = snap.docs
           .map(d => Object.assign({ id: d.id }, d.data()))
           .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-        renderFolderBar();
+        renderFolderBar(scope);
       } catch (e) { console.log('Folders load error:', e); }
     }
 
-    // Папка спільна для слів і фраз, тож смужка малюється в обидві вкладки,
-    // а число на чипі показує вміст саме тієї вкладки, де ти зараз
-    function renderFolderBar() {
-      const isPhrases = currentVocabTab === 'phrases';
-      const chips = [`<button class="folder-chip ${currentFolderId ? '' : 'active'}" onclick="selectFolder(null)">Всі</button>`];
-      userFolders.forEach(f => {
-        const count = isPhrases ? (f.phraseCount || 0) : (f.wordCount || 0);
-        chips.push(`<button class="folder-chip ${currentFolderId === f.id ? 'active' : ''}" onclick="selectFolder('${f.id}')">
-          <i class="fas fa-folder"></i>${escapeHtml(f.name)}
-          <span class="folder-chip-count">${count}</span>
-        </button>`);
-      });
-      chips.push(`<button class="folder-chip" onclick="createFolderPrompt()" title="Нова папка"><i class="fas fa-plus"></i></button>`);
-
-      const open = userFolders.some(f => f.id === currentFolderId);
-      ['', '-phrases'].forEach(suffix => {
-        const bar = document.getElementById('folder-bar' + suffix);
-        if (bar) bar.innerHTML = chips.join('');
-        const toolbar = document.getElementById('folder-toolbar' + suffix);
-        if (toolbar) toolbar.classList.toggle('hidden', !open);
-      });
+    function loadAllFolders() {
+      loadFolders('words');
+      loadFolders('phrases');
     }
 
-    async function selectFolder(folderId) {
-      currentFolderId = folderId;
-      renderFolderBar();
-      if (currentVocabTab === 'phrases') await loadPhrases();
+    function renderFolderBar(scope) {
+      const cfg = FOLDER_SCOPES[scope];
+      const bar = document.getElementById(cfg.bar);
+      if (!bar) return;
+      const state = folderState[scope];
+
+      const chips = [`<button class="folder-chip ${state.current ? '' : 'active'}" onclick="selectFolder('${scope}', null)">Всі</button>`];
+      state.list.forEach(f => {
+        chips.push(`<button class="folder-chip ${state.current === f.id ? 'active' : ''}" onclick="selectFolder('${scope}', '${f.id}')">
+          <i class="fas fa-folder"></i>${escapeHtml(f.name)}
+          <span class="folder-chip-count">${f[cfg.countField] || 0}</span>
+        </button>`);
+      });
+      chips.push(`<button class="folder-chip" onclick="createFolderPrompt('${scope}')" title="Нова папка"><i class="fas fa-plus"></i></button>`);
+      bar.innerHTML = chips.join('');
+
+      const toolbar = document.getElementById(cfg.toolbar);
+      if (toolbar) toolbar.classList.toggle('hidden', !state.list.some(f => f.id === state.current));
+    }
+
+    async function selectFolder(scope, folderId) {
+      folderState[scope].current = folderId;
+      renderFolderBar(scope);
+      if (scope === 'phrases') await loadPhrases();
       else await fetchWordsPaged();
     }
 
-    async function createFolderPrompt() {
+    async function createFolderPrompt(scope) {
       const name = await appPrompt('Нова папка', '');
       if (!name) return;
-      const id = await createFolder(name);
-      if (id) selectFolder(id);
+      const id = await createFolder(scope, name);
+      if (id) selectFolder(scope, id);
     }
 
-    async function createFolder(name) {
+    async function createFolder(scope, name) {
+      const cfg = FOLDER_SCOPES[scope];
       try {
         const userId = auth.currentUser.uid;
-        const ref = await db.collection('users').doc(userId).collection('folders').add({
-          name: name.slice(0, 40),
-          wordCount: 0,
-          createdAt: firebase.firestore.Timestamp.now(),
-        });
-        userFolders.push({ id: ref.id, name: name.slice(0, 40), wordCount: 0 });
-        userFolders.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-        renderFolderBar();
+        const doc = { name: name.slice(0, 40), createdAt: firebase.firestore.Timestamp.now() };
+        doc[cfg.countField] = 0;
+        const ref = await db.collection('users').doc(userId).collection(cfg.collection).add(doc);
+        folderState[scope].list.push(Object.assign({ id: ref.id }, doc));
+        folderState[scope].list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        renderFolderBar(scope);
         return ref.id;
       } catch (e) {
         console.log('Create folder error:', e);
@@ -12461,64 +12493,67 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       }
     }
 
-    async function renameCurrentFolder() {
-      const folder = userFolders.find(f => f.id === currentFolderId);
+    function activeFolder(scope) {
+      return folderState[scope].list.find(f => f.id === folderState[scope].current);
+    }
+
+    async function renameCurrentFolder(scope) {
+      const cfg = FOLDER_SCOPES[scope];
+      const folder = activeFolder(scope);
       if (!folder) return;
       const name = await appPrompt('Нова назва папки', folder.name);
       if (!name || name === folder.name) return;
       try {
         await db.collection('users').doc(auth.currentUser.uid)
-          .collection('folders').doc(folder.id).update({ name: name.slice(0, 40) });
+          .collection(cfg.collection).doc(folder.id).update({ name: name.slice(0, 40) });
         folder.name = name.slice(0, 40);
-        renderFolderBar();
+        renderFolderBar(scope);
       } catch (e) { showNotification('Не вдалося перейменувати', 'warning'); }
     }
 
-    // Видаляємо тільки папку — слова лишаються у словнику
-    async function deleteCurrentFolder() {
-      const folder = userFolders.find(f => f.id === currentFolderId);
+    // Видаляємо тільки папку — записи лишаються у словнику
+    async function deleteCurrentFolder(scope) {
+      const cfg = FOLDER_SCOPES[scope];
+      const folder = activeFolder(scope);
       if (!folder) return;
-      const ok = await appConfirm(`Видалити папку «${folder.name}»?`, 'Слова залишаться у словнику.', 'Видалити');
+      const ok = await appConfirm(`Видалити папку «${folder.name}»?`,
+        scope === 'phrases' ? 'Фрази залишаться у словнику.' : 'Слова залишаться у словнику.', 'Видалити');
       if (!ok) return;
       try {
         const userId = auth.currentUser.uid;
-        for (const coll of ['words', 'phrases']) {
-          const snap = await db.collection('users').doc(userId).collection(coll)
-            .where('folders', 'array-contains', folder.id).get();
-          for (const doc of snap.docs) {
-            await doc.ref.update({
-              folders: (doc.data().folders || []).filter(id => id !== folder.id),
-            });
-          }
+        const snap = await db.collection('users').doc(userId).collection(cfg.items)
+          .where('folders', 'array-contains', folder.id).get();
+        for (const doc of snap.docs) {
+          await doc.ref.update({
+            folders: (doc.data().folders || []).filter(id => id !== folder.id),
+          });
         }
-        await db.collection('users').doc(userId).collection('folders').doc(folder.id).delete();
-        userFolders = userFolders.filter(f => f.id !== folder.id);
+        await db.collection('users').doc(userId).collection(cfg.collection).doc(folder.id).delete();
+        folderState[scope].list = folderState[scope].list.filter(f => f.id !== folder.id);
         showNotification('Папку видалено');
-        selectFolder(null);
+        selectFolder(scope, null);
       } catch (e) {
         console.log('Delete folder error:', e);
         showNotification('Не вдалося видалити папку', 'warning');
       }
     }
 
-    async function refreshFolderCount(folderId) {
+    async function refreshFolderCount(scope, folderId) {
+      const cfg = FOLDER_SCOPES[scope];
       try {
         const userId = auth.currentUser.uid;
-        const [wSnap, pSnap] = await Promise.all([
-          db.collection('users').doc(userId).collection('words')
-            .where('folders', 'array-contains', folderId).get(),
-          db.collection('users').doc(userId).collection('phrases')
-            .where('folders', 'array-contains', folderId).get(),
-        ]);
-        await db.collection('users').doc(userId).collection('folders').doc(folderId)
-          .update({ wordCount: wSnap.size, phraseCount: pSnap.size });
-        const folder = userFolders.find(f => f.id === folderId);
-        if (folder) { folder.wordCount = wSnap.size; folder.phraseCount = pSnap.size; }
-        renderFolderBar();
+        const snap = await db.collection('users').doc(userId).collection(cfg.items)
+          .where('folders', 'array-contains', folderId).get();
+        const update = {};
+        update[cfg.countField] = snap.size;
+        await db.collection('users').doc(userId).collection(cfg.collection).doc(folderId).update(update);
+        const folder = folderState[scope].list.find(f => f.id === folderId);
+        if (folder) folder[cfg.countField] = snap.size;
+        renderFolderBar(scope);
       } catch (e) { console.log('Folder count error:', e); }
     }
 
-    // ----- вибір папок для конкретного слова -----
+    // ----- вибір папок для конкретного запису -----
     function openFolderPicker(id, type) {
       folderPickerWord = id;
       folderPickerType = type || 'word';
@@ -12543,14 +12578,16 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     }
 
     function renderFolderPicker() {
-      const word = folderPickerItem();
-      const picked = (word && word.folders) || [];
+      const scope = pickerScope();
+      const item = folderPickerItem();
+      const picked = (item && item.folders) || [];
       const list = document.getElementById('folder-pick-list');
-      if (!userFolders.length) {
-        list.innerHTML = '<p style="margin:0;">Папок ще немає — створи першу.</p>';
+      const folders = folderState[scope].list;
+      if (!folders.length) {
+        list.innerHTML = `<p style="margin:0;">${scope === 'phrases' ? 'Папок для фраз ще немає' : 'Папок ще немає'} — створи першу.</p>`;
         return;
       }
-      list.innerHTML = userFolders.map(f => `
+      list.innerHTML = folders.map(f => `
         <div class="folder-pick-row ${picked.includes(f.id) ? 'picked' : ''}" onclick="toggleWordFolder('${f.id}')">
           <i class="fas ${picked.includes(f.id) ? 'fa-circle-check' : 'fa-folder'}"></i>
           <span>${escapeHtml(f.name)}</span>
@@ -12560,74 +12597,81 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     async function createFolderFromPicker() {
       const name = await appPrompt('Нова папка', '');
       if (!name) return;
-      const id = await createFolder(name);
+      const id = await createFolder(pickerScope(), name);
       if (id && folderPickerWord) await toggleWordFolder(id);
+      else renderFolderPicker();
     }
 
     async function toggleWordFolder(folderId) {
       if (!folderPickerWord) return;
-      const word = folderPickerItem();
-      if (!word) return;
-      const folders = word.folders || [];
+      const scope = pickerScope();
+      const item = folderPickerItem();
+      if (!item) return;
+      const folders = item.folders || [];
       const next = folders.includes(folderId)
         ? folders.filter(id => id !== folderId)
         : folders.concat(folderId);
       try {
-        const coll = folderPickerType === 'phrase' ? 'phrases' : 'words';
-        const docId = folderPickerType === 'phrase' ? word.id : word.english;
+        const coll = FOLDER_SCOPES[scope].items;
+        const docId = folderPickerType === 'phrase' ? item.id : item.english;
         await db.collection('users').doc(auth.currentUser.uid)
           .collection(coll).doc(docId).update({ folders: next });
-        word.folders = next;
+        item.folders = next;
         renderFolderPicker();
-        updateWordFolderIcon(word);
-        refreshFolderCount(folderId);
+        updateWordFolderIcon(item);
+        refreshFolderCount(scope, folderId);
       } catch (e) {
         console.log('Toggle folder error:', e);
         showNotification('Не вдалося оновити папку', 'warning');
       }
     }
 
-    function updateWordFolderIcon(word) {
-      const btn = document.querySelector(`.word-folder-btn[data-word="${CSS.escape(word.english)}"]`);
-      if (btn) btn.classList.toggle('has-folder', (word.folders || []).length > 0);
+    function updateWordFolderIcon(item) {
+      const key = folderPickerType === 'phrase' ? item.id : item.english;
+      const btn = document.querySelector(`.word-folder-btn[data-word="${CSS.escape(key)}"]`);
+      if (btn) btn.classList.toggle('has-folder', (item.folders || []).length > 0);
     }
 
     // ----- поділитися папкою -----
-    async function shareCurrentFolder() {
-      const folder = userFolders.find(f => f.id === currentFolderId);
+    async function shareCurrentFolder(scope) {
+      const cfg = FOLDER_SCOPES[scope];
+      const folder = activeFolder(scope);
       if (!folder) return;
       showLoading();
       try {
         const userId = auth.currentUser.uid;
-        const [wSnap, pSnap] = await Promise.all([
-          db.collection('users').doc(userId).collection('words')
-            .where('folders', 'array-contains', folder.id).get(),
-          db.collection('users').doc(userId).collection('phrases')
-            .where('folders', 'array-contains', folder.id).get(),
-        ]);
-        const words = wSnap.docs.map(d => ({
-          english: d.id,
-          translation: d.data().translation || '',
-          example: d.data().example || '',
-        }));
-        const phrases = pSnap.docs.map(d => ({
-          english: d.data().english || d.id,
-          translation: d.data().translation || '',
-        }));
-        if (!words.length && !phrases.length) {
-          showNotification('У папці ще немає слів', 'warning');
-          return;
-        }
-        const ref = await db.collection('sets').add({
+        const snap = await db.collection('users').doc(userId).collection(cfg.items)
+          .where('folders', 'array-contains', folder.id).get();
+
+        const payload = {
           type: 'folder',
+          kind: scope,               // словникова папка чи фразова
           title: folder.name,
-          words: words,
-          phrases: phrases,
+          words: [],
+          phrases: [],
           authorId: userId,
           visibility: 'public',
           importCount: 0,
           createdAt: firebase.firestore.Timestamp.now(),
-        });
+        };
+        if (scope === 'phrases') {
+          payload.phrases = snap.docs.map(d => ({
+            english: d.data().english || d.id,
+            translation: d.data().translation || '',
+          }));
+        } else {
+          payload.words = snap.docs.map(d => ({
+            english: d.id,
+            translation: d.data().translation || '',
+            example: d.data().example || '',
+          }));
+        }
+
+        if (!payload.words.length && !payload.phrases.length) {
+          showNotification(cfg.emptyMessage, 'warning');
+          return;
+        }
+        const ref = await db.collection('sets').add(payload);
         showShareLink('Папку опубліковано', buildSetLink(ref.id));
       } catch (e) {
         console.log('Share folder error:', e);
@@ -12722,7 +12766,10 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       showLoading();
       try {
         const userId = auth.currentUser.uid;
-        const folderId = await createFolder(set.title || 'Папка');
+        // Старі посилання не мають kind — визначаємо за вмістом
+        const scope = set.kind === 'phrases' || (!set.kind && !(set.words || []).length && (set.phrases || []).length)
+          ? 'phrases' : 'words';
+        const folderId = await createFolder(scope, set.title || 'Папка');
         if (!folderId) return;
 
         let added = 0;
@@ -12772,11 +12819,11 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
         }
 
         bumpImportCount(set.id);
-        await refreshFolderCount(folderId);
+        await refreshFolderCount(scope, folderId);
         playSound(true);
         showNotification(`Папку «${set.title}» додано, нового: ${added}`);
         closeImportSetModal();
-        if (!document.getElementById('my-words-section').classList.contains('hidden')) selectFolder(folderId);
+        if (!document.getElementById('my-words-section').classList.contains('hidden')) selectFolder(scope, folderId);
       } catch (e) {
         console.log('Import folder error:', e);
         showNotification('Не вдалося додати папку', 'warning');
@@ -12873,9 +12920,9 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
 
       // У папці слів небагато — беремо їх усі одразу, без пагінації.
       // array-contains без orderBy обходиться автоматичним індексом.
-      if (currentFolderId) {
+      if (currentWordFolderId()) {
         const snapshot = await db.collection('users').doc(userId).collection('words')
-          .where('folders', 'array-contains', currentFolderId).get();
+          .where('folders', 'array-contains', currentWordFolderId()).get();
         const words = snapshot.docs.map(mapWordDoc).sort((a, b) =>
           ((b.dateAdded && b.dateAdded.seconds) || 0) - ((a.dateAdded && a.dateAdded.seconds) || 0));
         allWords = words;
@@ -12995,7 +13042,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       // Іконки папки в рядку більше немає, тож шлях у папки — звідси
       const wordArg = JSON.stringify(word.english).replace(/"/g, '&quot;');
       const inFolders = (word.folders || [])
-        .map(id => (userFolders.find(f => f.id === id) || {}).name)
+        .map(id => (wordFolders().find(f => f.id === id) || {}).name)
         .filter(Boolean);
       const inFoldersHtml = inFolders.length
         ? `<p style="margin-top:14px;color:#E8A838;font-size:14px;"><i class="fas fa-folder" style="margin-right:6px;"></i>Вже у папках: ${escapeHtml(inFolders.join(', '))}</p>`
@@ -13320,10 +13367,10 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
             interactions: 0,
             correctAnswers: 0,
             priority: 0,
-            folders: currentFolderId ? [currentFolderId] : [],
+            folders: currentPhraseFolderId() ? [currentPhraseFolderId()] : [],
             dateAdded: firebase.firestore.Timestamp.now(),
           });
-          if (currentFolderId) refreshFolderCount(currentFolderId);
+          if (currentPhraseFolderId()) refreshFolderCount('phrases', currentPhraseFolderId());
           document.getElementById('phrase-english-inline').value = '';
           document.getElementById('phrase-translation-inline').value = '';
           closeAllSuggestions();
@@ -13370,10 +13417,10 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
             interactions: 0,
             correctAnswers: 0,
             priority: 0,
-            folders: currentFolderId ? [currentFolderId] : [],
+            folders: currentWordFolderId() ? [currentWordFolderId()] : [],
             dateAdded: firebase.firestore.Timestamp.now(),
           });
-          if (currentFolderId) refreshFolderCount(currentFolderId);
+          if (currentWordFolderId()) refreshFolderCount('words', currentWordFolderId());
 
           // Очистка полей
           document.getElementById('english-word').value = '';
