@@ -111,12 +111,24 @@ function chatBodyIsSane(body) {
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return json(405, { error: 'Method not allowed' });
 
+  const token = (event.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (!token) return json(401, { error: 'Not signed in' });
+
+  // Зламані налаштування — це наша помилка, а не «увійдіть ще раз».
+  // Раніше обидва випадки давали 401 і були нерозрізнимі ззовні.
+  let verifier;
+  try {
+    verifier = auth();
+  } catch (e) {
+    console.error('ai proxy misconfigured:', e && e.message);
+    return json(500, { error: 'AI is not configured' });
+  }
+
   let uid;
   try {
-    const token = (event.headers.authorization || '').replace(/^Bearer\s+/i, '');
-    if (!token) return json(401, { error: 'Not signed in' });
-    uid = (await auth().verifyIdToken(token)).uid;
+    uid = (await verifier.verifyIdToken(token)).uid;
   } catch (e) {
+    console.error('token rejected:', e && e.message);
     return json(401, { error: 'Not signed in' });
   }
 
