@@ -511,7 +511,9 @@
     }
 
     #constructor-answer {
-      width: 90%;
+      flex: 1;
+      min-width: 0;
+      width: auto;
       margin: 0;
       padding: 18px 0 18px 18px;
       font-size: 18px;
@@ -2035,13 +2037,13 @@
 
     .folder-toolbar-actions {
       display: flex;
-      gap: 4px;
+      gap: 8px;
     }
 
     .folder-toolbar-actions button {
-      width: 32px;
-      min-width: 32px;
-      height: 32px;
+      width: 44px;
+      min-width: 44px;
+      height: 44px;
       padding: 0;
       margin: 0;
       border-radius: 8px;
@@ -3825,6 +3827,11 @@
     }
 
     /* Повна розкладка — окремий шар знизу, як системна клавіатура, але більший */
+    /* Панель перекриває низ сторінки, тож лишаємо під неї місце */
+    body.cw-keyboard-open #word-constructor-training-section {
+      padding-bottom: 340px;
+    }
+
     .cw-keyboard {
       position: fixed;
       left: 0;
@@ -3837,28 +3844,60 @@
       box-shadow: 0 -12px 28px rgba(0, 0, 0, 0.5);
     }
 
-    .cw-keyboard-head {
+    /* Дії і прогрес — під клавішами: так вони ближче до великого пальця */
+    .cw-keyboard-actions {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 0 8px 6px;
-      font-size: 12px;
-      color: rgba(240, 237, 232, 0.35);
+      gap: 8px;
+      margin-top: 8px;
+      padding: 0 2px;
     }
 
-    .cw-keyboard-head button {
-      width: 32px;
-      min-width: 32px;
-      height: 32px;
-      padding: 0;
+    .cw-keyboard-actions .check-button,
+    .cw-keyboard-actions .skip-button {
+      flex: 1;
       margin: 0;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.06);
-      border: none;
+      padding: 13px 8px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 12px;
       box-shadow: none;
+    }
+
+    .cw-keyboard-actions .check-button {
+      background: rgba(232, 168, 56, 0.2);
+      border: 1px solid #E8A838;
+      color: #E8A838;
+    }
+
+    .cw-keyboard-actions .skip-button {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       color: rgba(240, 237, 232, 0.6);
-      font-size: 14px;
-      cursor: pointer;
+    }
+
+    .cw-kb-count {
+      flex: 0 0 auto;
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(240, 237, 232, 0.4);
+      min-width: 38px;
+      text-align: right;
+    }
+
+    .cw-kb-progress {
+      height: 3px;
+      margin-top: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .cw-kb-progress-bar {
+      height: 100%;
+      background: #E8A838;
+      border-radius: 2px;
+      transition: width 0.3s;
     }
 
     .constructor-letter-buttons.letters-full {
@@ -3969,6 +4008,7 @@
     }
 
     .title-and-btn h2 {
+      white-space: nowrap;
       position: absolute;
       top: 50%;
       left: 50%;
@@ -6797,6 +6837,9 @@
       </div>
     </div>
 
+    <!-- Клавіатура конструктора: поза секцією, бо її анімація ламає position:fixed -->
+    <div id="constructor-keyboard" class="cw-keyboard hidden"></div>
+
     <!-- Свій ввід замість браузерного prompt() -->
     <div id="app-prompt-modal" class="app-modal hidden">
       <div class="app-modal-box">
@@ -7019,7 +7062,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.7';
+    const APP_VERSION = '2026-08-15.8';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -7428,6 +7471,9 @@
 }
 
 function hideAllAppSections() {
+  // Клавіатура конструктора лежить поза секціями, тож ховати її треба окремо —
+  // інакше вона лишалася поверх словника після виходу з вправи
+  hideConstructorKeyboard();
   [
     'my-words-section', 'daily-words-section', 'add-word-section', 'quiz-section',
     'picture-quiz-section', 'payment-section', 'listening-training-section',
@@ -14647,6 +14693,7 @@ async function translateStory() {
     }
 
     function showConstructorModeSelect() {
+      hideConstructorKeyboard();
       document.getElementById('constructor-mode-select').classList.remove('hidden');
       document.getElementById('word-constructor-quiz-container').classList.add('hidden');
       document.getElementById('constructor-progress').classList.add('hidden');
@@ -14669,7 +14716,8 @@ async function translateStory() {
 
     function startConstructorPractice() {
       document.getElementById('constructor-mode-select').classList.add('hidden');
-      document.getElementById('constructor-progress').classList.remove('hidden');
+      // У повній розкладці прогрес живе в самій панелі, щоб не дублювався
+      document.getElementById('constructor-progress').classList.toggle('hidden', constructorMode === 'full');
       document.getElementById('word-constructor-quiz-container').classList.remove('hidden');
       initializeWordConstructorTraining();
     }
@@ -14736,28 +14784,21 @@ async function translateStory() {
         </button>
       </div>
       <div class="input-block-custom" style="display: flex; justify-content: center; margin-top: 10px;">
-        <input type="text" id="constructor-answer" placeholder="${constructorMode === 'full' ? 'Натисни, щоб відкрити клавіатуру' : 'Соберіть слово...'}" readonly inputmode="none" onfocus="this.blur()" onclick="openConstructorKeyboard()">
+        <input type="text" id="constructor-answer" placeholder="Збери слово..." readonly inputmode="none" onfocus="this.blur()">
         <button class="delete-constructor-button" onclick="deleteLastLetter()">
           <i class="fas fa-backspace"></i>
         </button>
       </div>
-      ${constructorMode === 'full' ? `
-      <div id="constructor-keyboard" class="cw-keyboard hidden">
-        <div class="cw-keyboard-head">
-          <span>Клавіатура</span>
-          <button onclick="closeConstructorKeyboard()" title="Закрити"><i class="fas fa-xmark"></i></button>
-        </div>
-        <div class="constructor-letter-buttons letters-full" id="letter-buttons">
-          ${generateLetterButtonsHTML(letters)}
-        </div>
-      </div>` : `
+      <div id="constructor-feedback" class="listening-feedback hidden"></div>
+      ${constructorMode === 'full' ? '' : `
       <div class="constructor-letter-buttons" id="letter-buttons">
         ${generateLetterButtonsHTML(letters)}
-      </div>`}
+      </div>
       <button class="check-button" onclick="submitConstructorAnswer('${questionWord.english}')">Перевірити</button>
-      <button class="skip-button" onclick="skipConstructor()">Пропустити</button>
-      <div id="constructor-feedback" class="listening-feedback hidden"></div>
+      <button class="skip-button" onclick="skipConstructor()">Пропустити</button>`}
     `;
+        renderConstructorKeyboard(questionWord, letters, progressPercent);
+        document.body.classList.toggle('cw-keyboard-open', constructorMode === 'full');
         // Добавляем класс для анимации появления
         container.classList.remove('fade-out');
         container.classList.add('fade-in');
@@ -14766,21 +14807,37 @@ async function translateStory() {
       }, 500); // Задержка должна совпадать с длительностью анимации в CSS
     }
 
-    // Повна розкладка живе окремим шаром знизу, як справжня клавіатура,
-    // тільки більша за системну — інакше на телефоні клавіші дрібні
-    function openConstructorKeyboard() {
-      const kb = document.getElementById('constructor-keyboard');
-      if (kb) kb.classList.remove('hidden');
-    }
-
-    function closeConstructorKeyboard() {
-      const kb = document.getElementById('constructor-keyboard');
-      if (kb) kb.classList.add('hidden');
-    }
-
     // Порядок як на звичайній клавіатурі, а data-count -1 означає «не закінчується»
     function getFullKeyboardLetters() {
       return 'qwertyuiopasdfghjklzxcvbnm'.split('').map(letter => ({ letter: letter, count: -1 }));
+    }
+
+    // Клавіші, дії і прогрес — одним шаром знизу; у режимі букв слова шар не потрібен
+    function renderConstructorKeyboard(questionWord, letters, progressPercent) {
+      const kb = document.getElementById('constructor-keyboard');
+      if (!kb) return;
+      if (constructorMode !== 'full') {
+        kb.classList.add('hidden');
+        kb.innerHTML = '';
+        return;
+      }
+      kb.innerHTML = `
+        <div class="constructor-letter-buttons letters-full" id="letter-buttons">
+          ${generateLetterButtonsHTML(letters)}
+        </div>
+        <div class="cw-keyboard-actions">
+          <button class="check-button" onclick="submitConstructorAnswer('${questionWord.english}')">Перевірити</button>
+          <button class="skip-button" onclick="skipConstructor()">Пропустити</button>
+          <span class="cw-kb-count">${currentConstructorQuestion + 1}/${constructorWords.length}</span>
+        </div>
+        <div class="cw-kb-progress"><div class="cw-kb-progress-bar" style="width:${progressPercent}%"></div></div>`;
+      kb.classList.remove('hidden');
+    }
+
+    function hideConstructorKeyboard() {
+      const kb = document.getElementById('constructor-keyboard');
+      if (kb) { kb.classList.add('hidden'); kb.innerHTML = ''; }
+      document.body.classList.remove('cw-keyboard-open');
     }
 
     function generateLetterButtonsHTML(letters) {
@@ -15868,6 +15925,7 @@ async function translateStory() {
     }
 
     function showConstructorResult() {
+      hideConstructorKeyboard();
       checkAndShowDailyRecord();
       const constructorContainer = document.getElementById('word-constructor-quiz-container');
       const constructorProgress = document.getElementById('constructor-progress');
@@ -15900,6 +15958,7 @@ async function translateStory() {
     }
 
     function finishConstructor() {
+      hideConstructorKeyboard();
       showConfetti();
 
 
