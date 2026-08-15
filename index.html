@@ -2195,13 +2195,43 @@
       font-size: 15px;
     }
 
-    .grammar-topic .topic-info {
-      flex: 1;
+    .grammar-topic {
+      overflow: hidden;
+      /* Теми — це <button> (у них border-box за замовчуванням), а рядок свого
+         конспекту — <div>. Без цього його ширина = 100% + падінги, і плашка
+         вилазила за екран саме у «Моїх уроках». */
+      box-sizing: border-box;
     }
 
+    .grammar-topic .topic-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* min-width:0 + обрізання: інакше довга назва конспекту розсуває рядок
+       ширше екрана і плашка вилазить за край */
     .grammar-topic .topic-name {
       font-weight: 600;
       display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .grammar-topic .topic-row-action {
+      flex: 0 0 32px;
+      width: 32px;
+      min-width: 32px;
+      height: 32px;
+      padding: 0;
+      margin: 0;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      color: rgba(240, 237, 232, 0.3);
+      font-size: 13px;
+      cursor: pointer;
     }
 
     .grammar-topic .topic-desc {
@@ -2866,14 +2896,17 @@
       margin: 0;
     }
 
+    /* На телефоні підказку не видно без прокрутки до списку, тому активне
+       слово підписуємо просто над сіткою */
     #crossword-direction-toggle {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      width: auto;
+      gap: 10px;
+      width: 100%;
+      max-width: 420px;
       margin: 0 auto 10px;
-      padding: 8px 16px;
+      padding: 10px 14px;
       background: rgba(102, 126, 234, 0.12);
       border: 1px solid rgba(102, 126, 234, 0.35);
       border-radius: 20px;
@@ -2891,6 +2924,28 @@
     #crossword-direction-toggle i {
       font-size: 11px;
       opacity: 0.7;
+      flex-shrink: 0;
+    }
+
+    #crossword-direction-toggle .cw-bar-text {
+      flex: 1;
+      min-width: 0;
+      text-align: left;
+    }
+
+    #crossword-current-clue {
+      display: block;
+      margin-top: 2px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #F0EDE8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #crossword-current-clue.hidden {
+      display: none;
     }
 
     .crossword-note {
@@ -6191,6 +6246,9 @@
         <button class="large-btn" onclick="startGrammarQuiz()" style="margin-top:16px;width:100%;background:rgba(232,168,56,0.2);border:1px solid #E8A838;color:#E8A838;">
           Перевірити знання
         </button>
+        <button id="grammar-extend-btn" class="large-btn hidden" onclick="extendCurrentLesson()" style="margin-top:10px;width:100%;background:transparent;border:1px dashed rgba(240,237,232,0.2);color:rgba(240,237,232,0.55);">
+          <i class="fas fa-plus" style="margin-right:8px;"></i>Доповнити цей урок
+        </button>
       </div>
       <div id="grammar-quiz" class="hidden">
         <div id="grammar-quiz-container"></div>
@@ -6263,7 +6321,10 @@
 
       <!-- Куди зараз пишемо. Тап по клітинці на перетині вдруге теж перемикає -->
       <button id="crossword-direction-toggle" onclick="toggleCrosswordDirection()">
-        <span id="crossword-direction-label">→ Пишемо вправо</span>
+        <span class="cw-bar-text">
+          <span id="crossword-direction-label">→ Пишемо вправо</span>
+          <span id="crossword-current-clue" class="hidden"></span>
+        </span>
         <i class="fas fa-arrows-rotate"></i>
       </button>
 
@@ -6784,7 +6845,63 @@
       speechSynthesis.onvoiceschanged = _loadVoices;
     }
 
+    // Живий голос — той самий, що у Speaking Club. Синтез браузера звучить
+    // роботом, і саме через нього слова на слух погано розбиралися.
+    var _ttsCache = {};
+    var _ttsAudio = null;
+
+    function stopTtsAudio() {
+      if (_ttsAudio) {
+        try { _ttsAudio.pause(); } catch (e) {}
+        _ttsAudio = null;
+      }
+    }
+
     function kokoroSpeak(text, voice, options) {
+      if (!text) return;
+      var isUkrainian = voice && voice.toLowerCase().includes('ukrainian');
+      // Довгі шматки (історії) і українську лишаємо браузеру: там жива озвучка
+      // або надто повільна, або голоси все одно англомовні
+      if (isUkrainian || !openaiApiKey || text.length > 800) {
+        kokoroSpeakNative(text, voice, options);
+        return;
+      }
+      speakWithLiveVoice(text, options);
+    }
+
+    async function speakWithLiveVoice(text, options) {
+      var voiceId = (typeof scConfig !== 'undefined' && scConfig.voice) || 'nova';
+      var key = voiceId + '::' + text;
+      var finish = function() {
+        _ttsAudio = null;
+        if (options && options.onend) options.onend();
+      };
+      try {
+        kokoroCancel();
+        var url = _ttsCache[key];
+        if (!url) {
+          var resp = await fetch('https://api.openai.com/v1/audio/speech', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + openaiApiKey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: 'tts-1', voice: voiceId, input: text, speed: 1.0 }),
+          });
+          if (!resp.ok) throw new Error('tts ' + resp.status);
+          url = URL.createObjectURL(await resp.blob());
+          _ttsCache[key] = url;
+        }
+        var audio = new Audio(url);
+        _ttsAudio = audio;
+        audio.onended = finish;
+        audio.onerror = finish;
+        await audio.play();
+      } catch (e) {
+        // Немає ключа, збій мережі або браузер заблокував автозапуск —
+        // краще роботом, ніж тиша
+        kokoroSpeakNative(text, 'UK English Female', options);
+      }
+    }
+
+    function kokoroSpeakNative(text, voice, options) {
       if (!text || !window.speechSynthesis) return;
       kokoroCancel();
 
@@ -6815,6 +6932,7 @@
     }
 
     function kokoroCancel() {
+      stopTtsAudio();
       try { speechSynthesis.cancel(); } catch(e) {}
     }
     // ===== End TTS =====
@@ -6838,7 +6956,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.3';
+    const APP_VERSION = '2026-08-15.4';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -7452,6 +7570,9 @@ function exitSpeedTraining() {
             const userData = doc.data();
             document.querySelector('.user-email').textContent = userData.email;
             // Перевіряємо підписку
+            // Голос озвучки спільний для всього застосунку, тож підхоплюємо
+            // вибір зі Speaking Club одразу після входу
+            if (userData.scConfig && userData.scConfig.voice) scConfig.voice = userData.scConfig.voice;
             checkSubscription(userData);
             if (userData.subscriptionExpiration && !userData.lifetime) {
               startSubscriptionTimer(userData.subscriptionExpiration.toDate());
@@ -9203,13 +9324,10 @@ Return ONLY a JSON array of strings.`
             <span class="topic-name">${escapeHtml(l.title)}</span>
             <span class="topic-desc">${escapeHtml(l.level || 'A1')}${done ? ' · пройдено ✓' : ''}</span>
           </div>
-          <button onclick="showCustomLessonForm('${l.id}')" title="Доповнити" style="width:34px;min-width:34px;height:34px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;box-shadow:none;color:rgba(240,237,232,0.3);font-size:14px;cursor:pointer;">
-            <i class="fas fa-plus"></i>
-          </button>
-          <button onclick="shareCustomLesson('${l.id}')" title="Поділитися" style="width:34px;min-width:34px;height:34px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;box-shadow:none;color:rgba(240,237,232,0.3);font-size:14px;cursor:pointer;">
+          <button class="topic-row-action" onclick="shareCustomLesson('${l.id}')" title="Поділитися">
             <i class="fas fa-share-nodes"></i>
           </button>
-          <button onclick="deleteCustomLesson('${l.id}')" title="Видалити" style="width:34px;min-width:34px;height:34px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;box-shadow:none;color:rgba(240,237,232,0.3);font-size:14px;cursor:pointer;">
+          <button class="topic-row-action" onclick="deleteCustomLesson('${l.id}')" title="Видалити">
             <i class="fas fa-trash"></i>
           </button>
         </div>`;
@@ -9543,6 +9661,10 @@ ${source}
       });
     }
 
+    function extendCurrentLesson() {
+      if (currentGrammarTopic && currentGrammarTopic.custom) showCustomLessonForm(currentGrammarTopic.id);
+    }
+
     function openCustomLesson(lessonId, startPage) {
       const lesson = customLessons.find(l => l.id === lessonId);
       if (!lesson) return;
@@ -9560,6 +9682,11 @@ ${source}
       document.getElementById('grammar-lesson').classList.remove('hidden');
       showGrammarPage();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateExtendButton() {
+      const btn = document.getElementById('grammar-extend-btn');
+      if (btn) btn.classList.toggle('hidden', !(currentGrammarTopic && currentGrammarTopic.custom));
     }
 
     async function shareCustomLesson(lessonId) {
@@ -10943,6 +11070,7 @@ ${source}
       const topic = grammarTopics.find(t => t.id === topicId);
       if (!topic) return;
       currentGrammarTopic = topic;
+      updateExtendButton();
       currentGrammarPage = 0;
 
       document.getElementById('grammar-topics').classList.add('hidden');
@@ -11011,6 +11139,7 @@ ${source}
       </div>`;
 
       document.getElementById('grammar-lesson-content').innerHTML = html;
+      updateExtendButton();
 
       // Load saved questions
       loadGrammarSavedQuestions();
@@ -15201,10 +15330,12 @@ async function translateStory() {
 
       // Calculate cell size to fit screen
       const numCols = maxCol - minCol + 1;
-      const availW = Math.min(window.innerWidth - 32, 400); // padding
+      // Раніше ширина обмежувалася 400px, а клітинка — 24px, тож на телефоні
+      // сітка не влазила і кросворд доводилося возити вбік під час набору
+      const availW = Math.min(window.innerWidth - 24, 520);
       const spacing = 2; // border-spacing
-      const cellSize = Math.max(24, Math.min(36, Math.floor((availW - (numCols + 1) * spacing) / numCols)));
-      const fontSize = Math.max(12, Math.min(18, Math.floor(cellSize * 0.5)));
+      const cellSize = Math.max(20, Math.min(36, Math.floor((availW - (numCols + 1) * spacing) / numCols)));
+      const fontSize = Math.max(11, Math.min(18, Math.floor(cellSize * 0.55)));
       document.documentElement.style.setProperty('--cw-cell', cellSize + 'px');
       document.documentElement.style.setProperty('--cw-font', fontSize + 'px');
 
@@ -15261,6 +15392,7 @@ async function translateStory() {
       cwDirection = 'across';
       cwActiveCell = null;
       updateCrosswordDirectionLabel();
+      showCurrentClue(null);
     }
 
     // ===== Навігація по кросворду =====
@@ -15437,10 +15569,18 @@ async function translateStory() {
       // Find the li for this word
       let dirWords = placedWords.filter(w => w.direction === matchedWord.direction);
       const idx = dirWords.indexOf(matchedWord);
-      if (idx >= 0 && lis[idx]) {
-        lis[idx].classList.add('clue-active');
-        lis[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
+      if (idx >= 0 && lis[idx]) lis[idx].classList.add('clue-active');
+      // Сюди раніше йшов scrollIntoView до списку підказок — на телефоні він
+      // висмикував сторінку з сітки під час набору. Тепер підказка над сіткою.
+      showCurrentClue(matchedWord, clueIdx + 1);
+    }
+
+    function showCurrentClue(word, number) {
+      const el = document.getElementById('crossword-current-clue');
+      if (!el) return;
+      if (!word) { el.classList.add('hidden'); return; }
+      el.textContent = `${number}. ${word.translation}`;
+      el.classList.remove('hidden');
     }
 
     function checkCrossword() {
