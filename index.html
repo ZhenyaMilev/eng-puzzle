@@ -7225,7 +7225,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.9';
+    const APP_VERSION = '2026-08-15.10';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -7680,6 +7680,11 @@ function exitSpeedTraining() {
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+
+    // Сесія має переживати закриття вкладки й перезапуск телефона —
+    // інакше вхід доводиться повторювати щоразу
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      .catch(e => console.log('Auth persistence error:', e));
     // Перемінні для стану завантаження
     let isLoading = false;
     // Функція для показу оверлея завантаження
@@ -7812,6 +7817,33 @@ function exitSpeedTraining() {
       }
     }
 
+    // Перший вхід через Google має завести той самий документ, що й реєстрація поштою
+    async function ensureUserDoc(user) {
+      const ref = db.collection('users').doc(user.uid);
+      const doc = await ref.get();
+      if (doc.exists) return;
+      const subscriptionExpiration = new Date();
+      subscriptionExpiration.setDate(subscriptionExpiration.getDate() + 3); // 3 дні пробного періоду
+      await ref.set({
+        email: user.email,
+        registrationDate: firebase.firestore.Timestamp.fromDate(new Date()),
+        subscriptionExpiration: firebase.firestore.Timestamp.fromDate(subscriptionExpiration),
+      });
+    }
+
+    function showAuthError(message) {
+      const loginForm = document.getElementById('login-form');
+      const targetId = loginForm.classList.contains('hidden') ? 'register-password-error' : 'login-password-error';
+      const el = document.getElementById(targetId);
+      if (el) el.textContent = message;
+    }
+
+    // Спливаюче вікно на телефоні часто блокується або губить сесію,
+    // тому там вхід іде через redirect, а результат підбираємо на старті
+    function prefersRedirectSignIn() {
+      return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+    }
+
     async function loginWithGoogle() {
       clearErrors();
       if (isInAppBrowser()) {
@@ -7822,33 +7854,30 @@ function exitSpeedTraining() {
       showLoading();
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
-        const result = await auth.signInWithPopup(provider);
-        const user = result.user;
-
-        const userDocRef = db.collection('users').doc(user.uid);
-        const userDoc = await userDocRef.get();
-
-        if (!userDoc.exists) {
-          const registrationDate = new Date();
-          const subscriptionExpiration = new Date();
-          subscriptionExpiration.setDate(subscriptionExpiration.getDate() + 3); // 3 дня подписки
-
-          await userDocRef.set({
-            email: user.email,
-            registrationDate: firebase.firestore.Timestamp.fromDate(registrationDate),
-            subscriptionExpiration: firebase.firestore.Timestamp.fromDate(subscriptionExpiration),
-          });
+        if (prefersRedirectSignIn()) {
+          await auth.signInWithRedirect(provider);
+          return; // сторінка зараз піде на Google і повернеться вже авторизованою
         }
-
+        const result = await auth.signInWithPopup(provider);
+        await ensureUserDoc(result.user);
         updateUI();
       } catch (error) {
-        if (error.code !== 'auth/popup-closed-by-user') {
-          const loginForm = document.getElementById('login-form');
-          const targetId = loginForm.classList.contains('hidden') ? 'register-password-error' : 'login-password-error';
-          document.getElementById(targetId).textContent = error.message;
-        }
+        if (error.code !== 'auth/popup-closed-by-user') showAuthError(error.message);
       } finally {
         hideLoading();
+      }
+    }
+
+    // Повернення з Google після redirect
+    async function completeRedirectSignIn() {
+      try {
+        const result = await auth.getRedirectResult();
+        if (result && result.user) {
+          await ensureUserDoc(result.user);
+          updateUI();
+        }
+      } catch (error) {
+        showAuthError(error.message);
       }
     }
 
@@ -7999,6 +8028,8 @@ function exitSpeedTraining() {
       }
     }
     // Слідкуємо за змінами стану автентифікації
+    completeRedirectSignIn();
+
     auth.onAuthStateChanged(user => {
       updateUI();
       decodeLink();
