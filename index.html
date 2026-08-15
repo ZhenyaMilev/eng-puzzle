@@ -850,6 +850,150 @@
       outline: none;
     }
 
+    /* ===== Екрани входу та реєстрації ===== */
+    .auth-screen {
+      display: flex;
+      justify-content: center;
+      padding: 8px 0 40px;
+    }
+
+    .auth-screen.hidden {
+      display: none;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 380px;
+      box-sizing: border-box;
+      padding: 28px 22px 24px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 20px;
+      text-align: center;
+    }
+
+    .auth-title {
+      margin: 0 0 6px;
+      font-size: 26px;
+      font-weight: 700;
+      color: #F0EDE8;
+    }
+
+    .auth-sub {
+      margin: 0 0 22px;
+      font-size: 14px;
+      line-height: 1.45;
+      color: rgba(240, 237, 232, 0.45);
+    }
+
+    .auth-card input {
+      width: 100%;
+      box-sizing: border-box;
+      margin: 0 0 12px;
+      text-align: left;
+    }
+
+    .auth-card .error-message {
+      margin: -8px 0 8px;
+      text-align: left;
+    }
+
+    .auth-card .error-message:empty {
+      display: none;
+    }
+
+    .auth-primary {
+      width: 100%;
+      margin: 4px 0 0;
+      padding: 15px;
+      font-size: 16px;
+      font-weight: 700;
+      background: rgba(232, 168, 56, 0.2);
+      border: 1px solid #E8A838;
+      border-radius: 12px;
+      color: #E8A838;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    /* «або» між своїм входом і Google */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0;
+      color: rgba(240, 237, 232, 0.3);
+      font-size: 13px;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .auth-google {
+      width: 100%;
+      margin: 0;
+      padding: 15px;
+      font-size: 15px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      color: #F0EDE8;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    .auth-foot {
+      margin: 20px 0 0;
+      font-size: 14px;
+      color: rgba(240, 237, 232, 0.45);
+    }
+
+    /* Не гола підкреслена ланка, а звичайна вторинна дія */
+    .auth-link {
+      width: auto;
+      margin: 0 0 0 4px;
+      padding: 0;
+      background: none;
+      border: none;
+      box-shadow: none;
+      color: #E8A838;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .auth-inapp-note {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: rgba(232, 168, 56, 0.08);
+      border: 1px solid rgba(232, 168, 56, 0.25);
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(240, 237, 232, 0.7);
+      text-align: left;
+    }
+
+    .auth-inapp-note button {
+      width: 100%;
+      margin: 10px 0 0;
+      padding: 11px;
+      background: rgba(232, 168, 56, 0.18);
+      border: 1px solid rgba(232, 168, 56, 0.45);
+      border-radius: 10px;
+      color: #E8A838;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
     .link-button {
       background: none;
       border: none;
@@ -5594,27 +5738,46 @@
 
     </div>
     <!-- Форма входу -->
-    <div id="login-form">
-      <h2>Вхід</h2>
-      <input type="email" id="login-email" placeholder="Email">
-      <div id="login-email-error" class="error-message"></div>
-      <input type="password" id="login-password" placeholder="Пароль">
-      <div id="login-password-error" class="error-message"></div>
-      <button onclick="login()">Увійти</button>
-      <button class="google-btn" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Продовжити з Google</button>
-      <button class="button-with-icon link-button register-link" onclick="showRegister()">Зареєструватися</button>
+    <div id="login-form" class="auth-screen">
+      <div class="auth-card">
+        <h2 class="auth-title">Вхід</h2>
+        <p class="auth-sub">Продовжуй з того місця, де зупинився</p>
+
+        <input type="email" id="login-email" placeholder="Email" autocomplete="email">
+        <div id="login-email-error" class="error-message"></div>
+        <input type="password" id="login-password" placeholder="Пароль" autocomplete="current-password">
+        <div id="login-password-error" class="error-message"></div>
+        <button class="auth-primary" onclick="login()">Увійти</button>
+
+        <div class="auth-divider"><span>або</span></div>
+        <button class="google-btn auth-google" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Продовжити з Google</button>
+        <div class="auth-inapp-note hidden" id="login-inapp-note"></div>
+
+        <p class="auth-foot">Ще немає акаунта?
+          <button class="auth-link" onclick="showRegister()">Зареєструватися</button>
+        </p>
+      </div>
     </div>
     <!-- Форма реєстрації -->
-    <div id="register-form" class="hidden">
-      <h2>Реєстрація</h2>
-      <input type="email" id="register-email" placeholder="Email">
-      <div id="register-email-error" class="error-message"></div>
-      <input type="password" id="register-password" placeholder="Пароль">
-      <div id="register-password-error" class="error-message"></div>
-      <button onclick="register()">Зареєструватися</button>
-      <button class="google-btn" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Продовжити з Google</button>
-      <button class="button-with-icon link-button register-link" onclick="showLogin()">Вже є акаунт?
-        Увійти</button>
+    <div id="register-form" class="auth-screen hidden">
+      <div class="auth-card">
+        <h2 class="auth-title">Реєстрація</h2>
+        <p class="auth-sub">Кілька секунд — і словник твій</p>
+
+        <input type="email" id="register-email" placeholder="Email" autocomplete="email">
+        <div id="register-email-error" class="error-message"></div>
+        <input type="password" id="register-password" placeholder="Пароль" autocomplete="new-password">
+        <div id="register-password-error" class="error-message"></div>
+        <button class="auth-primary" onclick="register()">Зареєструватися</button>
+
+        <div class="auth-divider"><span>або</span></div>
+        <button class="google-btn auth-google" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Продовжити з Google</button>
+        <div class="auth-inapp-note hidden" id="register-inapp-note"></div>
+
+        <p class="auth-foot">Вже є акаунт?
+          <button class="auth-link" onclick="showLogin()">Увійти</button>
+        </p>
+      </div>
     </div>
     <!-- Головний екран облікового запису -->
     <div id="account-screen" class="hidden">
@@ -7062,7 +7225,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.8';
+    const APP_VERSION = '2026-08-15.9';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -7607,8 +7770,55 @@ function exitSpeedTraining() {
     }
 
     // Вхід через Google
+    // Google не пускає OAuth у вбудовані webview (Telegram, Instagram, Facebook).
+    // Спроба там завжди впирається в disallowed_useragent, тож попереджаємо заздалегідь.
+    function isInAppBrowser() {
+      const ua = navigator.userAgent || '';
+      return /Telegram|FBAN|FBAV|FB_IAB|Instagram|Line\/|Viber|WhatsApp|MicroMessenger|OKApp|TikTok/i.test(ua);
+    }
+
+    function renderInAppBrowserNote() {
+      const inApp = isInAppBrowser();
+      ['login-inapp-note', 'register-inapp-note'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.toggle('hidden', !inApp);
+        if (inApp) {
+          el.innerHTML = 'Google не дозволяє вхід у вбудованому браузері (Telegram, Instagram тощо). '
+            + 'Увійди поштою — або відкрий застосунок у Safari чи Chrome.'
+            + '<button onclick="openInExternalBrowser()">Відкрити у браузері</button>';
+        }
+      });
+      document.querySelectorAll('.auth-google').forEach(btn => {
+        btn.disabled = inApp;
+        btn.style.opacity = inApp ? '0.4' : '';
+      });
+    }
+
+    function openInExternalBrowser() {
+      const url = location.href;
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+        window.Telegram.WebApp.openLink(url);
+        return;
+      }
+      const opened = window.open(url, '_blank');
+      if (opened) return;
+      // Вбудований браузер може заблокувати відкриття — лишаємо посилання в буфері
+      const done = () => showNotification('Посилання скопійовано — встав його у браузері');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done).catch(() => fallbackCopy(url, done));
+      } else {
+        fallbackCopy(url, done);
+      }
+    }
+
     async function loginWithGoogle() {
       clearErrors();
+      if (isInAppBrowser()) {
+        renderInAppBrowserNote();
+        showNotification('Google-вхід тут недоступний — відкрий у браузері', 'warning');
+        return;
+      }
       showLoading();
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
@@ -7667,6 +7877,7 @@ function exitSpeedTraining() {
       const buttonsRightCorner = document.querySelector('.buttons-right-corner');
 
       if (user) {
+        document.querySelector('.title-main').classList.remove('hidden');
         buttonsRightCorner.classList.remove('hidden');
         showLoading();
         // Ховаємо форми входу та реєстрації
@@ -7708,6 +7919,9 @@ function exitSpeedTraining() {
           });
       } else {
         buttonsRightCorner.classList.add('hidden');
+        // На екрані входу назва застосунку зайва — там і так написано «Вхід»
+        document.querySelector('.title-main').classList.add('hidden');
+        renderInAppBrowserNote();
         document.getElementById('login-form').classList.remove('hidden');
         document.getElementById('account-screen').classList.add('hidden');
         document.getElementById('my-words-section').classList.add('hidden');
