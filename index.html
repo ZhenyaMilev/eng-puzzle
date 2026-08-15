@@ -689,7 +689,8 @@
 
     /* Стили для кнопок, у которых data-count не равно 1 */
     /* Применяем стили только для data-count больше 1 */
-    .unique-letter-button[data-count]:not([data-count="1"]):not([data-count="0"])::after {
+    /* -1 = «не закінчується» на повній клавіатурі, лічильник там ні до чого */
+    .unique-letter-button[data-count]:not([data-count="1"]):not([data-count="0"]):not([data-count="-1"])::after {
       content: attr(data-count);
       position: absolute;
       top: -5px;
@@ -3738,6 +3739,20 @@
       gap: 10px;
     }
 
+    /* Повна розкладка — 26 клавіш мають вміститися в екран телефона */
+    .constructor-letter-buttons.letters-full {
+      margin: 16px 4px;
+      gap: 6px;
+    }
+
+    .constructor-letter-buttons.letters-full .unique-letter-button {
+      width: 36px;
+      height: 44px;
+      font-size: 18px;
+      margin: 0;
+      border-radius: 9px;
+    }
+
     /* Центрирование иконки звука */
     .sound-icon-container {
       display: flex;
@@ -6342,6 +6357,19 @@
           <i class="fas fa-info-circle"></i>
         </button>
       </div>
+      <div id="constructor-mode-select">
+        <p class="mode-group-label">Які букви показувати:</p>
+        <div class="mode-options">
+          <button class="mode-option active" id="constructor-mode-word" onclick="setConstructorMode('word')">
+            <i class="fas fa-puzzle-piece"></i>Тільки букви цього слова
+          </button>
+          <button class="mode-option" id="constructor-mode-full" onclick="setConstructorMode('full')">
+            <i class="fas fa-keyboard"></i>Повна клавіатура
+          </button>
+        </div>
+        <p class="mode-hint" id="constructor-mode-hint"></p>
+        <button onclick="startConstructorPractice()" style="width:100%;margin-top:14px;">Почати</button>
+      </div>
       <div id="word-constructor-quiz-container">
         <!-- Контент тренування буде динамічно додаватися тут -->
       </div>
@@ -6557,7 +6585,7 @@
       <div id="sc-config-screen">
         <div id="sc-memory-badge" class="hidden" style="display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:14px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:10px;color:#34d399;font-size:13px;">
           <i class="fas fa-brain"></i>
-          <span style="flex:1;">Sam тебе пам'ятає — розмов разом: <b id="sc-memory-count">0</b></span>
+          <span style="flex:1;">Співрозмовник тебе пам'ятає — розмов разом: <b id="sc-memory-count">0</b></span>
           <button onclick="scForgetMemory()" title="Забути" style="width:28px;min-width:28px;height:28px;padding:0;margin:0;border-radius:7px;background:transparent;border:none;box-shadow:none;color:rgba(240,237,232,0.35);font-size:12px;cursor:pointer;">
             <i class="fas fa-eraser"></i>
           </button>
@@ -6810,7 +6838,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.1';
+    const APP_VERSION = '2026-08-15.2';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -11595,12 +11623,19 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
       const percentage = interactions > 0 ? Math.round((correctAnswers / interactions) * 100) : 0;
       // Іконки папки в рядку немає, поки фраза нікуди не належить — тож шлях у папки звідси
       const phraseArg = JSON.stringify(phrase.id).replace(/"/g, '&quot;');
+      const phraseFolders = (phrase.folders || [])
+        .map(id => (userFolders.find(f => f.id === id) || {}).name)
+        .filter(Boolean);
+      const phraseFoldersHtml = phraseFolders.length
+        ? `<p style="margin-top:12px;color:#E8A838;"><i class="fas fa-folder" style="margin-right:6px;"></i>Вже у папках: ${escapeHtml(phraseFolders.join(', '))}</p>`
+        : '<p style="margin-top:12px;color:rgba(240,237,232,0.35);">Ще не в жодній папці</p>';
       showInfoPopup(phrase.english, `
         <p style="font-size:15px;margin-bottom:12px;">${escapeHtml(phrase.translation)}</p>
         <p>Кількість взаємодій: ${interactions}</p>
         <p>Правильних відповідей: ${correctAnswers}</p>
         <p>Відсоток правильних: ${percentage}%</p>
-        <button onclick="closeAllInfoPopups();openFolderPicker(${phraseArg}, 'phrase')" style="margin-top:14px;width:100%;padding:13px;background:rgba(232,168,56,0.15);color:#E8A838;border:1px solid rgba(232,168,56,0.4);border-radius:10px;font-size:15px;font-weight:600;box-shadow:none;cursor:pointer;"><i class="fas fa-folder" style="margin-right:8px;"></i>Папки</button>
+        ${phraseFoldersHtml}
+        <button onclick="closeAllInfoPopups();openFolderPicker(${phraseArg}, 'phrase')" style="margin-top:12px;width:100%;padding:13px;background:rgba(232,168,56,0.15);color:#E8A838;border:1px solid rgba(232,168,56,0.4);border-radius:10px;font-size:15px;font-weight:600;box-shadow:none;cursor:pointer;"><i class="fas fa-folder-plus" style="margin-right:8px;"></i>Додати в папку</button>
       `);
     }
 
@@ -12818,6 +12853,12 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
 
       // Іконки папки в рядку більше немає, тож шлях у папки — звідси
       const wordArg = JSON.stringify(word.english).replace(/"/g, '&quot;');
+      const inFolders = (word.folders || [])
+        .map(id => (userFolders.find(f => f.id === id) || {}).name)
+        .filter(Boolean);
+      const inFoldersHtml = inFolders.length
+        ? `<p style="margin-top:14px;color:#E8A838;font-size:14px;"><i class="fas fa-folder" style="margin-right:6px;"></i>Вже у папках: ${escapeHtml(inFolders.join(', '))}</p>`
+        : '<p style="margin-top:14px;color:rgba(240,237,232,0.35);font-size:14px;">Ще не в жодній папці</p>';
       const popupContent = `
     <div class="popup-content">
       ${imageHtml}
@@ -12825,7 +12866,8 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       <p>Кількість взаємодій: ${interactions}</p>
       <p>Правильних відповідей: ${correctAnswers}</p>
       <p>Відсоток правильних відповідей: ${percentage}%</p>
-      <button style="margin-top: 20px; width: 100%; padding: 15px; background: rgba(232,168,56,0.15); color: #E8A838; border: 1px solid rgba(232,168,56,0.4); border-radius: 10px; font-size: 16px; font-weight: 600;" onclick="closePopupWord();openFolderPicker(${wordArg}, 'word')"><i class="fas fa-folder" style="margin-right:8px;"></i>Папки</button>
+      ${inFoldersHtml}
+      <button style="margin-top: 12px; width: 100%; padding: 15px; background: rgba(232,168,56,0.15); color: #E8A838; border: 1px solid rgba(232,168,56,0.4); border-radius: 10px; font-size: 16px; font-weight: 600;" onclick="closePopupWord();openFolderPicker(${wordArg}, 'word')"><i class="fas fa-folder-plus" style="margin-right:8px;"></i>Додати в папку</button>
       <button style="margin-top: 10px; width: 100%; padding: 15px; background: #333; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600;" onclick="closePopupWord()">Закрити</button>
     </div>
   `;
@@ -14322,13 +14364,42 @@ async function translateStory() {
       showListeningQuestion();
     }
     // Показати тренування конструктор слова
+    // 'word' — лише букви слова, вони закінчуються; 'full' — уся розкладка, букви не зникають
+    let constructorMode = 'word';
+
     function startWordConstructorTraining() {
       toggleMainTitle();
       document.getElementById('account-screen').classList.add('hidden');
       document.getElementById('word-constructor-training-section').classList.remove('hidden');
-      initializeWordConstructorTraining();
+      showConstructorModeSelect();
+    }
+
+    function showConstructorModeSelect() {
+      document.getElementById('constructor-mode-select').classList.remove('hidden');
+      document.getElementById('word-constructor-quiz-container').classList.add('hidden');
+      document.getElementById('constructor-progress').classList.add('hidden');
+      document.getElementById('constructor-quiz-result').classList.add('hidden');
+      updateConstructorModeHint();
+    }
+
+    function setConstructorMode(mode) {
+      constructorMode = mode;
+      document.getElementById('constructor-mode-word').classList.toggle('active', mode === 'word');
+      document.getElementById('constructor-mode-full').classList.toggle('active', mode === 'full');
+      updateConstructorModeHint();
+    }
+
+    function updateConstructorModeHint() {
+      document.getElementById('constructor-mode-hint').textContent = constructorMode === 'full'
+        ? 'Усі 26 літер, жодна не зникає — доведеться згадати слово самому.'
+        : 'Тільки літери цього слова, використана літера зникає — легше вгадати.';
+    }
+
+    function startConstructorPractice() {
+      document.getElementById('constructor-mode-select').classList.add('hidden');
       document.getElementById('constructor-progress').classList.remove('hidden');
       document.getElementById('word-constructor-quiz-container').classList.remove('hidden');
+      initializeWordConstructorTraining();
     }
     // Ініціалізація тренування конструктор слова
     function initializeWordConstructorTraining() {
@@ -14371,7 +14442,9 @@ async function translateStory() {
         return;
       }
       const questionWord = constructorWords[currentConstructorQuestion];
-      const letters = getUniqueLetters(questionWord.english);
+      const letters = constructorMode === 'full'
+        ? getFullKeyboardLetters()
+        : getUniqueLetters(questionWord.english);
       // Сброс переменных
       constructedWord = '';
       usedLetters = {};
@@ -14391,12 +14464,12 @@ async function translateStory() {
         </button>
       </div>
       <div class="input-block-custom" style="display: flex; justify-content: center; margin-top: 10px;">
-        <input type="text" id="constructor-answer" placeholder="Соберіть слово..." readonly>
+        <input type="text" id="constructor-answer" placeholder="Соберіть слово..." readonly inputmode="none" onfocus="this.blur()">
         <button class="delete-constructor-button" onclick="deleteLastLetter()">
           <i class="fas fa-backspace"></i>
         </button>
       </div>
-      <div class="constructor-letter-buttons" id="letter-buttons">
+      <div class="constructor-letter-buttons${constructorMode === 'full' ? ' letters-full' : ''}" id="letter-buttons">
         ${generateLetterButtonsHTML(letters)}
       </div>
       <button class="check-button" onclick="submitConstructorAnswer('${questionWord.english}')">Перевірити</button>
@@ -14409,6 +14482,11 @@ async function translateStory() {
         // Автоматическое озвучивание слова
         kokoroSpeak(questionWord.english, 'UK English Female');
       }, 500); // Задержка должна совпадать с длительностью анимации в CSS
+    }
+
+    // Порядок як на звичайній клавіатурі, а data-count -1 означає «не закінчується»
+    function getFullKeyboardLetters() {
+      return 'qwertyuiopasdfghjklzxcvbnm'.split('').map(letter => ({ letter: letter, count: -1 }));
     }
 
     function generateLetterButtonsHTML(letters) {
@@ -14447,6 +14525,13 @@ async function translateStory() {
     function addLetterToConstructor(letter) {
       const letterButton = document.querySelector(`button[data-letter='${letter}']`);
       let remainingCount = parseInt(letterButton.getAttribute('data-count'));
+
+      if (remainingCount === -1) {
+        constructedWord += letter;
+        document.getElementById('constructor-answer').value = constructedWord;
+        return;
+      }
+
       if (remainingCount <= 0) return;
       constructedWord += letter;
       document.getElementById('constructor-answer').value = constructedWord;
@@ -15467,6 +15552,7 @@ async function translateStory() {
       document.getElementById('constructor-answer').value = constructedWord;
       // Увеличение количества доступных букв
       const letterButton = document.querySelector(`button[data-letter='${lastLetter}']`);
+      if (!letterButton || letterButton.getAttribute('data-count') === '-1') return;
       let remainingCount = parseInt(letterButton.getAttribute('data-count')) + 1;
       const initialCount = parseInt(letterButton.getAttribute('data-initial-count'));
       if (remainingCount <= initialCount) {
@@ -16729,7 +16815,7 @@ Return ONLY the JSON array, no other text.`;
     }
 
     async function scForgetMemory() {
-      const ok = await appConfirm('Sam забуде тебе?', 'Він більше не пам\'ятатиме попередні розмови і почне знайомство спочатку.', 'Забути');
+      const ok = await appConfirm('Очистити пам\'ять?', 'Співрозмовник більше не пам\'ятатиме попередні розмови і почне знайомство спочатку.', 'Забути');
       if (!ok) return;
       try {
         await db.collection('users').doc(auth.currentUser.uid)
