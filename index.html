@@ -1761,6 +1761,274 @@
     }
 
     /* Words/Phrases tab switcher */
+    /* ===== Вибір режиму (напрямок / спосіб) ===== */
+    .mode-group-label {
+      font-size: 13px;
+      color: rgba(240, 237, 232, 0.45);
+      margin: 14px 0 8px;
+    }
+
+    .mode-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mode-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      margin: 0;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: rgba(240, 237, 232, 0.7);
+      font-size: 14px;
+      font-weight: 600;
+      text-align: left;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    .mode-option.active {
+      background: rgba(232, 168, 56, 0.14);
+      border-color: #E8A838;
+      color: #E8A838;
+    }
+
+    .mode-hint {
+      font-size: 12px;
+      color: rgba(240, 237, 232, 0.4);
+      margin: 12px 0 0;
+      line-height: 1.5;
+    }
+
+    .voice-answer-box {
+      min-height: 56px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      font-size: 15px;
+      color: #F0EDE8;
+    }
+
+    .voice-answer-box.empty {
+      color: rgba(240, 237, 232, 0.3);
+    }
+
+    .voice-record-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      margin: 0 0 10px;
+      padding: 16px;
+      background: rgba(232, 168, 56, 0.15);
+      border: 1px solid rgba(232, 168, 56, 0.4);
+      border-radius: 12px;
+      color: #E8A838;
+      font-size: 15px;
+      font-weight: 600;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    .voice-record-btn.recording {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #ef4444;
+    }
+
+    /* ===== Універсальне модальне вікно (папки, поділитися, імпорт) ===== */
+    .app-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+    }
+
+    .app-modal.hidden {
+      display: none;
+    }
+
+    .app-modal-box {
+      width: 100%;
+      max-width: 380px;
+      max-height: 80vh;
+      overflow-y: auto;
+      background: #171a22;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px;
+      color: #F0EDE8;
+    }
+
+    .app-modal-box h3 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+
+    .app-modal-box p {
+      margin: 0 0 14px;
+      font-size: 14px;
+      color: rgba(240, 237, 232, 0.55);
+      line-height: 1.5;
+    }
+
+    .app-modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .app-modal-actions button {
+      flex: 1;
+      margin: 0;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 10px;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    .app-modal-actions .primary {
+      background: rgba(232, 168, 56, 0.2);
+      border: 1px solid #E8A838;
+      color: #E8A838;
+    }
+
+    .app-modal-actions .secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(240, 237, 232, 0.6);
+    }
+
+    .folder-pick-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      margin-bottom: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .folder-pick-row.picked {
+      background: rgba(232, 168, 56, 0.12);
+      border-color: rgba(232, 168, 56, 0.4);
+      color: #E8A838;
+    }
+
+    .share-link-box {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      color: #F0EDE8;
+      font-size: 12px;
+      word-break: break-all;
+    }
+
+    /* ===== Папки словника ===== */
+    .folder-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 2px 0 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .folder-chip {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 12px;
+      margin: 0;
+      width: auto;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      color: rgba(240, 237, 232, 0.7);
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      box-shadow: none;
+    }
+
+    .folder-chip.active {
+      background: rgba(232, 168, 56, 0.15);
+      border-color: #E8A838;
+      color: #E8A838;
+    }
+
+    .folder-chip .folder-chip-count {
+      font-weight: 500;
+      opacity: 0.6;
+    }
+
+    .folder-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      background: rgba(232, 168, 56, 0.08);
+      border: 1px solid rgba(232, 168, 56, 0.25);
+      border-radius: 10px;
+      color: #E8A838;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .folder-toolbar-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .folder-toolbar-actions button {
+      width: 32px;
+      min-width: 32px;
+      height: 32px;
+      padding: 0;
+      margin: 0;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: none;
+      box-shadow: none;
+      color: rgba(240, 237, 232, 0.7);
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .word-folder-btn {
+      color: rgba(240, 237, 232, 0.3) !important;
+      margin-left: 6px;
+    }
+
+    .word-folder-btn.has-folder {
+      color: #E8A838 !important;
+    }
+
     .vocab-tabs {
       display: flex;
       gap: 6px;
@@ -5337,6 +5605,15 @@
         <button class="vocab-tab" id="vocab-tab-phrases" onclick="switchVocabTab('phrases')">Фрази (<span id="vocab-phrases-count">...</span>)</button>
       </div>
       <div id="vocab-words-content">
+        <div id="folder-bar" class="folder-bar"></div>
+        <div id="folder-toolbar" class="folder-toolbar hidden">
+          <span id="folder-toolbar-name"></span>
+          <div class="folder-toolbar-actions">
+            <button onclick="shareCurrentFolder()" title="Поділитися"><i class="fas fa-share-nodes"></i></button>
+            <button onclick="renameCurrentFolder()" title="Перейменувати"><i class="fas fa-pen"></i></button>
+            <button onclick="deleteCurrentFolder()" title="Видалити"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
         <input type="text" id="search-input" placeholder="Пошук слова...">
       <div class="word-count-row" style="justify-content:flex-end;">
         <button class="info-btn-small" onclick="showMyWordsInfo()">
@@ -5774,7 +6051,29 @@
           <i class="fas fa-info-circle"></i>
         </button>
       </div>
-      <div id="phrase-constructor-progress" class="constructor-quiz-progress">
+      <div id="phrase-mode-select">
+        <p class="mode-group-label">Напрямок:</p>
+        <div class="mode-options">
+          <button class="mode-option active" id="phrase-dir-uk_to_en" onclick="setPhraseDirection('uk_to_en')">
+            <i class="fas fa-arrow-right"></i>З української на англійську
+          </button>
+          <button class="mode-option" id="phrase-dir-en_to_uk" onclick="setPhraseDirection('en_to_uk')">
+            <i class="fas fa-arrow-left"></i>З англійської на українську
+          </button>
+        </div>
+        <p class="mode-group-label">Спосіб:</p>
+        <div class="mode-options">
+          <button class="mode-option active" id="phrase-method-blocks" onclick="setPhraseMethod('blocks')">
+            <i class="fas fa-cubes"></i>Збирати кубиками
+          </button>
+          <button class="mode-option" id="phrase-method-voice" onclick="setPhraseMethod('voice')">
+            <i class="fas fa-microphone"></i>Говорити голосом
+          </button>
+        </div>
+        <p class="mode-hint" id="phrase-mode-hint"></p>
+        <button onclick="startPhrasePractice()" style="width:100%;margin-top:14px;">Почати</button>
+      </div>
+      <div id="phrase-constructor-progress" class="constructor-quiz-progress hidden">
         <div id="phrase-constructor-progress-bar" class="constructor-quiz-progress-bar" style="width:0%"></div>
       </div>
       <div id="phrase-constructor-container"></div>
@@ -6312,6 +6611,47 @@
       </div>
     </div>
 
+    <!-- Вибір папок для слова -->
+    <div id="folder-pick-modal" class="app-modal hidden">
+      <div class="app-modal-box">
+        <h3>Папки</h3>
+        <p id="folder-pick-word"></p>
+        <div id="folder-pick-list"></div>
+        <button onclick="createFolderFromPicker()" style="width:100%;margin:10px 0 0;padding:12px;background:transparent;border:1px dashed rgba(240,237,232,0.2);border-radius:10px;color:rgba(240,237,232,0.5);font-size:13px;box-shadow:none;">
+          <i class="fas fa-plus" style="margin-right:6px;"></i>Нова папка
+        </button>
+        <div class="app-modal-actions">
+          <button class="secondary" onclick="closeFolderPicker()">Готово</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Посилання на поділену папку / конспект -->
+    <div id="share-link-modal" class="app-modal hidden">
+      <div class="app-modal-box">
+        <h3 id="share-link-title">Посилання створено</h3>
+        <p>Будь-хто за цим посиланням зможе додати це собі.</p>
+        <code id="share-link-value" class="share-link-box"></code>
+        <div class="app-modal-actions">
+          <button class="primary" onclick="copyShareLink()"><i class="fas fa-copy" style="margin-right:6px;"></i>Копіювати</button>
+          <button class="secondary" onclick="closeShareLinkModal()">Закрити</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Імпорт за посиланням -->
+    <div id="import-set-modal" class="app-modal hidden">
+      <div class="app-modal-box">
+        <h3 id="import-set-title"></h3>
+        <p id="import-set-text"></p>
+        <div id="import-set-preview"></div>
+        <div class="app-modal-actions">
+          <button class="primary" id="import-set-confirm">Додати собі</button>
+          <button class="secondary" onclick="closeImportSetModal()">Не треба</button>
+        </div>
+      </div>
+    </div>
+
   </div>
   <!-- Підключення Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -6764,26 +7104,32 @@
   }
 
   toggleMainTitle();
+
+  // Підписка скінчилася — «Назад» з тарифів має вести на оплату, а не в акаунт,
+  // інакше платну стіну можна обійти: зірочка → назад → і ти всередині
+  hideAllAppSections();
+
+  if (currentSubscriptionData && !renderSubscriptionBadge(currentSubscriptionData)) {
+    document.getElementById('account-screen').classList.add('hidden');
+    document.getElementById('payment-section').classList.remove('hidden');
+    return;
+  }
+
   document.getElementById('account-screen').classList.remove('hidden');
-  document.getElementById('my-words-section').classList.add('hidden');
-  document.getElementById('daily-words-section').classList.add('hidden');
-  document.getElementById('add-word-section').classList.add('hidden');
-  document.getElementById('quiz-section').classList.add('hidden');
-  document.getElementById('picture-quiz-section').classList.add('hidden');
-  document.getElementById('payment-section').classList.add('hidden');
-  document.getElementById('listening-training-section').classList.add('hidden');
-  document.getElementById('word-constructor-training-section').classList.add('hidden');
-  document.getElementById('speed-training-section').classList.add('hidden');
-  document.getElementById('generative-text-section').classList.add('hidden');
-  document.getElementById('tariffs-section').classList.add('hidden');
-  document.getElementById('crossword-section').classList.add('hidden');
-  document.getElementById('fill-blanks-section').classList.add('hidden');
-  document.getElementById('definition-quiz-section').classList.add('hidden');
-  document.getElementById('leaderboard-section').classList.add('hidden');
-  document.getElementById('add-phrase-section').classList.add('hidden');
-  document.getElementById('phrase-constructor-section').classList.add('hidden');
-  document.getElementById('grammar-section').classList.add('hidden');
-  document.getElementById('speaking-club-section').classList.add('hidden');
+}
+
+function hideAllAppSections() {
+  [
+    'my-words-section', 'daily-words-section', 'add-word-section', 'quiz-section',
+    'picture-quiz-section', 'payment-section', 'listening-training-section',
+    'word-constructor-training-section', 'speed-training-section', 'generative-text-section',
+    'tariffs-section', 'crossword-section', 'fill-blanks-section', 'definition-quiz-section',
+    'leaderboard-section', 'add-phrase-section', 'phrase-constructor-section',
+    'grammar-section', 'speaking-club-section',
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
 }
 
 
@@ -6988,9 +7334,14 @@ function exitSpeedTraining() {
           .then(() => {
             // Одноразова міграція поля priority для існуючих слів (у фоні)
             migratePriorityField();
+            checkForSharedSetOnLoad();
             // После полной загрузки интерфейса скрываем прелоадер
             hideLoading();
-            document.getElementById('account-screen').classList.remove('hidden');
+            // checkSubscription() міг відкрити екран оплати — не перекриваємо його акаунтом
+            const paywalled = document.getElementById('payment-section');
+            if (paywalled.classList.contains('hidden')) {
+              document.getElementById('account-screen').classList.remove('hidden');
+            }
           })
           .catch(error => {
             console.error('Помилка при оновленні інтерфейсу:', error);
@@ -7097,6 +7448,7 @@ function exitSpeedTraining() {
       toggleMainTitle();
       document.getElementById('account-screen').classList.add('hidden');
       document.getElementById('my-words-section').classList.remove('hidden');
+      loadFolders();
       fetchWordsPaged();
       loadMasterySummary();
       loadVocabCounts();
@@ -8438,6 +8790,7 @@ Return ONLY a JSON array of strings.`
               interactions: 0,
               correctAnswers: 0,
               priority: 0,
+              folders: currentFolderId ? [currentFolderId] : [],
               dateAdded: firebase.firestore.Timestamp.now(),
             });
             added++;
@@ -8695,6 +9048,9 @@ Return ONLY a JSON array of strings.`
             <span class="topic-name">${escapeHtml(l.title)}</span>
             <span class="topic-desc">Мій конспект${l.level ? ' · ' + escapeHtml(l.level) : ''}${done ? ' · пройдено ✓' : ''}</span>
           </div>
+          <button onclick="shareCustomLesson('${l.id}')" title="Поділитися" style="width:34px;min-width:34px;height:34px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;box-shadow:none;color:rgba(240,237,232,0.3);font-size:14px;cursor:pointer;">
+            <i class="fas fa-share-nodes"></i>
+          </button>
           <button onclick="deleteCustomLesson('${l.id}')" title="Видалити" style="width:34px;min-width:34px;height:34px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;box-shadow:none;color:rgba(240,237,232,0.3);font-size:14px;cursor:pointer;">
             <i class="fas fa-trash"></i>
           </button>
@@ -8942,6 +9298,29 @@ ${text ? 'Text from the learner:\n"""\n' + text + '\n"""' : 'The material is on 
       document.getElementById('grammar-lesson').classList.remove('hidden');
       showGrammarPage();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function shareCustomLesson(lessonId) {
+      const lesson = customLessons.find(l => l.id === lessonId);
+      if (!lesson) return;
+      showLoading();
+      try {
+        const ref = await db.collection('sets').add({
+          type: 'lesson',
+          title: lesson.title,
+          level: lesson.level || 'A1',
+          pages: lesson.pages || [],
+          quiz: lesson.quiz || [],
+          authorId: auth.currentUser.uid,
+          visibility: 'public',
+          importCount: 0,
+          createdAt: firebase.firestore.Timestamp.now(),
+        });
+        showShareLink('Конспект опубліковано', buildSetLink(ref.id));
+      } catch (e) {
+        console.log('Share lesson error:', e);
+        showNotification('Не вдалося створити посилання', 'warning');
+      } finally { hideLoading(); }
     }
 
     async function deleteCustomLesson(lessonId) {
@@ -10969,10 +11348,63 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
     }
 
     // Phrase constructor training
+    // Напрямок і спосіб тренування фраз обираються перед стартом
+    let phraseDirection = 'uk_to_en';   // 'uk_to_en' | 'en_to_uk'
+    let phraseMethod = 'blocks';        // 'blocks' | 'voice'
+
     function startPhraseConstructor() {
       toggleMainTitle();
       document.getElementById('account-screen').classList.add('hidden');
       document.getElementById('phrase-constructor-section').classList.remove('hidden');
+      showPhraseModeSelect();
+    }
+
+    function showPhraseModeSelect() {
+      document.getElementById('phrase-mode-select').classList.remove('hidden');
+      document.getElementById('phrase-constructor-progress').classList.add('hidden');
+      document.getElementById('phrase-constructor-container').classList.add('hidden');
+      document.getElementById('phrase-constructor-result').classList.add('hidden');
+      updatePhraseModeHint();
+    }
+
+    function setPhraseDirection(dir) {
+      phraseDirection = dir;
+      document.getElementById('phrase-dir-uk_to_en').classList.toggle('active', dir === 'uk_to_en');
+      document.getElementById('phrase-dir-en_to_uk').classList.toggle('active', dir === 'en_to_uk');
+      updatePhraseModeHint();
+    }
+
+    function setPhraseMethod(method) {
+      phraseMethod = method;
+      document.getElementById('phrase-method-blocks').classList.toggle('active', method === 'blocks');
+      document.getElementById('phrase-method-voice').classList.toggle('active', method === 'voice');
+      updatePhraseModeHint();
+    }
+
+    function updatePhraseModeHint() {
+      const target = phraseDirection === 'uk_to_en' ? 'англійською' : 'українською';
+      document.getElementById('phrase-mode-hint').textContent = phraseMethod === 'voice'
+        ? `Промовляєш переклад ${target}. Дослівно збігатися не обов'язково — головне, щоб зміст і граматика були правильні.`
+        : `Збираєш переклад ${target} з блоків-слів.`;
+    }
+
+    // Що показуємо, а що просимо — залежить від напрямку
+    function phrasePrompt(phrase) {
+      return phraseDirection === 'uk_to_en' ? phrase.translation : phrase.english;
+    }
+
+    function phraseExpected(phrase) {
+      return phraseDirection === 'uk_to_en' ? phrase.english : phrase.translation;
+    }
+
+    function phraseAnswerLang() {
+      return phraseDirection === 'uk_to_en' ? 'en' : 'uk';
+    }
+
+    function startPhrasePractice() {
+      document.getElementById('phrase-mode-select').classList.add('hidden');
+      document.getElementById('phrase-constructor-progress').classList.remove('hidden');
+      document.getElementById('phrase-constructor-container').classList.remove('hidden');
       initializePhraseConstructor();
     }
 
@@ -11016,24 +11448,127 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
       }
 
       const phrase = phraseConstructorPhrases[currentPhraseQuestion];
-      const words = phrase.english.split(/\s+/);
-      const shuffled = [...words].sort(() => 0.5 - Math.random());
       phraseSelectedWords = [];
+      phraseVoiceTranscript = '';
 
       const progressPct = (currentPhraseQuestion / phraseConstructorPhrases.length) * 100;
       document.getElementById('phrase-constructor-progress-bar').style.width = `${progressPct}%`;
 
       const container = document.getElementById('phrase-constructor-container');
-      container.innerHTML = `
-        <div class="phrase-prompt">${escapeHtml(phrase.translation)}</div>
-        <div class="phrase-answer-area" id="phrase-answer-area"></div>
-        <div class="phrase-constructor-blocks" id="phrase-blocks">
-          ${shuffled.map((w, i) => `<button class="phrase-block" data-idx="${i}" onclick="selectPhraseBlock(this, '${escapeHtml(w)}')">${escapeHtml(w)}</button>`).join('')}
-        </div>
+      const prompt = `<div class="phrase-prompt">${escapeHtml(phrasePrompt(phrase))}</div>`;
+      const controls = `
         <button class="check-button" onclick="checkPhraseAnswer()">Перевірити</button>
         <button class="skip-button" onclick="skipPhraseQuestion()">Пропустити</button>
         <div id="phrase-feedback" class="listening-feedback hidden"></div>
       `;
+
+      if (phraseMethod === 'voice') {
+        container.innerHTML = prompt + `
+          <button class="voice-record-btn" id="phrase-voice-btn" onclick="togglePhraseVoice()">
+            <i class="fas fa-microphone"></i><span>Сказати переклад</span>
+          </button>
+          <div class="voice-answer-box empty" id="phrase-voice-answer">Тут з'явиться те, що ти скажеш</div>
+        ` + controls;
+        return;
+      }
+
+      const words = phraseExpected(phrase).split(/\s+/);
+      const shuffled = [...words].sort(() => 0.5 - Math.random());
+      container.innerHTML = prompt + `
+        <div class="phrase-answer-area" id="phrase-answer-area"></div>
+        <div class="phrase-constructor-blocks" id="phrase-blocks">
+          ${shuffled.map((w, i) => `<button class="phrase-block" data-idx="${i}" onclick="selectPhraseBlock(this, '${escapeHtml(w)}')">${escapeHtml(w)}</button>`).join('')}
+        </div>
+      ` + controls;
+    }
+
+    // ----- голосовий режим -----
+    let phraseVoiceTranscript = '';
+    let phraseSpeechRec = null;
+
+    function togglePhraseVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        showNotification('Браузер не підтримує розпізнавання мови', 'warning');
+        return;
+      }
+      if (phraseSpeechRec) { phraseSpeechRec.stop(); return; }
+
+      const btn = document.getElementById('phrase-voice-btn');
+      const box = document.getElementById('phrase-voice-answer');
+
+      phraseSpeechRec = new SpeechRecognition();
+      phraseSpeechRec.lang = phraseAnswerLang() === 'uk' ? 'uk-UA' : 'en-US';
+      phraseSpeechRec.interimResults = false;
+      phraseSpeechRec.maxAlternatives = 1;
+
+      const reset = () => {
+        btn.classList.remove('recording');
+        btn.innerHTML = '<i class="fas fa-microphone"></i><span>Сказати переклад</span>';
+        phraseSpeechRec = null;
+      };
+
+      phraseSpeechRec.onresult = (event) => {
+        phraseVoiceTranscript = event.results[0][0].transcript.trim();
+        box.textContent = phraseVoiceTranscript;
+        box.classList.remove('empty');
+      };
+      phraseSpeechRec.onerror = (event) => {
+        if (event.error !== 'no-speech') showNotification('Помилка розпізнавання', 'warning');
+        reset();
+      };
+      phraseSpeechRec.onend = reset;
+
+      btn.classList.add('recording');
+      btn.innerHTML = '<i class="fas fa-circle" style="animation:blink 1s infinite;"></i><span>Слухаю… (натисни, щоб зупинити)</span>';
+      phraseSpeechRec.start();
+    }
+
+    function normalizePhrase(text) {
+      return (text || '').toLowerCase().replace(/[.,!?;:'"«»]/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    // Сказати можна й іншими словами — тому дослівний збіг лише швидкий шлях,
+    // а в решті випадків рішення приймає AI за змістом і граматикою
+    async function judgePhraseAnswer(phrase, spoken) {
+      const expected = phraseExpected(phrase);
+      if (normalizePhrase(spoken) === normalizePhrase(expected)) {
+        return { correct: true, note: '' };
+      }
+      if (!openaiApiKey) {
+        return { correct: false, note: `Очікувана відповідь: ${expected}` };
+      }
+      try {
+        const targetName = phraseAnswerLang() === 'en' ? 'English' : 'Ukrainian';
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            temperature: 0,
+            max_tokens: 200,
+            messages: [{
+              role: 'user',
+              content: `A learner was asked to translate this into ${targetName}: "${phrasePrompt(phrase)}"
+A reference translation is: "${expected}"
+The learner said: "${spoken}"
+
+Decide whether the learner's sentence is an acceptable translation. Different wording, synonyms and a different sentence structure are FINE as long as the meaning matches and the ${targetName} is grammatically correct. Mark it wrong only for a real mistake in meaning or grammar.
+
+Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukrainian — what exactly is wrong, or praise if correct"}`
+            }],
+          }),
+        });
+        const data = await response.json();
+        const raw = ((data.choices && data.choices[0] && data.choices[0].message.content) || '')
+          .replace(/```json/gi, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(raw);
+        return { correct: parsed.correct === true, note: parsed.note || '' };
+      } catch (e) {
+        console.log('Phrase judge error:', e);
+        // AI недоступний — не караємо за це, зараховуємо лише точний збіг
+        return { correct: false, note: `Очікувана відповідь: ${expected}` };
+      }
     }
 
     function selectPhraseBlock(btn, word) {
@@ -11057,9 +11592,26 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
 
     async function checkPhraseAnswer() {
       const phrase = phraseConstructorPhrases[currentPhraseQuestion];
-      const userAnswer = phraseSelectedWords.map(w => w.word).join(' ').toLowerCase();
-      const correct = phrase.english.toLowerCase();
-      const isCorrect = userAnswer === correct;
+      let isCorrect;
+      let note = '';
+
+      if (phraseMethod === 'voice') {
+        if (!phraseVoiceTranscript) {
+          showNotification('Спочатку скажи переклад', 'warning');
+          return;
+        }
+        const checkBtn = document.querySelector('#phrase-constructor-container .check-button');
+        checkBtn.disabled = true;
+        checkBtn.textContent = 'Перевіряю…';
+        const verdict = await judgePhraseAnswer(phrase, phraseVoiceTranscript);
+        checkBtn.textContent = 'Перевірити';
+        isCorrect = verdict.correct;
+        note = verdict.note;
+      } else {
+        isCorrect = normalizePhrase(phraseSelectedWords.map(w => w.word).join(' '))
+          === normalizePhrase(phraseExpected(phrase));
+      }
+
       const xp = isCorrect ? 20 : 5;
 
       if (isCorrect) {
@@ -11091,9 +11643,10 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
 
       const feedback = document.getElementById('phrase-feedback');
       feedback.classList.remove('hidden');
+      const noteHtml = note ? `<br><span style="font-size:13px;opacity:0.75;">${escapeHtml(note)}</span>` : '';
       feedback.innerHTML = isCorrect
-        ? `<span style="color:#34d399;">Правильно! +${xp} XP</span>`
-        : `<span style="color:#ef4444;">Неправильно. Відповідь: ${escapeHtml(phrase.english)}</span>`;
+        ? `<span style="color:#34d399;">Правильно! +${xp} XP</span>${noteHtml}`
+        : `<span style="color:#ef4444;">Неправильно. Відповідь: ${escapeHtml(phraseExpected(phrase))}</span>${noteHtml}`;
 
       // Disable buttons
       document.querySelectorAll('#phrase-blocks .phrase-block').forEach(b => b.disabled = true);
@@ -11112,7 +11665,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
 
       const feedback = document.getElementById('phrase-feedback');
       feedback.classList.remove('hidden');
-      feedback.innerHTML = `<span style="color:rgba(240,237,232,0.5);">Відповідь: ${escapeHtml(phrase.english)}</span>`;
+      feedback.innerHTML = `<span style="color:rgba(240,237,232,0.5);">Відповідь: ${escapeHtml(phraseExpected(phrase))}</span>`;
 
       document.querySelectorAll('#phrase-blocks .phrase-block').forEach(b => b.disabled = true);
       document.querySelector('#phrase-constructor-container .check-button').disabled = true;
@@ -11336,6 +11889,393 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
       }
       return null;
     }
+    // ========== ПАПКИ СЛОВНИКА ==========
+    // users/{uid}/folders/{id} — сама папка, а належність слова живе
+    // в масиві folders самого слова, щоб слово могло бути в кількох папках.
+    let userFolders = [];
+    let currentFolderId = null;
+    let folderPickerWord = null;
+
+    function mapWordDoc(doc) {
+      const data = doc.data();
+      return {
+        english: doc.id,
+        translation: data.translation,
+        example: data.example || '',
+        interactions: data.interactions || 0,
+        correctAnswers: data.correctAnswers || 0,
+        dateAdded: data.dateAdded,
+        folders: data.folders || [],
+      };
+    }
+
+    async function loadFolders() {
+      try {
+        const userId = auth.currentUser.uid;
+        const snap = await db.collection('users').doc(userId).collection('folders').get();
+        userFolders = snap.docs
+          .map(d => Object.assign({ id: d.id }, d.data()))
+          .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        renderFolderBar();
+      } catch (e) { console.log('Folders load error:', e); }
+    }
+
+    function renderFolderBar() {
+      const bar = document.getElementById('folder-bar');
+      if (!bar) return;
+      const chips = [`<button class="folder-chip ${currentFolderId ? '' : 'active'}" onclick="selectFolder(null)">Всі</button>`];
+      userFolders.forEach(f => {
+        chips.push(`<button class="folder-chip ${currentFolderId === f.id ? 'active' : ''}" onclick="selectFolder('${f.id}')">
+          <i class="fas fa-folder"></i>${escapeHtml(f.name)}
+          <span class="folder-chip-count">${f.wordCount || 0}</span>
+        </button>`);
+      });
+      chips.push(`<button class="folder-chip" onclick="createFolderPrompt()" title="Нова папка"><i class="fas fa-plus"></i></button>`);
+      bar.innerHTML = chips.join('');
+
+      const toolbar = document.getElementById('folder-toolbar');
+      const folder = userFolders.find(f => f.id === currentFolderId);
+      if (folder) {
+        document.getElementById('folder-toolbar-name').textContent = folder.name;
+        toolbar.classList.remove('hidden');
+      } else {
+        toolbar.classList.add('hidden');
+      }
+    }
+
+    async function selectFolder(folderId) {
+      currentFolderId = folderId;
+      renderFolderBar();
+      await fetchWordsPaged();
+    }
+
+    async function createFolderPrompt() {
+      const name = (prompt('Назва папки:') || '').trim();
+      if (!name) return;
+      const id = await createFolder(name);
+      if (id) selectFolder(id);
+    }
+
+    async function createFolder(name) {
+      try {
+        const userId = auth.currentUser.uid;
+        const ref = await db.collection('users').doc(userId).collection('folders').add({
+          name: name.slice(0, 40),
+          wordCount: 0,
+          createdAt: firebase.firestore.Timestamp.now(),
+        });
+        userFolders.push({ id: ref.id, name: name.slice(0, 40), wordCount: 0 });
+        userFolders.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        renderFolderBar();
+        return ref.id;
+      } catch (e) {
+        console.log('Create folder error:', e);
+        showNotification('Не вдалося створити папку', 'warning');
+        return null;
+      }
+    }
+
+    async function renameCurrentFolder() {
+      const folder = userFolders.find(f => f.id === currentFolderId);
+      if (!folder) return;
+      const name = (prompt('Нова назва папки:', folder.name) || '').trim();
+      if (!name || name === folder.name) return;
+      try {
+        await db.collection('users').doc(auth.currentUser.uid)
+          .collection('folders').doc(folder.id).update({ name: name.slice(0, 40) });
+        folder.name = name.slice(0, 40);
+        renderFolderBar();
+      } catch (e) { showNotification('Не вдалося перейменувати', 'warning'); }
+    }
+
+    // Видаляємо тільки папку — слова лишаються у словнику
+    async function deleteCurrentFolder() {
+      const folder = userFolders.find(f => f.id === currentFolderId);
+      if (!folder) return;
+      if (!confirm(`Видалити папку «${folder.name}»? Слова залишаться у словнику.`)) return;
+      try {
+        const userId = auth.currentUser.uid;
+        const snap = await db.collection('users').doc(userId).collection('words')
+          .where('folders', 'array-contains', folder.id).get();
+        for (const doc of snap.docs) {
+          await doc.ref.update({
+            folders: (doc.data().folders || []).filter(id => id !== folder.id),
+          });
+        }
+        await db.collection('users').doc(userId).collection('folders').doc(folder.id).delete();
+        userFolders = userFolders.filter(f => f.id !== folder.id);
+        showNotification('Папку видалено');
+        selectFolder(null);
+      } catch (e) {
+        console.log('Delete folder error:', e);
+        showNotification('Не вдалося видалити папку', 'warning');
+      }
+    }
+
+    async function refreshFolderCount(folderId) {
+      try {
+        const userId = auth.currentUser.uid;
+        const snap = await db.collection('users').doc(userId).collection('words')
+          .where('folders', 'array-contains', folderId).get();
+        await db.collection('users').doc(userId).collection('folders').doc(folderId)
+          .update({ wordCount: snap.size });
+        const folder = userFolders.find(f => f.id === folderId);
+        if (folder) folder.wordCount = snap.size;
+        renderFolderBar();
+      } catch (e) { console.log('Folder count error:', e); }
+    }
+
+    // ----- вибір папок для конкретного слова -----
+    function openFolderPicker(english) {
+      folderPickerWord = english;
+      document.getElementById('folder-pick-word').textContent = english;
+      renderFolderPicker();
+      document.getElementById('folder-pick-modal').classList.remove('hidden');
+    }
+
+    function closeFolderPicker() {
+      document.getElementById('folder-pick-modal').classList.add('hidden');
+      folderPickerWord = null;
+      if (currentFolderId) fetchWordsPaged();
+    }
+
+    function renderFolderPicker() {
+      const word = allWords.find(w => w.english === folderPickerWord);
+      const picked = (word && word.folders) || [];
+      const list = document.getElementById('folder-pick-list');
+      if (!userFolders.length) {
+        list.innerHTML = '<p style="margin:0;">Папок ще немає — створи першу.</p>';
+        return;
+      }
+      list.innerHTML = userFolders.map(f => `
+        <div class="folder-pick-row ${picked.includes(f.id) ? 'picked' : ''}" onclick="toggleWordFolder('${f.id}')">
+          <i class="fas ${picked.includes(f.id) ? 'fa-circle-check' : 'fa-folder'}"></i>
+          <span>${escapeHtml(f.name)}</span>
+        </div>`).join('');
+    }
+
+    async function createFolderFromPicker() {
+      const name = (prompt('Назва папки:') || '').trim();
+      if (!name) return;
+      const id = await createFolder(name);
+      if (id && folderPickerWord) await toggleWordFolder(id);
+    }
+
+    async function toggleWordFolder(folderId) {
+      if (!folderPickerWord) return;
+      const word = allWords.find(w => w.english === folderPickerWord);
+      if (!word) return;
+      const folders = word.folders || [];
+      const next = folders.includes(folderId)
+        ? folders.filter(id => id !== folderId)
+        : folders.concat(folderId);
+      try {
+        await db.collection('users').doc(auth.currentUser.uid)
+          .collection('words').doc(word.english).update({ folders: next });
+        word.folders = next;
+        renderFolderPicker();
+        updateWordFolderIcon(word);
+        refreshFolderCount(folderId);
+      } catch (e) {
+        console.log('Toggle folder error:', e);
+        showNotification('Не вдалося оновити папку', 'warning');
+      }
+    }
+
+    function updateWordFolderIcon(word) {
+      const btn = document.querySelector(`.word-folder-btn[data-word="${CSS.escape(word.english)}"]`);
+      if (btn) btn.classList.toggle('has-folder', (word.folders || []).length > 0);
+    }
+
+    // ----- поділитися папкою -----
+    async function shareCurrentFolder() {
+      const folder = userFolders.find(f => f.id === currentFolderId);
+      if (!folder) return;
+      showLoading();
+      try {
+        const userId = auth.currentUser.uid;
+        const snap = await db.collection('users').doc(userId).collection('words')
+          .where('folders', 'array-contains', folder.id).get();
+        const words = snap.docs.map(d => ({
+          english: d.id,
+          translation: d.data().translation || '',
+          example: d.data().example || '',
+        }));
+        if (!words.length) {
+          showNotification('У папці ще немає слів', 'warning');
+          return;
+        }
+        const ref = await db.collection('sets').add({
+          type: 'folder',
+          title: folder.name,
+          words: words,
+          authorId: userId,
+          visibility: 'public',
+          importCount: 0,
+          createdAt: firebase.firestore.Timestamp.now(),
+        });
+        showShareLink('Папку опубліковано', buildSetLink(ref.id));
+      } catch (e) {
+        console.log('Share folder error:', e);
+        showNotification('Не вдалося створити посилання', 'warning');
+      } finally { hideLoading(); }
+    }
+
+    function buildSetLink(setId) {
+      return `${location.origin}${location.pathname}?set=${setId}`;
+    }
+
+    function showShareLink(title, link) {
+      document.getElementById('share-link-title').textContent = title;
+      document.getElementById('share-link-value').textContent = link;
+      document.getElementById('share-link-modal').classList.remove('hidden');
+    }
+
+    function closeShareLinkModal() {
+      document.getElementById('share-link-modal').classList.add('hidden');
+    }
+
+    function copyShareLink() {
+      const link = document.getElementById('share-link-value').textContent;
+      const done = () => showNotification('Посилання скопійовано');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(done).catch(() => fallbackCopy(link, done));
+      } else {
+        fallbackCopy(link, done);
+      }
+    }
+
+    function fallbackCopy(text, done) {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      try { document.execCommand('copy'); done(); } catch (e) { showNotification('Скопіюй вручну', 'warning'); }
+      document.body.removeChild(area);
+    }
+
+    // ----- імпорт за посиланням -----
+    let pendingImportSet = null;
+
+    async function checkForSharedSetOnLoad() {
+      const setId = new URLSearchParams(window.location.search).get('set');
+      if (!setId || sessionStorage.getItem('importedSet_' + setId)) return;
+      try {
+        const doc = await db.collection('sets').doc(setId).get();
+        if (!doc.exists) { showNotification('Посилання більше не діє', 'warning'); return; }
+        pendingImportSet = Object.assign({ id: doc.id }, doc.data());
+        showImportSetModal();
+      } catch (e) {
+        console.log('Load shared set error:', e);
+        showNotification('Не вдалося відкрити посилання', 'warning');
+      }
+    }
+
+    function showImportSetModal() {
+      const set = pendingImportSet;
+      if (!set) return;
+      const isFolder = set.type === 'folder';
+      document.getElementById('import-set-title').textContent =
+        isFolder ? `Папка «${set.title}»` : `Конспект «${set.title}»`;
+      document.getElementById('import-set-text').textContent = isFolder
+        ? `${(set.words || []).length} слів. Додати папку і всі її слова у свій словник?`
+        : 'Додати цей урок з тестом до своєї граматики?';
+
+      const preview = document.getElementById('import-set-preview');
+      preview.innerHTML = isFolder
+        ? (set.words || []).slice(0, 6).map(w =>
+            `<div class="folder-pick-row" style="cursor:default;"><span><b>${escapeHtml(w.english)}</b> — ${escapeHtml(w.translation)}</span></div>`).join('')
+          + ((set.words || []).length > 6 ? `<p style="margin:8px 0 0;">…і ще ${(set.words || []).length - 6}</p>` : '')
+        : '';
+
+      document.getElementById('import-set-confirm').onclick = isFolder ? importSharedFolder : importSharedLesson;
+      document.getElementById('import-set-modal').classList.remove('hidden');
+    }
+
+    function closeImportSetModal() {
+      document.getElementById('import-set-modal').classList.add('hidden');
+      if (pendingImportSet) sessionStorage.setItem('importedSet_' + pendingImportSet.id, '1');
+      pendingImportSet = null;
+    }
+
+    async function importSharedFolder() {
+      const set = pendingImportSet;
+      if (!set) return;
+      showLoading();
+      try {
+        const userId = auth.currentUser.uid;
+        const folderId = await createFolder(set.title || 'Папка');
+        if (!folderId) return;
+
+        let added = 0;
+        for (const w of (set.words || [])) {
+          const wordId = (w.english || '').trim();
+          if (!wordId) continue;
+          const ref = db.collection('users').doc(userId).collection('words').doc(wordId);
+          const existing = await ref.get();
+          if (existing.exists) {
+            // Слово вже є — не чіпаємо прогрес, лише додаємо його в папку
+            const folders = existing.data().folders || [];
+            if (!folders.includes(folderId)) await ref.update({ folders: folders.concat(folderId) });
+          } else {
+            await ref.set({
+              translation: w.translation || '',
+              example: w.example || '',
+              interactions: 0,
+              correctAnswers: 0,
+              priority: 0,
+              folders: [folderId],
+              dateAdded: firebase.firestore.Timestamp.now(),
+            });
+            added++;
+          }
+        }
+        bumpImportCount(set.id);
+        await refreshFolderCount(folderId);
+        playSound(true);
+        showNotification(`Папку «${set.title}» додано, нових слів: ${added}`);
+        closeImportSetModal();
+        if (!document.getElementById('my-words-section').classList.contains('hidden')) selectFolder(folderId);
+      } catch (e) {
+        console.log('Import folder error:', e);
+        showNotification('Не вдалося додати папку', 'warning');
+      } finally { hideLoading(); }
+    }
+
+    async function importSharedLesson() {
+      const set = pendingImportSet;
+      if (!set) return;
+      showLoading();
+      try {
+        const userId = auth.currentUser.uid;
+        await db.collection('users').doc(userId).collection('customLessons').add({
+          title: set.title || 'Конспект',
+          level: set.level || 'A1',
+          pages: set.pages || [],
+          quiz: set.quiz || [],
+          sourceText: '',
+          createdAt: firebase.firestore.Timestamp.now(),
+        });
+        bumpImportCount(set.id);
+        playSound(true);
+        showNotification(`Конспект «${set.title}» додано в граматику`);
+        closeImportSetModal();
+        loadCustomLessons();
+      } catch (e) {
+        console.log('Import lesson error:', e);
+        showNotification('Не вдалося додати конспект', 'warning');
+      } finally { hideLoading(); }
+    }
+
+    // Лічильник імпортів — не критично, якщо не оновиться
+    function bumpImportCount(setId) {
+      db.collection('sets').doc(setId)
+        .update({ importCount: firebase.firestore.FieldValue.increment(1) })
+        .catch(e => console.log('Import count error:', e));
+    }
+
     // Завантаження пулу слів при логіні (60 найпріоритетніших) - для speed training та генерації історій
     async function loadWordsPool() {
       try {
@@ -11349,14 +12289,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
           .limit(60)
           .get();
 
-        allWords = querySnapshot.docs.map(doc => ({
-          english: doc.id,
-          translation: doc.data().translation,
-          example: doc.data().example || '',
-          interactions: doc.data().interactions || 0,
-          correctAnswers: doc.data().correctAnswers || 0,
-          dateAdded: doc.data().dateAdded,
-        }));
+        allWords = querySnapshot.docs.map(mapWordDoc);
         updateSadCatVisibility();
       } catch (error) {
         console.error('Помилка завантаження пулу слів:', error);
@@ -11398,6 +12331,24 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
     // Завантаження наступної сторінки слів з Firestore
     async function loadNextWordPage() {
       const userId = auth.currentUser.uid;
+
+      // У папці слів небагато — беремо їх усі одразу, без пагінації.
+      // array-contains без orderBy обходиться автоматичним індексом.
+      if (currentFolderId) {
+        const snapshot = await db.collection('users').doc(userId).collection('words')
+          .where('folders', 'array-contains', currentFolderId).get();
+        const words = snapshot.docs.map(mapWordDoc).sort((a, b) =>
+          ((b.dateAdded && b.dateAdded.seconds) || 0) - ((a.dateAdded && a.dateAdded.seconds) || 0));
+        allWords = words;
+        displayedWords = words;
+        allWordsLoaded = true;
+        document.getElementById('words').innerHTML = '';
+        renderWords(words);
+        document.getElementById('load-more-words').classList.add('hidden');
+        updateSadCatVisibility();
+        return;
+      }
+
       let query = db.collection('users').doc(userId).collection('words')
         .orderBy('dateAdded', 'desc')
         .limit(wordsPerPage);
@@ -11415,14 +12366,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
       if (!snapshot.empty) {
         lastWordDoc = snapshot.docs[snapshot.docs.length - 1];
 
-        const newWords = snapshot.docs.map(doc => ({
-          english: doc.id,
-          translation: doc.data().translation,
-          example: doc.data().example || '',
-          interactions: doc.data().interactions || 0,
-          correctAnswers: doc.data().correctAnswers || 0,
-          dateAdded: doc.data().dateAdded,
-        }));
+        const newWords = snapshot.docs.map(mapWordDoc);
 
         allWords = allWords.concat(newWords);
         displayedWords = displayedWords.concat(newWords);
@@ -11466,6 +12410,17 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
         const wordInfo = document.createElement('div');
         wordInfo.innerHTML = `<strong>${word.english}</strong> - ${word.translation}<br><em>${word.example}</em>`;
         li.appendChild(wordInfo);
+
+        const folderBtn = document.createElement('i');
+        folderBtn.classList.add('fas', 'fa-folder', 'word-folder-btn');
+        folderBtn.dataset.word = word.english;
+        if ((word.folders || []).length) folderBtn.classList.add('has-folder');
+        folderBtn.title = 'Папки';
+        folderBtn.onclick = (e) => {
+          e.stopPropagation();
+          openFolderPicker(word.english);
+        };
+        li.appendChild(folderBtn);
 
         const deleteBtn = document.createElement('i');
         deleteBtn.classList.add('fas', 'fa-trash');
@@ -11861,8 +12816,10 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
             interactions: 0,
             correctAnswers: 0,
             priority: 0,
+            folders: currentFolderId ? [currentFolderId] : [],
             dateAdded: firebase.firestore.Timestamp.now(),
           });
+          if (currentFolderId) refreshFolderCount(currentFolderId);
 
           // Очистка полей
           document.getElementById('english-word').value = '';
