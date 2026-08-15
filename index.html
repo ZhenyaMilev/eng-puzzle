@@ -6838,7 +6838,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.2';
+    const APP_VERSION = '2026-08-15.3';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -8664,6 +8664,14 @@ Return ONLY the JSON array, no other text.`;
     const _suggestionRequestToken = {};
     const _suggestionDebounce = {};
 
+    // Яке поле помилки гасити, коли значення прийшло з підказки
+    const SUGGESTION_FIELD_ERRORS = {
+      'english-word': 'english-word-error',
+      'translation': 'translation-error',
+      'phrase-translation': 'phrase-translation-error',
+      'phrase-translation-inline': 'phrase-translation-inline-error',
+    };
+
     // Відсіює сміття: побиті кодування, чужий алфавіт, дублікати
     function cleanTranslationVariants(list, target) {
       const seen = new Set();
@@ -8766,9 +8774,13 @@ Return ONLY a JSON array of strings.`
           const input = document.getElementById(inputId);
           if (input) {
             input.value = variant;
-            input.dispatchEvent(new Event('input'));
+            clearFieldError(SUGGESTION_FIELD_ERRORS[inputId]);
           }
-          container.innerHTML = '';
+          // Раніше тут йшов dispatch('input') заради очистки помилки — і поле
+          // одразу замовляло собі зворотний переклад. Виходило коло: обрав
+          // переклад — і під ним з'явилася ще одна порція підказок.
+          // Вибір зроблено, тож закриваємо всі списки й скасовуємо запити в дорозі.
+          closeAllSuggestions();
         };
         container.appendChild(div);
       });
@@ -17180,6 +17192,7 @@ ${vocabPromptBlock}${memoryBlock}
 Start the conversation with a greeting and an opening question about the topic.`;
 
       scChatHistory = [{ role:'system', content: systemPrompt }];
+      scEnded = false;
       scMessageCount = 0;
       document.getElementById('sc-messages').innerHTML = '';
 
@@ -17555,7 +17568,14 @@ Start the conversation with a greeting and an opening question about the topic.`
       if (scTimeLeft <= 0) scEndChat();
     }
 
+    // Час міг вийти, поки остання відповідь ще летіла: тоді таймер завершував
+    // розмову, а услід за ним — обробник повідомлення. Аналіз, XP і запис
+    // в історію робилися двічі, тому в історії й з'являлися дублі.
+    let scEnded = false;
+
     async function scEndChat() {
+      if (scEnded) return;
+      scEnded = true;
       scStopTimer();
       scStopAudio();
       if (scIsRecording) scStopRecording();
