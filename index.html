@@ -1988,16 +1988,8 @@
     .folder-toolbar {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 8px 12px;
+      justify-content: flex-start;
       margin-bottom: 8px;
-      background: rgba(232, 168, 56, 0.08);
-      border: 1px solid rgba(232, 168, 56, 0.25);
-      border-radius: 10px;
-      color: #E8A838;
-      font-size: 13px;
-      font-weight: 600;
     }
 
     .folder-toolbar-actions {
@@ -5607,7 +5599,6 @@
       <div id="vocab-words-content">
         <div id="folder-bar" class="folder-bar"></div>
         <div id="folder-toolbar" class="folder-toolbar hidden">
-          <span id="folder-toolbar-name"></span>
           <div class="folder-toolbar-actions">
             <button onclick="shareCurrentFolder()" title="Поділитися"><i class="fas fa-share-nodes"></i></button>
             <button onclick="renameCurrentFolder()" title="Перейменувати"><i class="fas fa-pen"></i></button>
@@ -6608,6 +6599,30 @@
         </div>
         <div id="sc-analysis-content" class="sc-analysis"></div>
         <button class="sc-start-btn" onclick="scFinish()" style="margin-top:16px;">Завершити</button>
+      </div>
+    </div>
+
+    <!-- Свій ввід замість браузерного prompt() -->
+    <div id="app-prompt-modal" class="app-modal hidden">
+      <div class="app-modal-box">
+        <h3 id="app-prompt-title"></h3>
+        <input type="text" id="app-prompt-input" style="margin:0;" autocomplete="off">
+        <div class="app-modal-actions">
+          <button class="primary" id="app-prompt-ok">Готово</button>
+          <button class="secondary" onclick="resolveAppPrompt(null)">Скасувати</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Своє підтвердження замість браузерного confirm() -->
+    <div id="app-confirm-modal" class="app-modal hidden">
+      <div class="app-modal-box">
+        <h3 id="app-confirm-title"></h3>
+        <p id="app-confirm-text"></p>
+        <div class="app-modal-actions">
+          <button class="primary" id="app-confirm-ok">Так</button>
+          <button class="secondary" onclick="resolveAppConfirm(false)">Скасувати</button>
+        </div>
       </div>
     </div>
 
@@ -9326,7 +9341,8 @@ ${text ? 'Text from the learner:\n"""\n' + text + '\n"""' : 'The material is on 
     async function deleteCustomLesson(lessonId) {
       const lesson = customLessons.find(l => l.id === lessonId);
       if (!lesson) return;
-      if (!confirm(`Видалити конспект «${lesson.title}»?`)) return;
+      const ok = await appConfirm(`Видалити конспект «${lesson.title}»?`, '', 'Видалити');
+      if (!ok) return;
       try {
         const userId = auth.currentUser.uid;
         await db.collection('users').doc(userId).collection('customLessons').doc(lessonId).delete();
@@ -11889,6 +11905,57 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       }
       return null;
     }
+    // ========== СВОЇ PROMPT / CONFIRM ==========
+    // Браузерні prompt()/confirm() показують шапку з доменом і чужі кнопки —
+    // тому питаємо у власному вікні в стилі застосунку.
+    let appPromptResolve = null;
+    let appConfirmResolve = null;
+
+    function appPrompt(title, defaultValue) {
+      const modal = document.getElementById('app-prompt-modal');
+      const input = document.getElementById('app-prompt-input');
+      document.getElementById('app-prompt-title').textContent = title;
+      input.value = defaultValue || '';
+      modal.classList.remove('hidden');
+      setTimeout(() => { input.focus(); input.select(); }, 50);
+
+      return new Promise(resolve => {
+        appPromptResolve = resolve;
+        document.getElementById('app-prompt-ok').onclick = () => resolveAppPrompt(input.value);
+        input.onkeydown = (e) => {
+          if (e.key === 'Enter') resolveAppPrompt(input.value);
+          if (e.key === 'Escape') resolveAppPrompt(null);
+        };
+      });
+    }
+
+    function resolveAppPrompt(value) {
+      document.getElementById('app-prompt-modal').classList.add('hidden');
+      const resolve = appPromptResolve;
+      appPromptResolve = null;
+      if (resolve) resolve(value === null ? null : String(value).trim());
+    }
+
+    function appConfirm(title, text, okLabel) {
+      document.getElementById('app-confirm-title').textContent = title;
+      document.getElementById('app-confirm-text').textContent = text || '';
+      const ok = document.getElementById('app-confirm-ok');
+      ok.textContent = okLabel || 'Так';
+      document.getElementById('app-confirm-modal').classList.remove('hidden');
+
+      return new Promise(resolve => {
+        appConfirmResolve = resolve;
+        ok.onclick = () => resolveAppConfirm(true);
+      });
+    }
+
+    function resolveAppConfirm(value) {
+      document.getElementById('app-confirm-modal').classList.add('hidden');
+      const resolve = appConfirmResolve;
+      appConfirmResolve = null;
+      if (resolve) resolve(value);
+    }
+
     // ========== ПАПКИ СЛОВНИКА ==========
     // users/{uid}/folders/{id} — сама папка, а належність слова живе
     // в масиві folders самого слова, щоб слово могло бути в кількох папках.
@@ -11934,13 +12001,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       bar.innerHTML = chips.join('');
 
       const toolbar = document.getElementById('folder-toolbar');
-      const folder = userFolders.find(f => f.id === currentFolderId);
-      if (folder) {
-        document.getElementById('folder-toolbar-name').textContent = folder.name;
-        toolbar.classList.remove('hidden');
-      } else {
-        toolbar.classList.add('hidden');
-      }
+      toolbar.classList.toggle('hidden', !userFolders.some(f => f.id === currentFolderId));
     }
 
     async function selectFolder(folderId) {
@@ -11950,7 +12011,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     }
 
     async function createFolderPrompt() {
-      const name = (prompt('Назва папки:') || '').trim();
+      const name = await appPrompt('Нова папка', '');
       if (!name) return;
       const id = await createFolder(name);
       if (id) selectFolder(id);
@@ -11978,7 +12039,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     async function renameCurrentFolder() {
       const folder = userFolders.find(f => f.id === currentFolderId);
       if (!folder) return;
-      const name = (prompt('Нова назва папки:', folder.name) || '').trim();
+      const name = await appPrompt('Нова назва папки', folder.name);
       if (!name || name === folder.name) return;
       try {
         await db.collection('users').doc(auth.currentUser.uid)
@@ -11992,7 +12053,8 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     async function deleteCurrentFolder() {
       const folder = userFolders.find(f => f.id === currentFolderId);
       if (!folder) return;
-      if (!confirm(`Видалити папку «${folder.name}»? Слова залишаться у словнику.`)) return;
+      const ok = await appConfirm(`Видалити папку «${folder.name}»?`, 'Слова залишаться у словнику.', 'Видалити');
+      if (!ok) return;
       try {
         const userId = auth.currentUser.uid;
         const snap = await db.collection('users').doc(userId).collection('words')
@@ -12036,7 +12098,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     function closeFolderPicker() {
       document.getElementById('folder-pick-modal').classList.add('hidden');
       folderPickerWord = null;
-      if (currentFolderId) fetchWordsPaged();
+      fetchWordsPaged();
     }
 
     function renderFolderPicker() {
@@ -12055,7 +12117,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     }
 
     async function createFolderFromPicker() {
-      const name = (prompt('Назва папки:') || '').trim();
+      const name = await appPrompt('Нова папка', '');
       if (!name) return;
       const id = await createFolder(name);
       if (id && folderPickerWord) await toggleWordFolder(id);
@@ -12411,16 +12473,19 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
         wordInfo.innerHTML = `<strong>${word.english}</strong> - ${word.translation}<br><em>${word.example}</em>`;
         li.appendChild(wordInfo);
 
-        const folderBtn = document.createElement('i');
-        folderBtn.classList.add('fas', 'fa-folder', 'word-folder-btn');
-        folderBtn.dataset.word = word.english;
-        if ((word.folders || []).length) folderBtn.classList.add('has-folder');
-        folderBtn.title = 'Папки';
-        folderBtn.onclick = (e) => {
-          e.stopPropagation();
-          openFolderPicker(word.english);
-        };
-        li.appendChild(folderBtn);
+        // Іконку показуємо лише коли слово справді лежить у папці —
+        // додати в папку можна з картки слова, тому сірих іконок у кожному рядку не треба
+        if ((word.folders || []).length) {
+          const folderBtn = document.createElement('i');
+          folderBtn.classList.add('fas', 'fa-folder', 'word-folder-btn', 'has-folder');
+          folderBtn.dataset.word = word.english;
+          folderBtn.title = 'Папки';
+          folderBtn.onclick = (e) => {
+            e.stopPropagation();
+            openFolderPicker(word.english);
+          };
+          li.appendChild(folderBtn);
+        }
 
         const deleteBtn = document.createElement('i');
         deleteBtn.classList.add('fas', 'fa-trash');
@@ -12450,6 +12515,8 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       const imgUrl = await getWordImage(word.english);
       const imageHtml = imgUrl ? `<img src="${imgUrl}" alt="${word.english}" style="display: block; margin: 0 auto 15px auto; max-width: 200px; border-radius: 10px;">` : '';
 
+      // Іконки папки в рядку більше немає, тож шлях у папки — звідси
+      const wordArg = JSON.stringify(word.english).replace(/"/g, '&quot;');
       const popupContent = `
     <div class="popup-content">
       ${imageHtml}
@@ -12457,7 +12524,8 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       <p>Кількість взаємодій: ${interactions}</p>
       <p>Правильних відповідей: ${correctAnswers}</p>
       <p>Відсоток правильних відповідей: ${percentage}%</p>
-      <button style="margin-top: 20px; width: 100%; padding: 15px; background: #333; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600;" onclick="closePopupWord()">Закрити</button>
+      <button style="margin-top: 20px; width: 100%; padding: 15px; background: rgba(232,168,56,0.15); color: #E8A838; border: 1px solid rgba(232,168,56,0.4); border-radius: 10px; font-size: 16px; font-weight: 600;" onclick="closePopupWord();openFolderPicker(${wordArg})"><i class="fas fa-folder" style="margin-right:8px;"></i>Папки</button>
+      <button style="margin-top: 10px; width: 100%; padding: 15px; background: #333; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600;" onclick="closePopupWord()">Закрити</button>
     </div>
   `;
 
