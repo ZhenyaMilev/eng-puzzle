@@ -1178,32 +1178,6 @@
       min-height: calc(100vh - 80px);
     }
 
-    #account-screen .acc-greeting {
-      font-family: 'Fraunces', serif;
-      font-size: 28px;
-      font-weight: 600;
-      color: var(--acc-text);
-      margin: 0 0 4px;
-      letter-spacing: -0.5px;
-      line-height: 1.2;
-      text-align: left;
-    }
-
-    #account-screen .acc-greeting .acc-wave {
-      display: inline-block;
-      animation: acc-wave-anim 2s ease-in-out infinite;
-      transform-origin: 70% 70%;
-    }
-
-    @keyframes acc-wave-anim {
-      0%, 100% { transform: rotate(0deg); }
-      10% { transform: rotate(14deg); }
-      20% { transform: rotate(-8deg); }
-      30% { transform: rotate(14deg); }
-      40% { transform: rotate(-4deg); }
-      50% { transform: rotate(10deg); }
-      60%, 100% { transform: rotate(0deg); }
-    }
 
     #account-screen .acc-email {
       font-size: 14px;
@@ -5422,8 +5396,6 @@
     </div>
     <!-- Головний екран облікового запису -->
     <div id="account-screen" class="hidden">
-      <!-- Greeting -->
-      <h2 class="acc-greeting acc-animate acc-delay-1"><span class="acc-wave">👋</span> Привіт!</h2>
       <div class="acc-email acc-animate acc-delay-2"><span class="user-email"></span></div>
 
       <!-- Gamification Stats -->
@@ -6130,7 +6102,8 @@
       <!-- Свій конспект: урок будується з фото/тексту користувача -->
       <div id="custom-lesson-input" class="hidden">
         <a href="#" onclick="event.preventDefault();backToGrammarTopics();" style="display:inline-block;font-size:13px;color:rgba(240,237,232,0.4);text-decoration:none;margin-bottom:12px;"><i class="fas fa-arrow-left" style="font-size:11px;margin-right:4px;"></i>Всі теми</a>
-        <p style="font-size:14px;color:rgba(240,237,232,0.5);margin-bottom:12px;">Сфотографуй дошку, сторінку підручника або зошит — можна кілька фото одразу. Можеш ще додати текст. Урок і тест побудую саме з твого матеріалу.</p>
+        <h3 id="custom-lesson-heading" style="font-size:18px;margin:0 0 6px;color:#E8A838;"></h3>
+        <p id="custom-lesson-hint" style="font-size:14px;color:rgba(240,237,232,0.5);margin-bottom:12px;"></p>
 
         <div style="display:flex;gap:8px;margin-bottom:10px;">
           <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(232,168,56,0.12);border:1px solid rgba(232,168,56,0.35);border-radius:12px;color:#E8A838;font-size:13px;font-weight:600;cursor:pointer;margin:0;">
@@ -9095,6 +9068,9 @@ Return ONLY a JSON array of strings.`
             <span class="topic-name">${escapeHtml(l.title)}</span>
             <span class="topic-desc">${escapeHtml(l.level || 'A1')}${done ? ' · пройдено ✓' : ''}</span>
           </div>
+          <button onclick="showCustomLessonForm('${l.id}')" title="Доповнити" style="width:34px;min-width:34px;height:34px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;box-shadow:none;color:rgba(240,237,232,0.3);font-size:14px;cursor:pointer;">
+            <i class="fas fa-plus"></i>
+          </button>
           <button onclick="shareCustomLesson('${l.id}')" title="Поділитися" style="width:34px;min-width:34px;height:34px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;box-shadow:none;color:rgba(240,237,232,0.3);font-size:14px;cursor:pointer;">
             <i class="fas fa-share-nodes"></i>
           </button>
@@ -9138,6 +9114,7 @@ Return ONLY a JSON array of strings.`
     // ========== СВІЙ КОНСПЕКТ (урок з фото/тексту користувача) ==========
     let customLessons = [];
     let customLessonImages = [];
+    let customLessonEditingId = null;
 
     async function loadCustomLessons() {
       try {
@@ -9149,11 +9126,25 @@ Return ONLY a JSON array of strings.`
       } catch (e) { console.log('Custom lessons load error:', e); }
     }
 
-    function showCustomLessonForm() {
+    // Без lessonId — новий конспект, з lessonId — дописуємо до наявного
+    function showCustomLessonForm(lessonId) {
+      customLessonEditingId = lessonId || null;
+      const lesson = lessonId ? customLessons.find(l => l.id === lessonId) : null;
+
       customLessonImages = [];
       document.getElementById('custom-lesson-text').value = '';
       document.getElementById('custom-lesson-error').textContent = '';
       renderCustomLessonImages();
+
+      document.getElementById('custom-lesson-heading').textContent =
+        lesson ? `Доповнити «${lesson.title}»` : 'Свій конспект';
+      document.getElementById('custom-lesson-hint').textContent = lesson
+        ? 'Додай ще фото або текст — нове правило стане наступними сторінками цього ж уроку, а питання додадуться до тесту.'
+        : 'Сфотографуй дошку, сторінку підручника або зошит — можна кілька фото одразу. Можеш ще додати текст. Урок і тест побудую саме з твого матеріалу.';
+      document.getElementById('custom-lesson-generate-btn').innerHTML = lesson
+        ? '<i class="fas fa-plus" style="margin-right:6px;"></i>Додати до уроку'
+        : '<i class="fas fa-wand-magic-sparkles" style="margin-right:6px;"></i>Створити урок';
+
       document.getElementById('grammar-topics').classList.add('hidden');
       document.getElementById('custom-lesson-input').classList.remove('hidden');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -9286,8 +9277,20 @@ Output the transcription only.`
         const source = await extractLessonSource(customLessonImages, text);
 
         btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>Будую урок...';
+
+        // Дописуємо до наявного уроку — показуємо, що вже пройдено,
+        // щоб нові сторінки не повторювали старі
+        const editing = customLessonEditingId
+          ? customLessons.find(l => l.id === customLessonEditingId) : null;
+        const alreadyCovered = editing
+          ? `\nThis material is being ADDED to an existing lesson titled "${editing.title}", which already covers:\n`
+            + (editing.pages || []).map((p, i) => `${i + 1}. ${p.heading || ''}`).join('\n')
+            + '\nProduce ONLY pages for what is NEW below. Do not repeat what is already covered.\n'
+          : '';
+
         const prompt = `You are an English teacher for Ukrainian-speaking learners.
 Build a grammar lesson STRICTLY from the material below. Do NOT invent topics that are absent from it.
+${alreadyCovered}
 
 COVERAGE IS THE MOST IMPORTANT RULE. The lesson must cover the material COMPLETELY:
 - every row, every column and every cell of a table
@@ -9338,26 +9341,42 @@ ${source}
           return;
         }
 
-        const lesson = {
-          title: (data.title || 'Мій конспект').slice(0, 80),
-          level: ['Pre-A1', 'A1', 'A2', 'B1', 'B2'].includes(data.level) ? data.level : 'A1',
-          pages: data.pages,
-          quiz: Array.isArray(data.quiz) ? data.quiz : [],
-          sourceText: text.slice(0, 4000),
-          createdAt: firebase.firestore.Timestamp.now(),
-        };
-
         const userId = auth.currentUser.uid;
-        const ref = await db.collection('users').doc(userId).collection('customLessons').add(lesson);
-        lesson.id = ref.id;
-        customLessons.unshift(lesson);
+        const newQuiz = Array.isArray(data.quiz) ? data.quiz : [];
+        let lessonId;
+
+        let firstNewPage = 0;
+        if (editing) {
+          // Сторінок в уроці не обмежуємо — нове правило просто стає наступними
+          firstNewPage = (editing.pages || []).length;
+          editing.pages = (editing.pages || []).concat(data.pages);
+          editing.quiz = (editing.quiz || []).concat(newQuiz);
+          await db.collection('users').doc(userId).collection('customLessons')
+            .doc(editing.id).update({ pages: editing.pages, quiz: editing.quiz });
+          lessonId = editing.id;
+          showNotification(`Додано сторінок: ${data.pages.length}`);
+        } else {
+          const lesson = {
+            title: (data.title || 'Мій конспект').slice(0, 80),
+            level: ['Pre-A1', 'A1', 'A2', 'B1', 'B2'].includes(data.level) ? data.level : 'A1',
+            pages: data.pages,
+            quiz: newQuiz,
+            sourceText: text.slice(0, 4000),
+            createdAt: firebase.firestore.Timestamp.now(),
+          };
+          const ref = await db.collection('users').doc(userId).collection('customLessons').add(lesson);
+          lesson.id = ref.id;
+          customLessons.unshift(lesson);
+          lessonId = ref.id;
+        }
         renderGrammarTopics();
 
         customLessonImages = [];
+        customLessonEditingId = null;
         document.getElementById('custom-lesson-text').value = '';
         renderCustomLessonImages();
         playSound(true);
-        openCustomLesson(lesson.id);
+        openCustomLesson(lessonId, firstNewPage);
       } catch (e) {
         console.log('Custom lesson error:', e);
         errorEl.textContent = 'Помилка створення уроку. Спробуй ще раз.';
@@ -9389,7 +9408,7 @@ ${source}
       });
     }
 
-    function openCustomLesson(lessonId) {
+    function openCustomLesson(lessonId, startPage) {
       const lesson = customLessons.find(l => l.id === lessonId);
       if (!lesson) return;
       grammarLessons[lesson.id] = buildCustomLessonPages(lesson);
@@ -9400,7 +9419,7 @@ ${source}
         custom: true,
         quiz: lesson.quiz || [],
       };
-      currentGrammarPage = 0;
+      currentGrammarPage = Math.max(0, Math.min(startPage || 0, grammarLessons[lesson.id].length - 1));
       document.getElementById('grammar-topics').classList.add('hidden');
       document.getElementById('custom-lesson-input').classList.add('hidden');
       document.getElementById('grammar-lesson').classList.remove('hidden');
