@@ -5671,6 +5671,103 @@
     }
     .sc-word-chip .sc-added { color:rgba(240,237,232,0.3); }
 
+
+    /* Документи: оферта, повернення, дані, контакти */
+    .legal-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      /* остання вкладка не має впиратися в край екрана */
+      padding: 0 2px 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .legal-tab {
+      flex: 0 0 auto;
+      width: auto;
+      margin: 0;
+      padding: 9px 14px;
+      border: 1px solid rgba(240, 237, 232, 0.14);
+      border-radius: 999px;
+      background: transparent;
+      color: rgba(240, 237, 232, 0.6);
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: none;
+      cursor: pointer;
+    }
+    .legal-tab.active {
+      background: rgba(232, 168, 56, 0.14);
+      border-color: rgba(232, 168, 56, 0.4);
+      color: #E8A838;
+    }
+    .legal-body {
+      padding: 0 2px 40px;
+      font-size: 14px;
+      line-height: 1.6;
+      text-align: left;
+      color: rgba(240, 237, 232, 0.78);
+    }
+    .legal-body h3 {
+      margin: 22px 0 8px;
+      font-size: 16px;
+      text-align: left;
+      color: #F0EDE8;
+    }
+    .legal-body h3:first-child { margin-top: 0; }
+    .legal-body p { margin: 0 0 10px; }
+    .legal-body ul { margin: 0 0 12px; padding-left: 20px; }
+    .legal-body li { margin-bottom: 6px; }
+    .legal-body strong { color: #F0EDE8; }
+    .legal-body .legal-updated {
+      margin-top: 22px;
+      font-size: 12px;
+      color: rgba(240, 237, 232, 0.4);
+    }
+    .legal-body .legal-todo {
+      display: block;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      border-radius: 10px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      font-size: 13px;
+    }
+
+    .acc-footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin: 26px 0 10px;
+      color: rgba(240, 237, 232, 0.25);
+      font-size: 12px;
+    }
+
+    /* Умови під тарифами — дрібні, але читані */
+    .tariff-terms {
+      margin-top: 18px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: rgba(240, 237, 232, 0.45);
+      text-align: center;
+    }
+    .legal-link {
+      width: auto;
+      margin: 0;
+      padding: 0;
+      background: none;
+      border: none;
+      box-shadow: none;
+      color: #E8A838;
+      font-size: 12px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
     /* Плитка, яка ще не відкрилася: видно одразу, а не після входу */
     .acc-tile.acc-tile-locked {
       opacity: 0.55;
@@ -6007,6 +6104,16 @@
           <div class="acc-tile-icon"><i class="fas fa-comments"></i></div>
           Speaking Club
         </button>
+      </div>
+
+      <div class="acc-footer">
+        <button class="legal-link" onclick="showLegal('offer')">Оферта</button>
+        <span>·</span>
+        <button class="legal-link" onclick="showLegal('refund')">Повернення коштів</button>
+        <span>·</span>
+        <button class="legal-link" onclick="showLegal('privacy')">Конфіденційність</button>
+        <span>·</span>
+        <button class="legal-link" onclick="showLegal('contacts')">Контакти</button>
       </div>
 
     </div>
@@ -6904,6 +7011,37 @@
         <button onclick="purchaseSubscription(365)">Купити</button>
       </div>
       <p>З Преміум підпискою ви зможете покращити свій рівень англійської швидше та ефективніше!</p>
+
+      <!-- Умови мають бути перед оплатою, а не після неї -->
+      <p class="tariff-terms">
+        Оплата разова, підписка не продовжується автоматично.
+        Натискаючи «Купити», ви погоджуєтесь із
+        <button class="legal-link" onclick="showLegal('offer')">публічною офертою</button>
+        та
+        <button class="legal-link" onclick="showLegal('privacy')">політикою конфіденційності</button>.
+        <button class="legal-link" onclick="showLegal('refund')">Умови повернення коштів</button>.
+      </p>
+    </div>
+
+
+    <!-- Секція "Документи": оферта, повернення, конфіденційність, контакти -->
+    <div id="legal-section" class="hidden">
+      <div class="title-and-btn">
+        <button class="button-with-icon back-button" onclick="closeLegal()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Назад</span>
+        </button>
+        <h2 id="legal-title">Документи</h2>
+      </div>
+
+      <div class="legal-tabs">
+        <button class="legal-tab active" data-doc="offer" onclick="showLegal('offer')">Оферта</button>
+        <button class="legal-tab" data-doc="refund" onclick="showLegal('refund')">Повернення</button>
+        <button class="legal-tab" data-doc="privacy" onclick="showLegal('privacy')">Дані</button>
+        <button class="legal-tab" data-doc="contacts" onclick="showLegal('contacts')">Контакти</button>
+      </div>
+
+      <div id="legal-body" class="legal-body"></div>
     </div>
 
     <!-- Секція "Вставте пропущене слово" -->
@@ -7342,6 +7480,236 @@
       measurementId: "G-67BCSGB7MN"
     };
 
+
+    // ===== Юридичні документи =====
+    // WayForPay не пропускає сайт на модерації без оферти, умов повернення,
+    // політики конфіденційності та контактів із реквізитами. Тримаємо їх
+    // усередині застосунку, щоб не заводити окремий сайт.
+    const MERCHANT = {
+      name: 'ФОП Мілевич Євген',
+      tax: 'ЗАПОВНИТИ: ІПН/РНОКПП',
+      address: 'ЗАПОВНИТИ: адреса реєстрації ФОП',
+      email: 'milevich.evgen@gmail.com',
+      telegram: 'https://t.me/shopify_evgene',
+      site: 'vocabulary-english.netlify.app',
+      updated: '15 серпня 2026 р.',
+    };
+
+    function merchantGap(value) {
+      return value.startsWith('ЗАПОВНИТИ')
+        ? `<span class="legal-todo">${value}</span>`
+        : value;
+    }
+
+    const LEGAL_DOCS = {
+      offer: {
+        title: 'Публічна оферта',
+        html: () => `
+          <h3>1. Загальні положення</h3>
+          <p>Цей документ є публічною офертою ${MERCHANT.name} (далі — Виконавець)
+          щодо надання доступу до вебзастосунку «Мій словник» за адресою ${MERCHANT.site}
+          (далі — Сервіс). Оплачуючи підписку, ви приймаєте умови цієї оферти повністю.</p>
+
+          <h3>2. Предмет договору</h3>
+          <p>Виконавець надає користувачу доступ до платних функцій Сервісу
+          на обраний строк. Сервіс — це інформаційна послуга: тренування англійської
+          мови, генерація навчальних матеріалів, вправи та статистика навчання.</p>
+          <p>Послуга надається дистанційно, у режимі онлайн, і не передбачає передачі
+          матеріальних товарів.</p>
+
+          <h3>3. Тарифи та строк</h3>
+          <ul>
+            <li><strong>1 місяць</strong> — 99 грн, доступ на 30 днів</li>
+            <li><strong>3 місяці</strong> — 249 грн, доступ на 90 днів</li>
+            <li><strong>1 рік</strong> — 899 грн, доступ на 365 днів</li>
+          </ul>
+          <p>Ціни вказані в гривнях. Оплата разова: підписка <strong>не продовжується
+          автоматично</strong> і не списує кошти повторно. Щоб продовжити доступ,
+          користувач оформлює нову оплату самостійно.</p>
+          <p>Якщо оплатити до закінчення поточного строку, нові дні додаються до
+          залишку, а не заміщують його.</p>
+
+          <h3>4. Порядок оплати</h3>
+          <p>Оплата здійснюється платіжною карткою через платіжний сервіс WayForPay.
+          Виконавець не зберігає й не має доступу до даних вашої картки.</p>
+          <p>Доступ відкривається автоматично після підтвердження оплати платіжним
+          сервісом — як правило, протягом кількох хвилин.</p>
+
+          <h3>5. Права та обов'язки</h3>
+          <p>Виконавець забезпечує роботу Сервісу та зберігання даних навчання.
+          Виконавець має право призупинити доступ у разі спроб зламу, автоматизованого
+          зловживання функціями штучного інтелекту або перепродажу доступу третім особам.</p>
+          <p>Користувач зобов'язується не передавати свій обліковий запис третім особам.</p>
+
+          <h3>6. Відповідальність</h3>
+          <p>Сервіс надається «як є». Виконавець не гарантує конкретного результату
+          навчання, оскільки він залежить від зусиль користувача.</p>
+          <p>Виконавець не відповідає за перебої, спричинені роботою сторонніх сервісів
+          (хостинг, платіжна система, провайдери ШІ) чи відсутністю інтернету в користувача.</p>
+
+          <h3>7. Строк дії</h3>
+          <p>Оферта діє безстроково до її зміни або відкликання Виконавцем.
+          Чинна редакція завжди доступна в цьому розділі застосунку.</p>
+
+          <h3>8. Реквізити Виконавця</h3>
+          <p>${MERCHANT.name}<br>
+          ${merchantGap(MERCHANT.tax)}<br>
+          ${merchantGap(MERCHANT.address)}<br>
+          Email: ${MERCHANT.email}</p>
+        `,
+      },
+
+      refund: {
+        title: 'Умови повернення коштів',
+        html: () => `
+          <h3>Коли кошти повертаються</h3>
+          <p>Ви можете вимагати повернення коштів <strong>протягом 14 днів</strong>
+          з дати оплати, якщо:</p>
+          <ul>
+            <li>Сервіс не працює з нашої вини і ми не усунули проблему протягом 3 робочих днів;</li>
+            <li>оплата пройшла двічі за один і той самий період;</li>
+            <li>доступ не відкрився після успішної оплати.</li>
+          </ul>
+          <p>Якщо ви просто передумали і <strong>ще не користувалися</strong> платними
+          функціями після оплати — кошти повертаються повністю протягом тих самих 14 днів.</p>
+
+          <h3>Часткове повернення</h3>
+          <p>Якщо ви вже користувалися Сервісом, повертається частина суми за невикористані
+          повні дні підписки, пропорційно до строку тарифу.</p>
+
+          <h3>Коли кошти не повертаються</h3>
+          <ul>
+            <li>після спливу 14 днів з дати оплати;</li>
+            <li>якщо доступ призупинено за порушення умов оферти
+            (злам, автоматизоване зловживання, передача акаунта).</li>
+          </ul>
+
+          <h3>Як подати запит</h3>
+          <p>Напишіть на <strong>${MERCHANT.email}</strong> або в Telegram-підтримку
+          із зазначенням email вашого акаунта, дати та суми оплати. Ми відповідаємо
+          протягом 3 робочих днів.</p>
+          <p>Кошти повертаються тим самим способом, яким була здійснена оплата —
+          на картку, з якої платили. Строк зарахування залежить від банку і
+          зазвичай становить до 10 банківських днів.</p>
+
+          <h3>Скасування підписки</h3>
+          <p>Автоматичного списання немає, тому окремо скасовувати нічого не потрібно:
+          доступ просто завершується наприкінці оплаченого строку.</p>
+        `,
+      },
+
+      privacy: {
+        title: 'Політика конфіденційності',
+        html: () => `
+          <h3>Які дані ми збираємо</h3>
+          <ul>
+            <li><strong>Email</strong> — для входу та зв'язку щодо оплати;</li>
+            <li><strong>Навчальні дані</strong> — ваші слова, фрази, конспекти, результати
+            вправ, серія днів і XP;</li>
+            <li><strong>Дані про підписку</strong> — тариф, дата оплати, строк доступу;</li>
+            <li><strong>Тексти та фото</strong>, які ви надсилаєте для генерації уроків.</li>
+          </ul>
+          <p>Ми <strong>не збираємо</strong> дані вашої платіжної картки — вони
+          обробляються виключно платіжним сервісом WayForPay.</p>
+
+          <h3>Навіщо</h3>
+          <p>Щоб Сервіс працював: зберігати ваш словник між пристроями, показувати
+          прогрес, підбирати вправи та відкривати доступ після оплати.</p>
+
+          <h3>Кому передаються дані</h3>
+          <ul>
+            <li><strong>Google Firebase</strong> — зберігання акаунтів і навчальних даних;</li>
+            <li><strong>OpenAI</strong> — тексти й зображення, які ви надсилаєте для
+            генерації уроків, перекладів та озвучення. Передається тільки вміст запиту,
+            без вашого email;</li>
+            <li><strong>WayForPay</strong> — email та сума для проведення оплати;</li>
+            <li><strong>Netlify</strong> — хостинг.</li>
+          </ul>
+          <p>Ми не продаємо і не передаємо ваші дані рекламодавцям.</p>
+
+          <h3>Скільки зберігаємо</h3>
+          <p>Поки існує ваш акаунт. Дані про оплати зберігаються довше — цього
+          вимагає податкове законодавство.</p>
+
+          <h3>Ваші права</h3>
+          <p>Ви можете отримати копію своїх даних або видалити акаунт разом з усіма
+          навчальними даними. Напишіть на <strong>${MERCHANT.email}</strong> —
+          виконуємо протягом 30 днів.</p>
+
+          <h3>Файли cookie</h3>
+          <p>Ми використовуємо лише технічне сховище браузера, щоб не просити вас
+          входити щоразу. Рекламних чи аналітичних трекерів сторонніх компаній немає.</p>
+        `,
+      },
+
+      contacts: {
+        title: 'Контакти',
+        html: () => `
+          <h3>Виконавець</h3>
+          <p>${MERCHANT.name}<br>
+          ${merchantGap(MERCHANT.tax)}<br>
+          ${merchantGap(MERCHANT.address)}</p>
+
+          <h3>Зв'язок</h3>
+          <p>Email: <strong>${MERCHANT.email}</strong><br>
+          Telegram: <a href="${MERCHANT.telegram}" target="_blank" style="color:#E8A838;">підтримка</a></p>
+          <p>Відповідаємо протягом 3 робочих днів. З питань оплати вкажіть email
+          вашого акаунта, дату й суму платежу.</p>
+
+          <h3>Сайт</h3>
+          <p>${MERCHANT.site}</p>
+        `,
+      },
+    };
+
+    let legalReturnTo = null;
+    let legalHidTitle = false;
+
+    function showLegal(doc) {
+      const entry = LEGAL_DOCS[doc] || LEGAL_DOCS.offer;
+
+      // Запам'ятовуємо, звідки прийшли: з тарифів треба повернутися в тарифи,
+      // інакше людина губить намір оплатити
+      if (document.getElementById('legal-section').classList.contains('hidden')) {
+        legalReturnTo = document.getElementById('tariffs-section').classList.contains('hidden')
+          ? 'account' : 'tariffs';
+
+        // toggleMainTitle() перемикає, а нам треба саме сховати — і повернути
+        // рівно в тому стані, в якому було
+        const title = document.querySelector('.title-main');
+        legalHidTitle = title && !title.classList.contains('hidden');
+        if (legalHidTitle) toggleMainTitle();
+
+        hideAllAppSections();
+        document.getElementById('account-screen').classList.add('hidden');
+        document.getElementById('legal-section').classList.remove('hidden');
+      }
+
+      document.getElementById('legal-title').textContent = entry.title;
+      document.getElementById('legal-body').innerHTML =
+        entry.html() + `<p class="legal-updated">Редакція від ${MERCHANT.updated}</p>`;
+      document.getElementById('legal-body').scrollTop = 0;
+      window.scrollTo(0, 0);
+
+      document.querySelectorAll('.legal-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.doc === doc);
+      });
+    }
+
+    function closeLegal() {
+      document.getElementById('legal-section').classList.add('hidden');
+      if (legalReturnTo === 'tariffs') {
+        document.getElementById('tariffs-section').classList.remove('hidden');
+      } else {
+        if (legalHidTitle) toggleMainTitle();
+        document.getElementById('account-screen').classList.remove('hidden');
+      }
+      legalReturnTo = null;
+      legalHidTitle = false;
+    }
+
+    // ===== Юридичні документи: кінець =====
+
     // === AI через власний бекенд ===
     // Ключ OpenAI більше не існує у браузері. Раніше він лежав у Firestore,
     // який міг прочитати будь-який зареєстрований користувач, і їхав у сторінку
@@ -7435,7 +7803,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.13';
+    const APP_VERSION = '2026-08-15.14';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -7821,7 +8189,7 @@ function hideAllAppSections() {
     'word-constructor-training-section', 'speed-training-section', 'generative-text-section',
     'tariffs-section', 'crossword-section', 'fill-blanks-section', 'definition-quiz-section',
     'leaderboard-section', 'add-phrase-section', 'phrase-constructor-section',
-    'grammar-section', 'speaking-club-section',
+    'grammar-section', 'speaking-club-section', 'legal-section',
   ].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
