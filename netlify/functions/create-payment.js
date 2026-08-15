@@ -41,6 +41,9 @@ exports.handler = async (event) => {
       currency: CURRENCY,
       status: 'created',
       createdAt: new Date().toISOString(),
+      // pay-redirect re-signs this order from the record, and the signature
+      // covers orderDate — so it has to be the same number both times
+      orderDate,
     });
 
     const payload = {
@@ -56,12 +59,13 @@ exports.handler = async (event) => {
       productPrice: [chosen.amount],
       clientEmail: user.email || '',
       language: 'UA',
-      returnUrl: `https://${requiredEnv('WFP_MERCHANT_DOMAIN')}/?paid=${encodeURIComponent(orderReference)}`,
+      returnUrl: `https://${requiredEnv('WFP_MERCHANT_DOMAIN')}/paid?order=${encodeURIComponent(orderReference)}`,
       serviceUrl: `https://${requiredEnv('WFP_MERCHANT_DOMAIN')}/.netlify/functions/wayforpay-callback`,
     };
     payload.merchantSignature = purchaseSignature(payload);
 
-    return json(200, { action: 'https://secure.wayforpay.com/pay', payload });
+    // orderReference lets a Mini App open /pay?order=… instead of posting a form
+    return json(200, { action: 'https://secure.wayforpay.com/pay', orderReference, payload });
   } catch (error) {
     console.error('create-payment failed:', error);
     return json(500, { error: 'Payment could not be started' });

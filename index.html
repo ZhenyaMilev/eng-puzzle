@@ -713,9 +713,15 @@
       /* Лёгкая тень */
     }
 
+    :root {
+      /* У браузері це просто висота вікна; у міні-аппі setupMiniApp() підміняє
+         її на viewportStableHeight, бо 100vh там більший за видиму область */
+      --app-height: 100vh;
+    }
+
     .overlay {
       width: 100vw;
-      height: 100vh;
+      height: var(--app-height);
       background: rgba(0, 0, 0, 0.6);
       position: absolute;
       z-index: 2;
@@ -1366,7 +1372,7 @@
       padding: 24px 20px 32px;
       margin: -15px;
       margin-top: -10px;
-      min-height: calc(100vh - 80px);
+      min-height: calc(var(--app-height) - 80px);
     }
 
 
@@ -4034,7 +4040,7 @@
       right: 0;
       bottom: 0;
       z-index: 1100;
-      padding: 8px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+      padding: 8px 6px calc(10px + max(env(safe-area-inset-bottom, 0px), var(--safe-bottom, 0px)));
       background: #171a22;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 -12px 28px rgba(0, 0, 0, 0.5);
@@ -5565,7 +5571,7 @@
 
     /* Chat UI */
     .sc-chat-container {
-      display:flex; flex-direction:column; height:calc(100vh - 70px); position:relative;
+      display:flex; flex-direction:column; height:calc(var(--app-height) - 70px); position:relative;
     }
     .sc-chat-header {
       display:flex; align-items:center; justify-content:space-between;
@@ -5734,6 +5740,48 @@
       border: 1px solid rgba(239, 68, 68, 0.3);
       color: #fca5a5;
       font-size: 13px;
+    }
+
+    .miniapp-merge {
+      margin-top: 22px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(232, 168, 56, 0.07);
+      border: 1px solid rgba(232, 168, 56, 0.25);
+    }
+    .miniapp-merge strong {
+      display: block;
+      font-size: 14px;
+      color: #F0EDE8;
+    }
+    .miniapp-merge p {
+      margin: 4px 0 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(240, 237, 232, 0.55);
+    }
+    .miniapp-merge input {
+      width: 100%;
+      margin-bottom: 8px;
+      box-sizing: border-box;
+    }
+    .miniapp-merge button {
+      width: 100%;
+      margin: 0;
+      padding: 11px 16px;
+      border: none;
+      border-radius: 10px;
+      background: #E8A838;
+      color: #1a1a1a;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Усередині Telegram немає адресного рядка, зате є власні відступи */
+    body.in-miniapp {
+      padding-top: var(--safe-top, 0);
+      padding-bottom: var(--safe-bottom, 0);
     }
 
     .acc-telegram {
@@ -6158,6 +6206,19 @@
           <div class="acc-tile-icon"><i class="fas fa-comments"></i></div>
           Speaking Club
         </button>
+      </div>
+
+      <!-- Той, хто вже мав акаунт поштою, інакше отримав би другий, порожній -->
+      <div class="miniapp-merge hidden" id="miniapp-merge">
+        <strong>Вже маєш акаунт?</strong>
+        <p>Увійди поштою один раз — словник і підписка переїдуть сюди.</p>
+        <div id="merge-form" class="hidden">
+          <input type="email" id="merge-email" placeholder="Email" autocomplete="email">
+          <input type="password" id="merge-password" placeholder="Пароль" autocomplete="current-password">
+          <div id="merge-error" class="error-message"></div>
+          <button onclick="mergeTelegramAccount()">Підключити</button>
+        </div>
+        <button id="merge-open" onclick="document.getElementById('merge-form').classList.remove('hidden'); this.classList.add('hidden');">Підключити старий акаунт</button>
       </div>
 
       <!-- Нагадування живуть у Telegram: пуші в браузері на iOS не працюють -->
@@ -7402,6 +7463,7 @@
 
   </div>
   <!-- Підключення Firebase SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -7779,6 +7841,150 @@
     // ще нічого не спробувавши. Тиждень дає дійти до першого результату.
     const TRIAL_DAYS = 7;
 
+    // ===== Telegram Mini App =====
+    // Усередині Telegram застосунок живе у вбудованому вікні: немає адресного
+    // рядка, свайп донизу закриває вікно, а висота в'юпорта не дорівнює 100vh.
+    const tg = (window.Telegram && window.Telegram.WebApp) || null;
+
+    function isMiniApp() {
+      return !!(tg && tg.initData);
+    }
+
+    function setupMiniApp() {
+      // Сам SDK підвантажується і у звичайному браузері, тож наявність
+      // window.Telegram нічого не означає — вирішує підписаний initData
+      if (!isMiniApp()) return;
+      tg.ready();
+      tg.expand();
+
+      // Без цього свайп у списку слів закриває застосунок
+      if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
+      if (tg.setHeaderColor) tg.setHeaderColor('#0f1117');
+      if (tg.setBackgroundColor) tg.setBackgroundColor('#0f1117');
+
+      document.body.classList.add('in-miniapp');
+      applyMiniAppMetrics();
+
+      tg.onEvent('viewportChanged', applyMiniAppMetrics);
+      if (tg.onEvent) {
+        tg.onEvent('safeAreaChanged', applyMiniAppMetrics);
+        tg.onEvent('contentSafeAreaChanged', applyMiniAppMetrics);
+        // Повернення з браузера після оплати: перечитати підписку без перезавантаження
+        tg.onEvent('activated', refreshSubscriptionState);
+      }
+    }
+
+    /**
+     * Клавіатурні екрани (конструктор, кросворд) міряють себе від висоти
+     * в'юпорта. У міні-аппі 100vh бреше — правильна величина viewportStableHeight.
+     */
+    function applyMiniAppMetrics() {
+      if (!tg) return;
+      const root = document.documentElement;
+      const stable = tg.viewportStableHeight || window.innerHeight;
+      root.style.setProperty('--app-height', stable + 'px');
+
+      const safe = tg.contentSafeAreaInset || tg.safeAreaInset || {};
+      root.style.setProperty('--safe-top', (safe.top || 0) + 'px');
+      root.style.setProperty('--safe-bottom', (safe.bottom || 0) + 'px');
+    }
+
+    async function refreshSubscriptionState() {
+      if (!auth.currentUser) return;
+      try {
+        const doc = await db.collection('users').doc(auth.currentUser.uid).get();
+        if (doc.exists) checkSubscription(doc.data());
+      } catch (e) { /* лишаємо як було */ }
+    }
+
+    async function openPaymentInBrowser(orderReference) {
+      const url = location.origin + '/pay?order=' + encodeURIComponent(orderReference);
+      // Попереджаємо заздалегідь: інакше вихід у браузер виглядає як збій
+      const go = await appConfirm(
+        'Оплата відкриється у браузері',
+        'Після оплати повернешся сюди — доступ відкриється автоматично.',
+        'Продовжити');
+      if (!go) return;
+      if (tg && tg.openLink) tg.openLink(url);
+      else window.open(url, '_blank');
+    }
+
+    /**
+     * Вхід без пароля: підпис initData доводить, хто це, тож екран входу
+     * у міні-аппі не показується взагалі.
+     */
+    async function signInFromTelegram() {
+      if (!isMiniApp()) return false;
+      try {
+        const response = await fetch('/.netlify/functions/tg-auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: tg.initData }),
+        });
+        if (!response.ok) return false;
+        const data = await response.json();
+        await auth.signInWithCustomToken(data.token);
+        miniAppFreshAccount = !!data.created;
+        return true;
+      } catch (error) {
+        console.log('Telegram sign-in failed');
+        return false;
+      }
+    }
+
+    let miniAppFreshAccount = false;
+
+    /**
+     * Той, хто раніше реєструвався поштою, з Telegram отримав би новий порожній
+     * акаунт. Поки словник порожній — пропонуємо забрати старий.
+     */
+    async function maybeOfferAccountMerge() {
+      if (!isMiniApp() || !auth.currentUser) return;
+      const row = document.getElementById('miniapp-merge');
+      if (!row) return;
+
+      try {
+        const words = await db.collection('users').doc(auth.currentUser.uid)
+          .collection('words').limit(1).get();
+        row.classList.toggle('hidden', !words.empty);
+      } catch (e) {
+        row.classList.add('hidden');
+      }
+    }
+
+    async function mergeTelegramAccount() {
+      const email = document.getElementById('merge-email').value.trim();
+      const password = document.getElementById('merge-password').value;
+      const errorEl = document.getElementById('merge-error');
+      errorEl.textContent = '';
+
+      if (!email || !password) {
+        errorEl.textContent = 'Введи пошту й пароль від старого акаунта.';
+        return;
+      }
+
+      showLoading();
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        const token = await auth.currentUser.getIdToken();
+        const response = await fetch('/.netlify/functions/tg-merge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ initData: tg.initData }),
+        });
+        if (!response.ok) throw new Error('merge failed');
+
+        document.getElementById('miniapp-merge').classList.add('hidden');
+        showNotification('Готово — це твій старий акаунт із усім словником.');
+        updateUI();
+      } catch (error) {
+        const known = AUTH_ERRORS[error && error.code];
+        errorEl.textContent = known ? known[1] : 'Не вдалося підключити акаунт. Перевір пошту й пароль.';
+      } finally {
+        hideLoading();
+      }
+    }
+
     // ===== Telegram =====
     // Одноразовий код видає функція, бо тільки сервер може довести, що цей
     // Firebase-акаунт і той Telegram-акаунт — одна людина.
@@ -7799,13 +8005,7 @@
         if (!response.ok) throw new Error('link ' + response.status);
         const data = await response.json();
 
-        // Усередині Telegram відкриваємо через його ж API, інакше нове вікно
-        // ляже поверх міні-аппа й людина застрягне
-        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
-          window.Telegram.WebApp.openTelegramLink(data.url);
-        } else {
-          window.open(data.url, '_blank');
-        }
+        openTelegramUrl(data.url);
         showNotification('Натисни «Старт» у боті — і повертайся сюди.');
       } catch (error) {
         showNotification('Не вдалося створити посилання. Спробуй ще раз.', 'warning');
@@ -7843,12 +8043,17 @@
     }
 
     function openTelegramBot() {
-      const url = 'https://t.me/' + (window.TG_BOT_USERNAME || 'engpuzzle_bot');
-      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
-        window.Telegram.WebApp.openTelegramLink(url);
-      } else {
-        window.open(url, '_blank');
-      }
+      openTelegramUrl('https://t.me/' + (window.TG_BOT_USERNAME || 'engpuzzle_bot'));
+    }
+
+    /**
+     * Усередині Telegram посилання відкриває він сам — нове вікно лягло б
+     * поверх міні-аппа. Поза ним його API існує, але мовчки нічого не робить,
+     * тож там потрібне звичайне window.open.
+     */
+    function openTelegramUrl(url) {
+      if (isMiniApp() && tg.openTelegramLink) tg.openTelegramLink(url);
+      else window.open(url, '_blank');
     }
 
     // === AI через власний бекенд ===
@@ -7944,7 +8149,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.15';
+    const APP_VERSION = '2026-08-16.1';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -8732,7 +8937,8 @@ function exitSpeedTraining() {
         db.collection('users').doc(user.uid).get()
           .then(doc => {
             const userData = doc.data();
-            document.querySelector('.user-email').textContent = userData.email;
+            document.querySelector('.user-email').textContent =
+              userData.email || userData.telegramName || '';
             // Перевіряємо підписку
             // Голос озвучки спільний для всього застосунку, тож підхоплюємо
             // вибір зі Speaking Club одразу після входу
@@ -8891,12 +9097,21 @@ function exitSpeedTraining() {
     completeRedirectSignIn();
     checkReturnFromPayment();
 
-    auth.onAuthStateChanged(user => {
+    setupMiniApp();
+
+    auth.onAuthStateChanged(async user => {
+      // У міні-аппі підпис Telegram уже доводить, хто це, тож форму входу
+      // не показуємо взагалі — заходимо мовчки й лишаємо прелоадер до кінця
+      if (!user && isMiniApp()) {
+        if (await signInFromTelegram()) return; // подія прилетить ще раз, уже з користувачем
+      }
+
       updateUI();
       decodeLink();
       if (user) {
         loadGamificationData();
         loadDailyGoal();
+        if (isMiniApp()) maybeOfferAccountMerge();
       }
       // Ховаємо прелоадер після завантаження
       const preloader = document.getElementById('page-preloader');
@@ -15206,6 +15421,14 @@ function copyStory() {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'payment init failed');
+
+        // У міні-аппі форму не відправити: Telegram відкриває лише звичайне
+        // посилання. Тож туди веде сторінка, яка сама зібере й надішле форму.
+        if (isMiniApp() && data.orderReference) {
+          hideLoading();
+          openPaymentInBrowser(data.orderReference);
+          return;
+        }
         submitPaymentForm(data.action, data.payload);
       } catch (error) {
         console.log('Purchase error:', error);
