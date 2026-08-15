@@ -1065,6 +1065,12 @@
         flex-wrap: wrap;
       }
 
+      /* Шапка тут переноситься на два рядки, а картка акаунта висіла на
+         від'ємному відступі й підлазила під кнопки */
+      #account-screen {
+        margin-top: 6px;
+      }
+
       .title-main h1 {
         font-size: 22px;
       }
@@ -3794,18 +3800,55 @@
       gap: 10px;
     }
 
-    /* Повна розкладка — 26 клавіш мають вміститися в екран телефона */
+    /* Повна розкладка — окремий шар знизу, як системна клавіатура, але більший */
+    .cw-keyboard {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1100;
+      padding: 8px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+      background: #171a22;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 -12px 28px rgba(0, 0, 0, 0.5);
+    }
+
+    .cw-keyboard-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px 6px;
+      font-size: 12px;
+      color: rgba(240, 237, 232, 0.35);
+    }
+
+    .cw-keyboard-head button {
+      width: 32px;
+      min-width: 32px;
+      height: 32px;
+      padding: 0;
+      margin: 0;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: none;
+      box-shadow: none;
+      color: rgba(240, 237, 232, 0.6);
+      font-size: 14px;
+      cursor: pointer;
+    }
+
     .constructor-letter-buttons.letters-full {
-      margin: 16px 4px;
+      margin: 0;
       gap: 6px;
     }
 
     .constructor-letter-buttons.letters-full .unique-letter-button {
-      width: 36px;
-      height: 44px;
-      font-size: 18px;
+      width: 42px;
+      height: 52px;
+      font-size: 24px;
       margin: 0;
-      border-radius: 9px;
+      border-radius: 10px;
+      background-color: rgba(255, 255, 255, 0.12);
     }
 
     /* Центрирование иконки звука */
@@ -5423,12 +5466,20 @@
             <span id="poorKnowledge">0</span>
           </div>
         </div>
-        <!-- Streak -->
-        <div style="margin-top:20px;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;background:rgba(232,168,56,0.08);border:1px solid rgba(232,168,56,0.15);border-radius:12px;">
-          <span style="font-size:18px;">🔥</span>
-          <span style="font-size:14px;color:rgba(240,237,232,0.7);">Серія:</span>
-          <span id="progress-streak" style="font-size:16px;color:#E8A838;font-weight:700;"></span>
-          <span style="font-size:14px;color:rgba(240,237,232,0.5);">днів підряд</span>
+        <!-- Серія, рівень і XP: перенесені з головного екрана -->
+        <div class="acc-gamification" style="margin-top:20px;">
+          <div class="acc-streak" id="acc-streak" onclick="showInfoPopup('🔥 Серія днів', 'Серія показує скільки днів поспіль ти навчаєшся. Заходь щодня, щоб не втратити свій прогрес!\n\n• Кожен день, коли ти відкриваєш додаток — серія зростає.\n• Якщо пропустиш день — серія скидається до 1.\n• Намагайся утримати найдовшу серію!')" style="cursor:pointer;">
+            <span class="acc-streak-icon">🔥</span>
+            <span class="acc-streak-count" id="streak-count">0</span>
+            <span class="acc-streak-label">днів</span>
+          </div>
+          <div class="acc-xp-block">
+            <div class="acc-level" id="acc-level">Рівень 1</div>
+            <div class="acc-xp-bar">
+              <div class="acc-xp-fill" id="acc-xp-fill" style="width: 0%"></div>
+            </div>
+            <div class="acc-xp-text" id="acc-xp-text">0 / 200 XP</div>
+          </div>
         </div>
         <!-- XP Activity Chart -->
         <div id="progress-xp-chart" style="margin-top: 40px;"></div>
@@ -5506,21 +5557,6 @@
       <div class="acc-email acc-animate acc-delay-2"><span class="user-email"></span></div>
 
       <!-- Gamification Stats -->
-      <div class="acc-gamification acc-animate acc-delay-3">
-        <div class="acc-streak" id="acc-streak" onclick="showInfoPopup('🔥 Серія днів', 'Серія показує скільки днів поспіль ти навчаєшся. Заходь щодня, щоб не втратити свій прогрес!\n\n• Кожен день, коли ти відкриваєш додаток — серія зростає.\n• Якщо пропустиш день — серія скидається до 1.\n• Намагайся утримати найдовшу серію!')" style="cursor:pointer;">
-          <span class="acc-streak-icon">🔥</span>
-          <span class="acc-streak-count" id="streak-count">0</span>
-          <span class="acc-streak-label">днів</span>
-        </div>
-        <div class="acc-xp-block">
-          <div class="acc-level" id="acc-level">Рівень 1</div>
-          <div class="acc-xp-bar">
-            <div class="acc-xp-fill" id="acc-xp-fill" style="width: 0%"></div>
-          </div>
-          <div class="acc-xp-text" id="acc-xp-text">0 / 200 XP</div>
-        </div>
-      </div>
-
       <!-- Daily Goal -->
       <div class="acc-daily-goal acc-animate acc-delay-3" id="acc-daily-goal" onclick="toggleDailyGoalPicker()">
         <div class="daily-goal-header">
@@ -6149,7 +6185,7 @@
         <p class="mode-group-label">Спосіб:</p>
         <div class="mode-options">
           <button class="mode-option active" id="phrase-method-blocks" onclick="setPhraseMethod('blocks')">
-            <i class="fas fa-cubes"></i>Збирати кубиками
+            <i class="fas fa-cubes"></i>Складати з блоків
           </button>
           <button class="mode-option" id="phrase-method-voice" onclick="setPhraseMethod('voice')">
             <i class="fas fa-microphone"></i>Говорити голосом
@@ -6956,7 +6992,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.5';
+    const APP_VERSION = '2026-08-15.6';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -11819,7 +11855,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
       const target = phraseDirection === 'uk_to_en' ? 'англійською' : 'українською';
       document.getElementById('phrase-mode-hint').textContent = phraseMethod === 'voice'
         ? `Промовляєш переклад ${target}. Дослівно збігатися не обов'язково — головне, щоб зміст і граматика були правильні.`
-        : `Збираєш переклад ${target} з блоків-слів.`;
+        : `Складаєш переклад ${target} з готових блоків-слів.`;
     }
 
     // Що показуємо, а що просимо — залежить від напрямку
@@ -14652,14 +14688,24 @@ async function translateStory() {
         </button>
       </div>
       <div class="input-block-custom" style="display: flex; justify-content: center; margin-top: 10px;">
-        <input type="text" id="constructor-answer" placeholder="Соберіть слово..." readonly inputmode="none" onfocus="this.blur()">
+        <input type="text" id="constructor-answer" placeholder="${constructorMode === 'full' ? 'Натисни, щоб відкрити клавіатуру' : 'Соберіть слово...'}" readonly inputmode="none" onfocus="this.blur()" onclick="openConstructorKeyboard()">
         <button class="delete-constructor-button" onclick="deleteLastLetter()">
           <i class="fas fa-backspace"></i>
         </button>
       </div>
-      <div class="constructor-letter-buttons${constructorMode === 'full' ? ' letters-full' : ''}" id="letter-buttons">
+      ${constructorMode === 'full' ? `
+      <div id="constructor-keyboard" class="cw-keyboard hidden">
+        <div class="cw-keyboard-head">
+          <span>Клавіатура</span>
+          <button onclick="closeConstructorKeyboard()" title="Закрити"><i class="fas fa-xmark"></i></button>
+        </div>
+        <div class="constructor-letter-buttons letters-full" id="letter-buttons">
+          ${generateLetterButtonsHTML(letters)}
+        </div>
+      </div>` : `
+      <div class="constructor-letter-buttons" id="letter-buttons">
         ${generateLetterButtonsHTML(letters)}
-      </div>
+      </div>`}
       <button class="check-button" onclick="submitConstructorAnswer('${questionWord.english}')">Перевірити</button>
       <button class="skip-button" onclick="skipConstructor()">Пропустити</button>
       <div id="constructor-feedback" class="listening-feedback hidden"></div>
@@ -14670,6 +14716,18 @@ async function translateStory() {
         // Автоматическое озвучивание слова
         kokoroSpeak(questionWord.english, 'UK English Female');
       }, 500); // Задержка должна совпадать с длительностью анимации в CSS
+    }
+
+    // Повна розкладка живе окремим шаром знизу, як справжня клавіатура,
+    // тільки більша за системну — інакше на телефоні клавіші дрібні
+    function openConstructorKeyboard() {
+      const kb = document.getElementById('constructor-keyboard');
+      if (kb) kb.classList.remove('hidden');
+    }
+
+    function closeConstructorKeyboard() {
+      const kb = document.getElementById('constructor-keyboard');
+      if (kb) kb.classList.add('hidden');
     }
 
     // Порядок як на звичайній клавіатурі, а data-count -1 означає «не закінчується»
