@@ -5736,6 +5736,60 @@
       font-size: 13px;
     }
 
+    .acc-telegram {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 22px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(42, 171, 238, 0.08);
+      border: 1px solid rgba(42, 171, 238, 0.25);
+    }
+    .acc-telegram-text {
+      flex: 1;
+      min-width: 0;
+    }
+    .acc-telegram-text strong {
+      display: block;
+      font-size: 14px;
+      color: #F0EDE8;
+      margin-bottom: 2px;
+    }
+    .acc-telegram-text span {
+      display: block;
+      font-size: 12px;
+      line-height: 1.4;
+      color: rgba(240, 237, 232, 0.5);
+    }
+    #acc-telegram-btn {
+      flex-shrink: 0;
+      width: auto;
+      margin: 0;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      background: #2AABEE;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    #acc-telegram-btn:disabled {
+      background: rgba(42, 171, 238, 0.25);
+      cursor: default;
+    }
+    .acc-telegram.connected {
+      background: rgba(52, 211, 153, 0.08);
+      border-color: rgba(52, 211, 153, 0.25);
+    }
+    .acc-telegram.connected #acc-telegram-btn {
+      background: transparent;
+      border: 1px solid rgba(240, 237, 232, 0.2);
+      color: rgba(240, 237, 232, 0.7);
+    }
+
     .acc-footer {
       display: flex;
       flex-wrap: wrap;
@@ -6103,6 +6157,17 @@
         <button class="acc-tile acc-animate acc-delay-17" data-color="emerald" onclick="showSpeakingClub()">
           <div class="acc-tile-icon"><i class="fas fa-comments"></i></div>
           Speaking Club
+        </button>
+      </div>
+
+      <!-- Нагадування живуть у Telegram: пуші в браузері на iOS не працюють -->
+      <div class="acc-telegram" id="acc-telegram">
+        <div class="acc-telegram-text">
+          <strong id="acc-telegram-title">Нагадування в Telegram</strong>
+          <span id="acc-telegram-sub">Підкажу, коли стрик під загрозою і коли закінчується підписка</span>
+        </div>
+        <button id="acc-telegram-btn" onclick="connectTelegram()">
+          <i class="fab fa-telegram"></i> Підключити
         </button>
       </div>
 
@@ -7710,6 +7775,82 @@
 
     // ===== Юридичні документи: кінець =====
 
+    // Три дні новачок витрачав на те, щоб зрозуміти застосунок, і платив,
+    // ще нічого не спробувавши. Тиждень дає дійти до першого результату.
+    const TRIAL_DAYS = 7;
+
+    // ===== Telegram =====
+    // Одноразовий код видає функція, бо тільки сервер може довести, що цей
+    // Firebase-акаунт і той Telegram-акаунт — одна людина.
+    async function connectTelegram() {
+      const btn = document.getElementById('acc-telegram-btn');
+      if (!auth.currentUser) return;
+
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+      try {
+        const token = await auth.currentUser.getIdToken();
+        const response = await fetch('/.netlify/functions/tg-link', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error('link ' + response.status);
+        const data = await response.json();
+
+        // Усередині Telegram відкриваємо через його ж API, інакше нове вікно
+        // ляже поверх міні-аппа й людина застрягне
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+          window.Telegram.WebApp.openTelegramLink(data.url);
+        } else {
+          window.open(data.url, '_blank');
+        }
+        showNotification('Натисни «Старт» у боті — і повертайся сюди.');
+      } catch (error) {
+        showNotification('Не вдалося створити посилання. Спробуй ще раз.', 'warning');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+      }
+    }
+
+    function renderTelegramRow(userData) {
+      const row = document.getElementById('acc-telegram');
+      const btn = document.getElementById('acc-telegram-btn');
+      const title = document.getElementById('acc-telegram-title');
+      const sub = document.getElementById('acc-telegram-sub');
+      if (!row || !btn) return;
+
+      const linked = !!(userData && userData.telegramId);
+      row.classList.toggle('connected', linked);
+
+      if (!linked) {
+        title.textContent = 'Нагадування в Telegram';
+        sub.textContent = 'Підкажу, коли стрик під загрозою і коли закінчується підписка';
+        btn.innerHTML = '<i class="fab fa-telegram"></i> Підключити';
+        btn.onclick = connectTelegram;
+        return;
+      }
+
+      const off = userData.notificationsOff === true;
+      title.textContent = off ? 'Telegram підключено, нагадування вимкнені' : 'Telegram підключено';
+      sub.textContent = off
+        ? 'Увімкнути назад — командою /start у боті'
+        : 'Вимкнути можна командою /stop у боті';
+      btn.innerHTML = '<i class="fab fa-telegram"></i> Відкрити бот';
+      btn.onclick = openTelegramBot;
+    }
+
+    function openTelegramBot() {
+      const url = 'https://t.me/' + (window.TG_BOT_USERNAME || 'engpuzzle_bot');
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+        window.Telegram.WebApp.openTelegramLink(url);
+      } else {
+        window.open(url, '_blank');
+      }
+    }
+
     // === AI через власний бекенд ===
     // Ключ OpenAI більше не існує у браузері. Раніше він лежав у Firestore,
     // який міг прочитати будь-який зареєстрований користувач, і їхав у сторінку
@@ -7803,7 +7944,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-15.14';
+    const APP_VERSION = '2026-08-15.15';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -8403,7 +8544,7 @@ function exitSpeedTraining() {
         const userId = auth.currentUser.uid;
         const registrationDate = new Date();
         const subscriptionExpiration = new Date();
-        subscriptionExpiration.setDate(subscriptionExpiration.getDate() + 3); // 3 дня подписки
+        subscriptionExpiration.setDate(subscriptionExpiration.getDate() + TRIAL_DAYS);
 
         await db.collection('users').doc(userId).set({
           email: email,
@@ -8496,7 +8637,7 @@ function exitSpeedTraining() {
       const doc = await ref.get();
       if (doc.exists) return;
       const subscriptionExpiration = new Date();
-      subscriptionExpiration.setDate(subscriptionExpiration.getDate() + 3); // 3 дні пробного періоду
+      subscriptionExpiration.setDate(subscriptionExpiration.getDate() + TRIAL_DAYS);
       await ref.set({
         email: user.email,
         registrationDate: firebase.firestore.Timestamp.fromDate(new Date()),
@@ -8646,15 +8787,16 @@ function exitSpeedTraining() {
     // Статус підписки показуємо на зірочці в шапці, окремого рядка більше немає
     let currentSubscriptionData = null;
 
-    // Пробний період — це 3 дні, які видаються при реєстрації. Окремого прапорця
-    // в старих записах немає, тож упізнаємо його по тому, що строк не виходить
-    // за межі реєстрації + 3 дні (після покупки він завжди більший).
+    // Пробний період видається при реєстрації. Окремого прапорця в старих
+    // записах немає, тож упізнаємо його по тому, що строк не виходить за межі
+    // реєстрації + TRIAL_DAYS (після покупки він завжди більший). Поріг із
+    // запасом у півдня, щоб не залежати від годин реєстрації.
     function isTrialSubscription(userData, expiration) {
       if (userData.subscriptionPlan === 'paid') return false;
       const registration = userData.registrationDate && userData.registrationDate.toDate
         ? userData.registrationDate.toDate() : null;
       if (!registration) return false;
-      return (expiration - registration) <= 3.5 * 24 * 60 * 60 * 1000;
+      return (expiration - registration) <= (TRIAL_DAYS + 0.5) * 24 * 60 * 60 * 1000;
     }
 
     // Повертає true, поки доступ активний
@@ -8739,6 +8881,7 @@ function exitSpeedTraining() {
     // Перевірка підписки
     function checkSubscription(userData) {
       currentSubscriptionData = userData;
+      renderTelegramRow(userData);
       if (!renderSubscriptionBadge(userData)) {
         document.getElementById('account-screen').classList.add('hidden');
         document.getElementById('payment-section').classList.remove('hidden');
@@ -9682,6 +9825,10 @@ Return ONLY the JSON array, no other text.`;
           db.collection('users').doc(userId).collection('phrases').get().catch(() => ({ size: 0 })),
         ]);
         refreshTileRequirements(snapshot.size, phraseSnapshot.size || 0);
+        // Бот питає «словник порожній?» щогодини — хай відповідь лежить поруч
+        db.collection('users').doc(userId)
+          .set({ wordCount: snapshot.size, phraseCount: phraseSnapshot.size || 0 }, { merge: true })
+          .catch(() => {});
         let mastered = 0, good = 0, learning = 0, newW = 0;
 
         snapshot.docs.forEach(doc => {

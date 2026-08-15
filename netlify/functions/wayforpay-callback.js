@@ -3,6 +3,7 @@
 const {
   firestore, callbackSignature, answerSignature, parseCallbackBody,
 } = require('./_shared');
+const { sendMessage, openAppButton } = require('./_telegram');
 
 /**
  * The only place a subscription is ever extended.
@@ -37,6 +38,7 @@ exports.handler = async (event) => {
 
     const db = firestore();
     const orderRef = db.collection('orders').doc(body.orderReference);
+    let granted = null;
 
     await db.runTransaction(async (tx) => {
       const order = await tx.get(orderRef);
@@ -72,7 +74,10 @@ exports.handler = async (event) => {
       tx.update(userRef, {
         subscriptionExpiration: until,
         subscriptionPlan: 'paid',
+        // A paid subscription starts a fresh reminder cycle
+        notifications: {},
       });
+      granted = { telegramId: user.exists ? user.data().telegramId : null, until };
       tx.update(orderRef, {
         status: 'paid',
         transactionStatus: body.transactionStatus,
@@ -82,6 +87,17 @@ exports.handler = async (event) => {
         recToken: body.recToken || '',
       });
     });
+
+    if (granted && granted.telegramId) {
+      try {
+        await sendMessage(granted.telegramId,
+          `<b>Оплата пройшла.</b>\n\nДоступ відкрито до ${granted.until.toISOString().slice(0, 10)}.`,
+          [openAppButton('Відкрити застосунок')]);
+      } catch (e) {
+        // The money is taken and the days are granted; a missed message is not a failure
+        console.error('Payment notification failed:', e && e.message);
+      }
+    }
 
     return answer(body.orderReference);
   } catch (error) {

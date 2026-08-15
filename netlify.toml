@@ -13,3 +13,8 @@
 
 [functions]
   node_bundler = "esbuild"
+
+# Нагадування розсилаються щогодини; яке саме — вирішує сама функція,
+# зокрема тихі години з 22:00 до 9:00 за Києвом
+[functions."tg-notify"]
+  schedule = "@hourly"
