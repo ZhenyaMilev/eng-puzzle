@@ -9054,7 +9054,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.13';
+    const APP_VERSION = '2026-08-16.14';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -16330,10 +16330,15 @@ Where "correct" is the index (0-3) of the correct option. ${langInstruction}`;
       }
     }
 
+    /**
+     * Функцій із цим ім'ям було дві, і перемагала пізніша — та, що стирала
+     * клас `popup-message` разом зі стилями. Повідомлення показувалося
+     * системним шрифтом без кольору й відступів.
+     */
     function showMessageInPopup(message, type = 'success') {
       const popupMessage = document.getElementById('popupMessage');
       popupMessage.textContent = message;
-      popupMessage.className = 'popup-message'; // Reset classes
+      popupMessage.className = 'popup-message';
       if (type === 'warning') {
         popupMessage.classList.add('warning');
       }
@@ -16351,12 +16356,7 @@ Where "correct" is the index (0-3) of the correct option. ${langInstruction}`;
       messageElement.classList.add(type);
     }
 
-    function showMessageInPopup(message, type = 'success') {
-      const popupMessage = document.getElementById('popupMessage');
-      popupMessage.textContent = message;
-      popupMessage.className = ''; // Reset classes
-      popupMessage.classList.add(type);
-    }
+
 
 
 

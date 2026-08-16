@@ -465,3 +465,27 @@ test.describe('The rest of the hardening', () => {
     expect(ignore).toContain('service-account');
   });
 });
+
+test.describe('The class of bug that keeps recurring', () => {
+  test('no two functions share a name', () => {
+    const html = readFileSync(INDEX, 'utf-8');
+    const js = (html.match(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g) || []).join('\n');
+
+    const names = [...js.matchAll(/^\s*(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/gm)].map((m) => m[1]);
+    const seen = new Set<string>();
+    const dupes = new Set<string>();
+    for (const n of names) { if (seen.has(n)) dupes.add(n); seen.add(n); }
+
+    // Three real bugs came from this: the later definition silently wins, so
+    // compressImage returned the wrong shape, showMessageInPopup stripped its
+    // own styling class, and the folder picker opened the wrong dialog.
+    expect([...dupes]).toEqual([]);
+  });
+
+  test('the image compressors say in their names what they return', () => {
+    const html = readFileSync(INDEX, 'utf-8');
+    expect(html).toContain('function compressImageToDataUrl');
+    expect(html).toContain('async function compressImageToBase64');
+    expect(html).not.toMatch(/function compressImage\s*\(/);
+  });
+});
