@@ -8526,7 +8526,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.8';
+    const APP_VERSION = '2026-08-16.9';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -9324,20 +9324,26 @@ function exitSpeedTraining() {
             if (userData.subscriptionExpiration && !userData.lifetime) {
               startSubscriptionTimer(userData.subscriptionExpiration.toDate());
             }
-            // Завантажуємо пул пріоритетних слів при вході (60 слів для вправ)
+
+            // Показуємо екран тут, а не після завантаження слів.
+            // Підписка вже відома — це все, що потрібно, аби вирішити, ЩО
+            // показати. Пул із 60 слів потрібен лише всередині вправ, і чекати
+            // на цей запит означало тримати людину перед прелоадером зайву
+            // мережеву подорож.
+            hideLoading();
+            const paywalled = document.getElementById('payment-section');
+            if (paywalled.classList.contains('hidden')) {
+              document.getElementById('account-screen').classList.remove('hidden');
+              syncMainTitle();
+            }
+
+            // Далі — у фоні, за вже видимим екраном
             return loadWordsPool();
           })
           .then(() => {
             // Одноразова міграція поля priority для існуючих слів (у фоні)
             migratePriorityField();
             checkForSharedSetOnLoad();
-            // После полной загрузки интерфейса скрываем прелоадер
-            hideLoading();
-            // checkSubscription() міг відкрити екран оплати — не перекриваємо його акаунтом
-            const paywalled = document.getElementById('payment-section');
-            if (paywalled.classList.contains('hidden')) {
-              document.getElementById('account-screen').classList.remove('hidden');
-            }
           })
           .catch(error => {
             console.error('Помилка при оновленні інтерфейсу:', error);
