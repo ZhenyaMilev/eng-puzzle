@@ -1884,129 +1884,6 @@
     }
 
     /* Leaderboard */
-    .leaderboard-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .leaderboard-tab {
-      flex: 1;
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      color: rgba(240, 237, 232, 0.6);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: none;
-      width: auto;
-      margin: 0;
-    }
-
-    .leaderboard-tab.active {
-      background: rgba(232, 168, 56, 0.15);
-      border-color: #E8A838;
-      color: #E8A838;
-    }
-
-    .leaderboard-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .leaderboard-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .leaderboard-row.is-me {
-      background: rgba(232, 168, 56, 0.08);
-      border-color: rgba(232, 168, 56, 0.3);
-    }
-
-    .leaderboard-rank {
-      font-size: 18px;
-      font-weight: 700;
-      min-width: 32px;
-      text-align: center;
-      color: rgba(240, 237, 232, 0.5);
-    }
-
-    .leaderboard-row:nth-child(1) .leaderboard-rank { color: #E8A838; }
-    .leaderboard-row:nth-child(2) .leaderboard-rank { color: #C0C0C0; }
-    .leaderboard-row:nth-child(3) .leaderboard-rank { color: #CD7F32; }
-
-    .leaderboard-name {
-      flex: 1;
-      font-size: 15px;
-      color: #F0EDE8;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .leaderboard-xp {
-      font-size: 14px;
-      font-weight: 600;
-      color: #E8A838;
-      white-space: nowrap;
-    }
-
-    .leaderboard-empty {
-      text-align: center;
-      padding: 40px 20px;
-      color: rgba(240, 237, 232, 0.4);
-      font-size: 15px;
-    }
-
-    /* Words/Phrases tab switcher */
-    /* Плашка «є нова версія» */
-    #app-update-banner {
-      position: fixed;
-      left: 12px;
-      right: 12px;
-      bottom: 12px;
-      z-index: 2000;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      background: #171a22;
-      border: 1px solid rgba(232, 168, 56, 0.4);
-      border-radius: 12px;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
-      color: #F0EDE8;
-      font-size: 14px;
-    }
-
-    #app-update-banner span {
-      flex: 1;
-    }
-
-    #app-update-banner button {
-      width: auto;
-      margin: 0;
-      padding: 8px 16px;
-      background: rgba(232, 168, 56, 0.2);
-      border: 1px solid #E8A838;
-      border-radius: 9px;
-      color: #E8A838;
-      font-size: 13px;
-      font-weight: 700;
-      box-shadow: none;
-      cursor: pointer;
-    }
-
-    /* ===== Вибір режиму (напрямок / спосіб) ===== */
     .mode-group-label {
       font-size: 13px;
       color: rgba(240, 237, 232, 0.45);
@@ -2543,29 +2420,6 @@
       font-weight: 600;
     }
 
-    .nickname-edit-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-      align-items: center;
-    }
-
-    .nickname-edit-row input {
-      flex: 1;
-      padding: 10px 14px;
-      font-size: 15px;
-    }
-
-    .nickname-edit-row button {
-      padding: 10px 16px;
-      font-size: 14px;
-      white-space: nowrap;
-      margin: 0;
-      width: auto;
-    }
-
-
-    /* Exercise complete confetti */
     .confetti-container {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -5874,6 +5728,138 @@
       font-size: 12px;
     }
 
+    /* Розбір помилок після тесту */
+    .mistakes-block {
+      margin: 18px 0 4px;
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(239, 68, 68, 0.06);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      text-align: left;
+    }
+    .mistakes-block h4 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      color: #F0EDE8;
+    }
+    .mistake-row {
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .mistake-row:last-of-type { border-bottom: none; }
+    .mistake-word {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .mistake-word strong {
+      font-size: 16px;
+      color: #F0EDE8;
+    }
+    .mistake-word span {
+      font-size: 15px;
+      color: #34d399;
+    }
+    .mistake-given {
+      margin-top: 3px;
+      font-size: 12px;
+      color: rgba(239, 68, 68, 0.75);
+    }
+    .mistakes-hint {
+      margin: 12px 0 0;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(240, 237, 232, 0.45);
+    }
+    .result-clean {
+      margin: 18px 0 4px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(52, 211, 153, 0.08);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      font-size: 14px;
+      color: rgba(240, 237, 232, 0.85);
+    }
+    .result-clean i { color: #34d399; margin-right: 6px; }
+
+    /* Що входить у підписку — один список на всі тарифи, а не три однакові рядки */
+    .tariff-features {
+      margin: 0 0 20px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .tariff-features div {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 9px;
+      font-size: 14px;
+      line-height: 1.4;
+      color: rgba(240, 237, 232, 0.8);
+      text-align: left;
+    }
+    .tariff-features div:last-child { margin-bottom: 0; }
+    .tariff-features i {
+      flex-shrink: 0;
+      margin-top: 3px;
+      font-size: 12px;
+      color: #34d399;
+    }
+
+    .goal-help {
+      width: 17px;
+      height: 17px;
+      margin-left: 6px;
+      padding: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(240, 237, 232, 0.25);
+      background: transparent;
+      color: rgba(240, 237, 232, 0.5);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      vertical-align: middle;
+      cursor: pointer;
+    }
+
+    .tariff { position: relative; }
+
+    .tariff-per {
+      margin: 4px 0 14px !important;
+      font-size: 13px;
+      color: rgba(240, 237, 232, 0.5);
+    }
+
+    /* Рекомендований тариф має бути видно, інакше обирають найдешевший */
+    .tariff-best {
+      border: 1px solid rgba(232, 168, 56, 0.5);
+      background: rgba(232, 168, 56, 0.06);
+    }
+    .tariff-badge {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: #E8A838;
+      color: #1a1a1a;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .tariff-note {
+      margin-top: 16px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: rgba(240, 237, 232, 0.4);
+    }
+
     /* Умови під тарифами — дрібні, але читані */
     .tariff-terms {
       margin-top: 18px;
@@ -6006,23 +5992,23 @@
           </div>
           <div class="tile tile-good" onclick="showInfo('goodKnowledge')">
             <div class="tile-icon"><i class="fas fa-trophy"></i></div>
-            <p>Гарні знання</p>
+            <p>Майже впевнено</p>
             <span id="goodKnowledge">0</span>
           </div>
           <div class="tile tile-average" onclick="showInfo('averageKnowledge')">
             <div class="tile-icon"><i class="fas fa-book-open"></i></div>
-            <p>Середні знання</p>
+            <p>Ще вчаться</p>
             <span id="averageKnowledge">0</span>
           </div>
           <div class="tile tile-poor" onclick="showInfo('poorKnowledge')">
             <div class="tile-icon"><i class="fas fa-redo"></i></div>
-            <p>Погані знання</p>
+            <p>Потребують уваги</p>
             <span id="poorKnowledge">0</span>
           </div>
         </div>
         <!-- Серія, рівень і XP: перенесені з головного екрана -->
         <div class="acc-gamification" style="margin-top:20px;">
-          <div class="acc-streak" id="acc-streak" onclick="showInfoPopup('🔥 Серія днів', 'Серія показує скільки днів поспіль ти навчаєшся. Заходь щодня, щоб не втратити свій прогрес!\n\n• Кожен день, коли ти відкриваєш додаток — серія зростає.\n• Якщо пропустиш день — серія скидається до 1.\n• Намагайся утримати найдовшу серію!')" style="cursor:pointer;">
+          <div class="acc-streak" id="acc-streak" onclick="showInfoPopup('🔥 Серія днів', 'Серія показує скільки днів поспіль ти навчаєшся. Заходьте щодня, щоб не втратити свій прогрес!\n\n• Кожен день, коли ти відкриваєш додаток — серія зростає.\n• Якщо пропустиш день — серія скидається до 1.\n• Намагайся утримати найдовшу серію!')" style="cursor:pointer;">
             <span class="acc-streak-icon">🔥</span>
             <span class="acc-streak-count" id="streak-count">0</span>
             <span class="acc-streak-label">днів</span>
@@ -6075,11 +6061,9 @@
         <button class="button-with-icon logout-button" onclick="logout()">
           <i class="fas fa-sign-out-alt"></i>
         </button>
-        <a href="https://t.me/shopify_evgene" target="_blank" class="asset-link">
-          <button class="button-with-icon question-button">
-            <i class="fas fa-headset"></i>
-          </button>
-        </a>
+        <button class="button-with-icon question-button" onclick="openSupport()" title="Підтримка">
+          <i class="fas fa-headset"></i>
+        </button>
       </div>
 
     </div>
@@ -6087,13 +6071,13 @@
     <div id="login-form" class="auth-screen">
       <div class="auth-card">
         <h2 class="auth-title">Вхід</h2>
-        <p class="auth-sub">Продовжуй з того місця, де зупинився</p>
+        <p class="auth-sub">Продовжуйте з того місця, де зупинилися</p>
 
         <input type="email" id="login-email" placeholder="Email" autocomplete="email">
         <div id="login-email-error" class="error-message"></div>
         <input type="password" id="login-password" placeholder="Пароль" autocomplete="current-password">
         <div id="login-password-error" class="error-message"></div>
-        <button class="auth-forgot" id="forgot-password-btn" onclick="resetPassword()">Забув пароль?</button>
+        <button class="auth-forgot" id="forgot-password-btn" onclick="resetPassword()">Забули пароль?</button>
         <button class="auth-primary" onclick="login()">Увійти</button>
 
         <div class="auth-divider"><span>або</span></div>
@@ -6140,17 +6124,20 @@
       <!-- Daily Goal -->
       <div class="acc-daily-goal acc-animate acc-delay-3" id="acc-daily-goal" onclick="toggleDailyGoalPicker()">
         <div class="daily-goal-header">
-          <span>Денна ціль <i class="fas fa-pen" style="font-size:11px;opacity:0.5;margin-left:4px;"></i></span>
+          <span>Денна ціль
+            <i class="fas fa-pen" style="font-size:11px;opacity:0.5;margin-left:4px;"></i>
+            <button class="goal-help" onclick="event.stopPropagation(); showXPInfo();" title="Що таке XP">?</button>
+          </span>
           <span class="daily-goal-count" id="daily-goal-count">0/200 XP</span>
         </div>
         <div class="daily-goal-bar">
           <div class="daily-goal-fill" id="daily-goal-fill" style="width: 0%"></div>
         </div>
         <div id="daily-goal-picker" class="daily-goal-picker hidden">
-          <button class="daily-goal-opt" data-target="100" onclick="setDailyGoal(event, 100)">Легко<br><span>100 XP</span></button>
-          <button class="daily-goal-opt" data-target="200" onclick="setDailyGoal(event, 200)">Нормально<br><span>200 XP</span></button>
-          <button class="daily-goal-opt" data-target="300" onclick="setDailyGoal(event, 300)">Серйозно<br><span>300 XP</span></button>
-          <button class="daily-goal-opt" data-target="500" onclick="setDailyGoal(event, 500)">Хардкор<br><span>500 XP</span></button>
+          <button class="daily-goal-opt" data-target="100" onclick="setDailyGoal(event, 100)">Легко<br><span>≈5 хв</span></button>
+          <button class="daily-goal-opt" data-target="200" onclick="setDailyGoal(event, 200)">Нормально<br><span>≈10 хв</span></button>
+          <button class="daily-goal-opt" data-target="300" onclick="setDailyGoal(event, 300)">Серйозно<br><span>≈15 хв</span></button>
+          <button class="daily-goal-opt" data-target="500" onclick="setDailyGoal(event, 500)">Хардкор<br><span>≈25 хв</span></button>
         </div>
       </div>
 
@@ -6171,10 +6158,6 @@
         <button class="acc-action-btn" onclick="loadUserProgress()">
           <i class="fa-solid fa-chart-line"></i>
           <span>Прогрес</span>
-        </button>
-        <button class="acc-action-btn" onclick="showLeaderboard()">
-          <i class="fas fa-trophy"></i>
-          <span>Лідери</span>
         </button>
       </div>
 
@@ -6258,41 +6241,6 @@
     </div>
 
     <!-- Секція "Таблиця лідерів" -->
-    <div id="leaderboard-section" class="hidden">
-      <div class="title-and-btn">
-        <button class="button-with-icon back-button" onclick="backToAccount()">
-          <i class="fas fa-arrow-left"></i>
-          <span>Назад</span>
-        </button>
-        <h2 style="font-size:24px;">Таблиця лідерів</h2>
-      </div>
-      <div class="leaderboard-tabs">
-        <button class="leaderboard-tab active" id="lb-tab-weekly" onclick="switchLeaderboardTab('weekly')">За тиждень</button>
-        <button class="leaderboard-tab" id="lb-tab-total" onclick="switchLeaderboardTab('total')">Загальний</button>
-      </div>
-      <div id="leaderboard-list" class="leaderboard-list">
-        <div class="leaderboard-empty">Завантаження...</div>
-      </div>
-      <div style="margin-top:24px;padding:14px 16px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.06);">
-        <div id="nickname-display" style="display:flex;align-items:center;justify-content:space-between;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <i class="fas fa-user-circle" style="font-size:18px;color:#E8A838;"></i>
-            <span style="font-size:13px;color:rgba(240,237,232,0.5);">Нік:</span>
-            <span id="nickname-label" style="font-size:15px;color:#F0EDE8;font-weight:600;"></span>
-          </div>
-          <button onclick="toggleNicknameEdit()" style="padding:6px 12px;font-size:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:rgba(240,237,232,0.6);cursor:pointer;width:auto;min-width:auto;margin:0;">
-            <i class="fas fa-pen" style="font-size:10px;"></i>
-          </button>
-        </div>
-        <div id="nickname-edit" class="hidden" style="margin-top:12px;">
-          <div class="nickname-edit-row" style="margin-top:0;">
-            <input type="text" id="nickname-input" placeholder="Введи нікнейм..." maxlength="20">
-            <button onclick="saveNickname()">Зберегти</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Попап для поділених слів -->
     <div id="sharedWordsPopup" class="popup hidden">
       <div class="popup-content">
@@ -6503,10 +6451,10 @@
         <div style="text-align:center;margin:24px 0 16px;">
           <div style="font-size:48px;margin-bottom:12px;">🎯</div>
           <h3 style="font-size:20px;color:#F0EDE8;margin:0 0 8px;">Розкажи про себе</h3>
-          <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;">Щоб підбирати слова саме для тебе</p>
+          <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;">Щоб підбирати слова саме для вас</p>
         </div>
         <div class="onboarding-question" style="margin-bottom:20px;">
-          <label style="font-size:15px;font-weight:600;color:#F0EDE8;display:block;margin-bottom:10px;">Який у тебе рівень англійської?</label>
+          <label style="font-size:15px;font-weight:600;color:#F0EDE8;display:block;margin-bottom:10px;">Який у вас рівень англійської?</label>
           <div id="onboarding-level" class="onboarding-options">
             <button class="onboarding-opt" data-value="beginner" onclick="selectOnboardingOption(this)">🌱 Початківець</button>
             <button class="onboarding-opt" data-value="elementary" onclick="selectOnboardingOption(this)">📗 Elementary</button>
@@ -6546,7 +6494,7 @@
       <div id="daily-words-list-container" class="hidden" style="padding: 0 16px;">
         <div id="daily-words-header" style="text-align:center;margin:16px 0;">
           <div style="font-size:36px;margin-bottom:8px;">✨</div>
-          <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;" id="daily-words-subtitle">Твої нові слова на сьогодні</p>
+          <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;" id="daily-words-subtitle">Ваші нові слова на сьогодні</p>
         </div>
         <ul id="daily-words-list" style="list-style:none;padding:0;"></ul>
         <button class="finish-button" id="add-all-daily-words" onclick="addAllDailyWords()" style="width:100%;margin-top:8px;">
@@ -6572,7 +6520,7 @@
         <div id="daily-phrases-list-container" class="hidden" style="padding: 0 16px;">
           <div style="background:rgba(232,168,56,0.08);border:1px solid rgba(232,168,56,0.15);border-radius:12px;padding:16px;margin-bottom:14px;text-align:center;">
             <div style="font-size:28px;margin-bottom:6px;">💬</div>
-            <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;" id="daily-phrases-subtitle">Твої нові фрази на сьогодні</p>
+            <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;" id="daily-phrases-subtitle">Ваші нові фрази на сьогодні</p>
           </div>
           <ul id="daily-phrases-list" style="list-style:none;padding:0;"></ul>
           <button class="finish-button" id="add-all-daily-phrases" onclick="addAllDailyPhrases()" style="width:100%;margin-top:8px;">
@@ -7131,25 +7079,40 @@
         </button>
         <h2>Виберіть тариф</h2>
       </div>
+      <!-- Що саме купують: три однакові «повний доступ» не давали підстав
+           обрати ані тариф, ані взагалі підписку -->
+      <div class="tariff-features">
+        <div><i class="fas fa-check"></i> Усі 12 тренувань і кросворди</div>
+        <div><i class="fas fa-check"></i> Слова та фрази з фото — AI розпізнає й перекладе</div>
+        <div><i class="fas fa-check"></i> Уроки граматики з вашого конспекту</div>
+        <div><i class="fas fa-check"></i> Speaking Club — розмовна практика голосом</div>
+        <div><i class="fas fa-check"></i> Живе озвучення замість роботизованого</div>
+        <div><i class="fas fa-check"></i> Папки, спільні набори, статистика</div>
+      </div>
+
       <div class="tariff">
         <h3>1 місяць</h3>
-        <p>Повний доступ до всіх функцій на 1 місяць.</p>
         <div class="tariff-price">₴99</div>
-        <button onclick="purchaseSubscription(30)">Купити</button>
+        <p class="tariff-per">₴99 на місяць</p>
+        <button onclick="purchaseSubscription(30)">Обрати</button>
       </div>
-      <div class="tariff">
+
+      <div class="tariff tariff-best">
+        <div class="tariff-badge">Найпопулярніше</div>
         <h3>3 місяці</h3>
-        <p>Повний доступ до всіх функцій на 3 місяці.</p>
         <div class="tariff-price">₴249</div>
-        <button onclick="purchaseSubscription(90)">Купити</button>
+        <p class="tariff-per">₴83 на місяць — економія ₴48</p>
+        <button onclick="purchaseSubscription(90)">Обрати</button>
       </div>
+
       <div class="tariff">
         <h3>1 рік</h3>
-        <p>Повний доступ до всіх функцій на 1 рік.</p>
         <div class="tariff-price">₴899</div>
-        <button onclick="purchaseSubscription(365)">Купити</button>
+        <p class="tariff-per">₴75 на місяць — економія ₴289</p>
+        <button onclick="purchaseSubscription(365)">Обрати</button>
       </div>
-      <p>З Преміум підпискою ви зможете покращити свій рівень англійської швидше та ефективніше!</p>
+      <p class="tariff-note">Ціна за місяць рахується від повної вартості тарифу.
+      Порівняння з помісячною оплатою: ₴99 × 12 = ₴1188 на рік.</p>
 
       <!-- Умови мають бути перед оплатою, а не після неї -->
       <p class="tariff-terms">
@@ -7318,7 +7281,7 @@
       <div id="sc-config-screen">
         <div id="sc-memory-badge" class="hidden" style="display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:14px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:10px;color:#34d399;font-size:13px;">
           <i class="fas fa-brain"></i>
-          <span style="flex:1;">Співрозмовник тебе пам'ятає — розмов разом: <b id="sc-memory-count">0</b></span>
+          <span style="flex:1;">Співрозмовник вас пам'ятає — розмов разом: <b id="sc-memory-count">0</b></span>
           <button onclick="scForgetMemory()" title="Забути" style="width:28px;min-width:28px;height:28px;padding:0;margin:0;border-radius:7px;background:transparent;border:none;box-shadow:none;color:rgba(240,237,232,0.35);font-size:12px;cursor:pointer;">
             <i class="fas fa-eraser"></i>
           </button>
@@ -7330,7 +7293,7 @@
             <textarea id="sc-custom-topic" class="sc-custom-topic hidden" rows="2" placeholder="Опиши свою тему..."></textarea>
           </div>
           <div>
-            <div class="sc-config-label">Твій рівень</div>
+            <div class="sc-config-label">Ваш рівень</div>
             <div class="sc-chips" id="sc-levels"></div>
           </div>
           <div>
@@ -7385,7 +7348,7 @@
             <textarea class="sc-text-input" id="sc-text-input" rows="1" placeholder="Напиши повідомлення..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();scSendMessage()}"></textarea>
             <button class="sc-mic-btn hidden" id="sc-mic-btn" onclick="scToggleRecording()">
               <i class="fas fa-microphone" id="sc-mic-icon"></i>
-              <span id="sc-mic-label" class="hidden" style="font-size:12px;margin-left:6px;">Натисни щоб зупинити</span>
+              <span id="sc-mic-label" class="hidden" style="font-size:12px;margin-left:6px;">Натисніть щоб зупинити</span>
             </button>
             <button class="sc-send-btn" id="sc-send-btn" onclick="scSendMessage()">
               <i class="fas fa-paper-plane"></i>
@@ -7631,7 +7594,7 @@
       tax: 'ЗАПОВНИТИ: ІПН/РНОКПП',
       address: 'ЗАПОВНИТИ: адреса реєстрації ФОП',
       email: 'milevich.evgen@gmail.com',
-      telegram: 'https://t.me/shopify_evgene',
+      telegram: 'https://t.me/myslovnyk_bot',
       site: 'vocabulary-english.netlify.app',
       updated: '15 серпня 2026 р.',
     };
@@ -7931,7 +7894,9 @@
         // Кнопка «Додати всі» має сенс, лише поки список не порожній
         when: () => {
           const btn = document.getElementById('add-all-daily-words');
-          return btn && btn.offsetParent !== null && btn.style.display !== 'none';
+          // Свідомо без вимірювання розкладки: браузер рахував би її щоразу,
+          // а сюди ми потрапляємо після кожної зміни класів
+          return !!btn && btn.style.display !== 'none';
         },
         text: 'Додати всі до словника',
         action: () => addAllDailyWords(),
@@ -8036,11 +8001,21 @@
      * Екрани перемикаються додаванням класу hidden, а не роутером, тож
      * стежимо за самими класами — інакше довелося б чіпати 40 функцій показу.
      */
+    let screenSyncScheduled = false;
+
     function observeScreenChanges() {
       const observer = new MutationObserver(() => {
-        syncTelegramBackButton();
-        syncClosingGuard();
-        syncMainButton();
+        // Рендер списку слів — це сотні мутацій поспіль, а в синхронізації
+        // читається розкладка. Без цієї заслінки кожна вставка <li> змушувала
+        // браузер перераховувати сторінку, і все «пливло».
+        if (screenSyncScheduled) return;
+        screenSyncScheduled = true;
+        requestAnimationFrame(() => {
+          screenSyncScheduled = false;
+          syncTelegramBackButton();
+          syncClosingGuard();
+          syncMainButton();
+        });
       });
       observer.observe(document.body, {
         subtree: true,
@@ -8069,7 +8044,6 @@
       ['crossword-section', () => backToAccount()],
       ['fill-blanks-section', () => backToAccount()],
       ['definition-quiz-section', () => backToAccount()],
-      ['leaderboard-section', () => backToAccount()],
       ['phrase-constructor-section', () => backToAccount()],
       ['payment-section', null], // звідси назад нікуди: підписка скінчилася
     ];
@@ -8221,7 +8195,7 @@
       // Попереджаємо заздалегідь: інакше вихід у браузер виглядає як збій
       const go = await appConfirm(
         'Оплата відкриється у браузері',
-        'Після оплати повернешся сюди — доступ відкриється автоматично.',
+        'Після оплати повернетеся сюди — доступ відкриється автоматично.',
         'Продовжити');
       if (!go) return;
       if (tg && tg.openLink) tg.openLink(url);
@@ -8269,7 +8243,7 @@
         screen.innerHTML = `
           <i class="fa-solid fa-plug-circle-exclamation"></i>
           <h3>Не вдалося увійти</h3>
-          <p>Схоже, зникло з'єднання. Спробуй ще раз — пароль не потрібен.</p>
+          <p>Схоже, зникло з'єднання. Спробуйте ще раз — пароль не потрібен.</p>
           <div class="not-enough-actions">
             <button class="not-enough-cta" onclick="retryMiniAppSignIn()">Спробувати ще раз</button>
           </div>`;
@@ -8305,9 +8279,9 @@
         const data = await response.json();
 
         openTelegramUrl(data.url);
-        showNotification('Натисни «Старт» у боті — і повертайся сюди.');
+        showNotification('Натисніть «Старт» у боті — і повертайтеся сюди.');
       } catch (error) {
-        showNotification('Не вдалося створити посилання. Спробуй ще раз.', 'warning');
+        showNotification('Не вдалося створити посилання. Спробуйте ще раз.', 'warning');
       } finally {
         btn.disabled = false;
         btn.innerHTML = original;
@@ -8347,6 +8321,45 @@
         : 'Вимкнути можна командою /stop у боті';
       btn.innerHTML = '<i class="fab fa-telegram"></i> Відкрити бот';
       btn.onclick = openTelegramBot;
+    }
+
+    /**
+     * Підтримка йде через бот, а не через особистий нік: людина пише в чат
+     * @myslovnyk_bot, повідомлення лягає в Firestore, і власник бачить його
+     * там — без розкритого особистого акаунта і без окремого каналу.
+     */
+    function showXPInfo() {
+      showInfoPopup(
+        'Що таке XP і денна ціль',
+        'XP — це бали за тренування. Вони не впливають на доступ до функцій: '
+        + 'це просто спосіб побачити, скільки ви сьогодні зробили, і не втратити серію днів.',
+        [
+          'Правильна відповідь — 10 XP, спроба — 2 XP.',
+          '100 XP — приблизно 5 хвилин занять, 500 XP — близько 25 хвилин.',
+          'Ціль зараховується за будь-які тренування, не за конкретне.',
+          'Серія днів зростає, щойно ви набрали хоч трохи XP за день.',
+        ]);
+    }
+
+    async function openSupport() {
+      const text = await appPrompt('Опишіть, що сталося', '');
+      if (!text || !text.trim()) return;
+
+      try {
+        await db.collection('supportRequests').add({
+          uid: auth.currentUser ? auth.currentUser.uid : null,
+          email: auth.currentUser ? (auth.currentUser.email || '') : '',
+          telegramId: (currentSubscriptionData && currentSubscriptionData.telegramId) || null,
+          message: text.trim().slice(0, 2000),
+          version: APP_VERSION,
+          platform: isMiniApp() ? 'telegram' : 'web',
+          createdAt: new Date().toISOString(),
+          status: 'new',
+        });
+        showNotification('Дякуємо — ми отримали звернення і відповімо в Telegram.');
+      } catch (error) {
+        showNotification('Не вдалося надіслати. Напишіть у бот @myslovnyk_bot.', 'warning');
+      }
     }
 
     function openTelegramBot() {
@@ -8445,10 +8458,10 @@
      * Але «ліміт» і «підписка» користувачеві треба показати різними словами.
      */
     function aiErrorMessage(response) {
-      if (response.status === 429) return 'Денний ліміт AI вичерпано. Спробуй завтра.';
+      if (response.status === 429) return 'Денний ліміт AI вичерпано. Спробуйте завтра.';
       if (response.status === 402) return 'Для AI-функцій потрібна активна підписка.';
       if (response.status === 401) return 'Сесія застаріла — увійди ще раз.';
-      return 'AI зараз недоступний. Спробуй ще раз за хвилину.';
+      return 'AI зараз недоступний. Спробуйте ще раз за хвилину.';
     }
 
     // ===== Оновлення застосунку =====
@@ -8456,7 +8469,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.4';
+    const APP_VERSION = '2026-08-16.5';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -8733,13 +8746,13 @@
       let emoji = '', message = '', scoreClass = '';
 
       if (pct >= 90) {
-        emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great';
+        emoji = '🔥'; message = 'Неймовірно! Ви монстр!'; scoreClass = 'great';
       } else if (pct >= 70) {
         emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great';
       } else if (pct >= 50) {
         emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good';
       } else if (pct >= 30) {
-        emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good';
+        emoji = '📚'; message = 'Продовжуйте вчитися!'; scoreClass = 'good';
       } else {
         emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low';
       }
@@ -8841,7 +8854,7 @@ function hideAllAppSections() {
     'picture-quiz-section', 'payment-section', 'listening-training-section',
     'word-constructor-training-section', 'speed-training-section', 'generative-text-section',
     'tariffs-section', 'crossword-section', 'fill-blanks-section', 'definition-quiz-section',
-    'leaderboard-section', 'add-phrase-section', 'phrase-constructor-section',
+    'add-phrase-section', 'phrase-constructor-section',
     'grammar-section', 'speaking-club-section', 'legal-section',
   ].forEach(id => {
     const el = document.getElementById(id);
@@ -8989,27 +9002,27 @@ function exitSpeedTraining() {
      * ЩО не так і що з цим робити — і побачити це біля потрібного поля.
      */
     const AUTH_ERRORS = {
-      'auth/invalid-email': ['email', 'Схоже, в адресі помилка. Перевір email.'],
-      'auth/missing-email': ['email', 'Введи email.'],
-      'auth/user-not-found': ['email', 'Акаунта з таким email немає. Перевір адресу або зареєструйся.'],
+      'auth/invalid-email': ['email', 'Схоже, в адресі помилка. Перевірте email.'],
+      'auth/missing-email': ['email', 'Введіть email.'],
+      'auth/user-not-found': ['email', 'Акаунта з таким email немає. Перевірте адресу або зареєструйся.'],
       'auth/email-already-in-use': ['email', 'Цей email вже зареєстрований — увійди замість реєстрації.'],
       'auth/user-disabled': ['email', 'Цей акаунт заблоковано. Напиши в підтримку.'],
-      'auth/wrong-password': ['password', 'Невірний пароль. Спробуй ще раз або натисни «Забув пароль?».'],
+      'auth/wrong-password': ['password', 'Невірний пароль. Спробуйте ще раз або натисни «Забули пароль?».'],
       'auth/invalid-credential': ['password', 'Невірний email або пароль.'],
       'auth/invalid-login-credentials': ['password', 'Невірний email або пароль.'],
-      'auth/missing-password': ['password', 'Введи пароль.'],
+      'auth/missing-password': ['password', 'Введіть пароль.'],
       'auth/weak-password': ['password', 'Пароль закороткий — потрібно щонайменше 6 символів.'],
       'auth/too-many-requests': ['password', 'Забагато спроб поспіль. Зачекай кілька хвилин і спробуй знову.'],
-      'auth/network-request-failed': ['password', 'Немає зв\'язку із сервером. Перевір інтернет і спробуй ще раз.'],
+      'auth/network-request-failed': ['password', 'Немає зв\'язку із сервером. Перевірте інтернет і спробуй ще раз.'],
       'auth/operation-not-allowed': ['password', 'Цей спосіб входу вимкнено. Напиши в підтримку.'],
-      'auth/popup-closed-by-user': ['password', 'Вікно входу закрилося. Спробуй ще раз.'],
-      'auth/account-exists-with-different-credential': ['email', 'Цей email вже прив\'язаний до іншого способу входу. Увійди поштою й паролем.'],
+      'auth/popup-closed-by-user': ['password', 'Вікно входу закрилося. Спробуйте ще раз.'],
+      'auth/account-exists-with-different-credential': ['email', 'Цей email вже прив\'язаний до іншого способу входу. Увійдіть поштою й паролем.'],
     };
 
     function authError(error) {
       const known = AUTH_ERRORS[error && error.code];
       if (known) return { field: known[0], text: known[1] };
-      return { field: 'password', text: 'Не вдалося виконати дію. Спробуй ще раз.' };
+      return { field: 'password', text: 'Не вдалося виконати дію. Спробуйте ще раз.' };
     }
 
     // Відновлення пароля: без нього забутий пароль означав втрачений акаунт
@@ -9018,7 +9031,7 @@ function exitSpeedTraining() {
       const email = document.getElementById('login-email').value.trim();
       if (!email) {
         document.getElementById('login-email-error').textContent =
-          'Введи свій email — надішлемо на нього лист для відновлення.';
+          'Введіть свій email — надішлемо на нього лист для відновлення.';
         document.getElementById('login-email').focus();
         return;
       }
@@ -9026,7 +9039,7 @@ function exitSpeedTraining() {
       showLoading();
       try {
         await auth.sendPasswordResetEmail(email);
-        showNotification(`Лист для відновлення пароля надіслано на ${email}. Перевір пошту, зокрема теку «Спам».`);
+        showNotification(`Лист для відновлення пароля надіслано на ${email}. Перевірте пошту, зокрема теку «Спам».`);
       } catch (error) {
         showAuthError(error);
       } finally {
@@ -9116,7 +9129,7 @@ function exitSpeedTraining() {
         el.classList.toggle('hidden', !inApp);
         if (inApp) {
           el.innerHTML = 'Google не дозволяє вхід у вбудованому браузері (Telegram, Instagram тощо). '
-            + 'Увійди поштою — або відкрий застосунок у Safari чи Chrome.'
+            + 'Увійдіть поштою — або відкрийте застосунок у Safari чи Chrome.'
             + '<button onclick="openInExternalBrowser()">Відкрити у браузері</button>';
         }
       });
@@ -9175,7 +9188,7 @@ function exitSpeedTraining() {
       clearErrors();
       if (isInAppBrowser()) {
         renderInAppBrowserNote();
-        showNotification('Google-вхід тут недоступний — відкрий у браузері', 'warning');
+        showNotification('Google-вхід тут недоступний — відкрийте у браузері', 'warning');
         return;
       }
       showLoading();
@@ -9646,7 +9659,7 @@ Return ONLY the JSON array, no other text.`;
       currentDailyWords = currentDailyWords.filter(w => w && w.word && w.translation);
 
       if (currentDailyWords.length === 0) {
-        list.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.5);padding:20px;">Натисни "Згенерувати" щоб отримати слова</p>';
+        list.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.5);padding:20px;">Натисніть "Згенерувати" щоб отримати слова</p>';
         var addBtn = document.getElementById('add-all-daily-words');
         if (addBtn) addBtn.style.display = 'none';
         return;
@@ -9665,7 +9678,7 @@ Return ONLY the JSON array, no other text.`;
         const alreadyAdded = existingSet.has(w.word.toLowerCase());
         if (!alreadyAdded) allAdded = false;
         const li = document.createElement('li');
-        li.style.cssText = 'background:rgba(255,255,255,0.05);padding:15px 22px;margin-bottom:10px;border-radius:8px;display:flex;align-items:center;border:1px solid rgba(255,255,255,0.06);position:relative;cursor:pointer;list-style:none;animation:dailyWordFadeIn 0.4s ease forwards;animation-delay:' + (i * 0.06) + 's;opacity:0;';
+        li.style.cssText = 'background:rgba(255,255,255,0.05);padding:15px 22px;margin-bottom:10px;border-radius:8px;display:flex;align-items:center;border:1px solid rgba(255,255,255,0.06);position:relative;cursor:pointer;list-style:none;animation:dailyWordFadeIn 0.3s ease forwards;animation-delay:' + (Math.min(i, 8) * 0.03) + 's;opacity:0;';
         const safeWord = w.word.replace(/'/g, "\\'");
         const iconHtml = alreadyAdded
           ? `<i class="fas fa-check" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);color:#34d399;padding:5px;"></i>`
@@ -9960,7 +9973,7 @@ Return ONLY the JSON array, no other text.`;
       currentDailyPhrases = currentDailyPhrases.filter(p => p && p.phrase && p.translation);
 
       if (currentDailyPhrases.length === 0) {
-        list.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.5);padding:20px;">Натисни "Згенерувати" щоб отримати фрази</p>';
+        list.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.5);padding:20px;">Натисніть "Згенерувати" щоб отримати фрази</p>';
         var addBtn = document.getElementById('add-all-daily-phrases');
         if (addBtn) addBtn.style.display = 'none';
         return;
@@ -9980,7 +9993,7 @@ Return ONLY the JSON array, no other text.`;
         const alreadyAdded = existingSet.has(phraseId);
         if (!alreadyAdded) allAdded = false;
         const li = document.createElement('li');
-        li.style.cssText = 'background:rgba(255,255,255,0.05);padding:15px 22px;margin-bottom:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);position:relative;list-style:none;animation:dailyWordFadeIn 0.4s ease forwards;animation-delay:' + (i * 0.06) + 's;opacity:0;';
+        li.style.cssText = 'background:rgba(255,255,255,0.05);padding:15px 22px;margin-bottom:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);position:relative;list-style:none;animation:dailyWordFadeIn 0.3s ease forwards;animation-delay:' + (Math.min(i, 8) * 0.03) + 's;opacity:0;';
         const safePhrase = p.phrase.replace(/'/g, "\\'");
         // Highlight the vocabulary word only when "use my words" is on
         let phraseHtml = p.phrase;
@@ -10155,7 +10168,7 @@ Return ONLY the JSON array, no other text.`;
       const note = (document.getElementById('settings-note').value || '').trim();
 
       if (!level || goals.length === 0 || topics.length === 0) {
-        showNotification('Обери рівень, мету та хоча б одну тему', 'warning');
+        showNotification('Оберіть рівень, мету та хоча б одну тему', 'warning');
         return;
       }
 
@@ -10379,9 +10392,9 @@ Return ONLY the JSON array, no other text.`;
         const el = document.getElementById('acc-mastery');
         if (el) {
           el.innerHTML = `
-            <div class="acc-mastery-item"><span class="acc-mastery-dot mastered"></span>${mastered} освоєно</div>
-            <div class="acc-mastery-item"><span class="acc-mastery-dot good"></span>${good} добре</div>
-            <div class="acc-mastery-item"><span class="acc-mastery-dot learning"></span>${learning} вивчаю</div>
+            <div class="acc-mastery-item"><span class="acc-mastery-dot mastered"></span>${mastered} впевнено</div>
+            <div class="acc-mastery-item"><span class="acc-mastery-dot good"></span>${good} майже впевнено</div>
+            <div class="acc-mastery-item"><span class="acc-mastery-dot learning"></span>${learning} ще вчаться</div>
             <div class="acc-mastery-item"><span class="acc-mastery-dot new-word"></span>${newW} нових</div>
           `;
         }
@@ -11166,7 +11179,7 @@ Return ONLY a JSON array of strings.`
       document.getElementById('custom-lesson-heading').textContent =
         lesson ? `Доповнити «${lesson.title}»` : 'Свій конспект';
       document.getElementById('custom-lesson-hint').textContent = lesson
-        ? 'Додай ще фото або текст — нове правило стане наступними сторінками цього ж уроку, а питання додадуться до тесту.'
+        ? 'Додайте ще фото або текст — нове правило стане наступними сторінками цього ж уроку, а питання додадуться до тесту.'
         : 'Сфотографуй дошку, сторінку підручника або зошит — можна кілька фото одразу. Можеш ще додати текст. Урок і тест побудую саме з твого матеріалу.';
       document.getElementById('custom-lesson-generate-btn').innerHTML = lesson
         ? '<i class="fas fa-plus" style="margin-right:6px;"></i>Додати до уроку'
@@ -11279,11 +11292,11 @@ Output the transcription only.`
       errorEl.textContent = '';
 
       if (!customLessonImages.length && text.length < 20) {
-        errorEl.textContent = 'Додай хоча б одне фото або текст (від 20 символів).';
+        errorEl.textContent = 'Додайте хоча б одне фото або текст (від 20 символів).';
         return;
       }
       if (!aiAvailable()) {
-        errorEl.textContent = 'Увійди в акаунт, щоб згенерувати урок.';
+        errorEl.textContent = 'Увійдіть в акаунт, щоб згенерувати урок.';
         return;
       }
 
@@ -11356,7 +11369,7 @@ ${source}
 
         if (data.error) { errorEl.textContent = data.error; return; }
         if (!Array.isArray(data.pages) || !data.pages.length) {
-          errorEl.textContent = 'Не вдалося зрозуміти матеріал. Спробуй чіткіше фото або більше тексту.';
+          errorEl.textContent = 'Не вдалося зрозуміти матеріал. Спробуйте чіткіше фото або більше тексту.';
           return;
         }
 
@@ -11398,7 +11411,7 @@ ${source}
         openCustomLesson(lessonId, firstNewPage);
       } catch (e) {
         console.log('Custom lesson error:', e);
-        errorEl.textContent = 'Помилка створення уроку. Спробуй ще раз.';
+        errorEl.textContent = 'Помилка створення уроку. Спробуйте ще раз.';
       } finally {
         hideLoading();
         btn.disabled = false;
@@ -11650,7 +11663,7 @@ ${source}
           <p style="margin-top:10px;"><span style="color:#60a5fa;">Питання:</span> переставляємо am/is/are на початок:</p>
           <div class="example"><b>Am</b> I late? — Я спізнився?</div>
           <div class="example"><b>Is</b> she a teacher? — Вона вчителька?</div>
-          <div class="example"><b>Are</b> you OK? — Ти в порядку?</div>
+          <div class="example"><b>Are</b> you OK? — Ви в порядку?</div>
         </div>`,
         `<div class="grammar-lesson-block">
           <h3>Коли вживати "to be"</h3>
@@ -11660,7 +11673,7 @@ ${source}
           <div class="example">She <b>is</b> tall. They <b>are</b> young.</div>
           <p><b>3. Де ти / місце:</b></p>
           <div class="example">We <b>are</b> at school. The cat <b>is</b> on the table.</div>
-          <p><b>4. Скільки тобі років:</b></p>
+          <p><b>4. Скільки вам років:</b></p>
           <div class="example">I <b>am</b> 20 years old. She <b>is</b> 15.</div>
           <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I <b>have</b> 20 years. ✅ I <b>am</b> 20 years old. — вік = am/is/are, НЕ have!</p>
         </div>`
@@ -11714,7 +11727,7 @@ ${source}
             Далеко 👉: <b>that</b> (те) · <b>those</b> (ті)
           </p>
           <div class="example"><b>This</b> is my phone. — Це мій телефон. (тримаю в руці)</div>
-          <div class="example"><b>That</b> is your car. — То твоя машина. (стоїть далеко)</div>
+          <div class="example"><b>That</b> is your car. — То ваша машина. (стоїть далеко)</div>
           <div class="example"><b>These</b> are my books. — Це мої книги. (лежать поруч)</div>
           <div class="example"><b>Those</b> are her shoes. — То її взуття. (стоїть далеко)</div>
         </div>`,
@@ -11834,19 +11847,19 @@ ${source}
             <b>Who</b> — хто · <b>When</b> — коли<br>
             <b>Why</b> — чому · <b>How</b> — як
           </p>
-          <div class="example"><b>What</b> is your name? — Як тебе звати?</div>
+          <div class="example"><b>What</b> is your name? — Як вас звати?</div>
           <div class="example"><b>Where</b> are you from? — Звідки ти?</div>
           <div class="example"><b>Who</b> is she? — Хто вона?</div>
-          <div class="example"><b>When</b> is your birthday? — Коли твій день народження?</div>
+          <div class="example"><b>When</b> is your birthday? — Коли ваш день народження?</div>
         </div>`,
         `<div class="grammar-lesson-block">
           <h3>Як будувати питання</h3>
           <p>Формула проста:</p>
           <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>Wh-слово + допоміжне дієслово + підмет + дієслово?</b></p>
-          <div class="example"><b>What do</b> you <b>like</b>? — Що тобі подобається?</div>
+          <div class="example"><b>What do</b> you <b>like</b>? — Що вам подобається?</div>
           <div class="example"><b>Where does</b> she <b>live</b>? — Де вона живе?</div>
           <div class="example"><b>Why are</b> you <b>sad</b>? — Чому ти сумний?</div>
-          <div class="example"><b>How do</b> you <b>spell</b> your name? — Як пишеться твоє ім'я?</div>
+          <div class="example"><b>How do</b> you <b>spell</b> your name? — Як пишеться ваше ім'я?</div>
           <p style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;">💡 З дієсловом <b>to be</b> не потрібен do/does: Where <b>is</b> he? (не: Where does he is?)</p>
         </div>`,
         `<div class="grammar-lesson-block">
@@ -11865,7 +11878,7 @@ ${source}
           <div class="example"><b>What</b> is this? — Що це? (вказуєш на предмет)</div>
           <div class="example"><b>How</b> are you? — Як справи?</div>
           <div class="example"><b>How much</b> is it? — Скільки це коштує?</div>
-          <div class="example"><b>How old</b> are you? — Скільки тобі років?</div>
+          <div class="example"><b>How old</b> are you? — Скільки вам років?</div>
           <div class="example"><b>What time</b> is it? — Котра година?</div>
           <div class="example"><b>Where</b> is the toilet? — Де туалет?</div>
           <div class="example"><b>Can</b> you help me? — Можете мені допомогти?</div>
@@ -11975,7 +11988,7 @@ ${source}
           <p style="margin-top:10px;">Present Continuous також використовують для <b>запланованих дій</b>:</p>
           <div class="example">We <b>are flying</b> to London tomorrow. — Ми летимо до Лондона завтра.</div>
           <div class="example">I <b>am meeting</b> my friend tonight. — Я зустрічаюся з другом сьогодні ввечері.</div>
-          <div class="example"><b>Are</b> you <b>coming</b> to the party? — Ти прийдеш на вечірку?</div>
+          <div class="example"><b>Are</b> you <b>coming</b> to the party? — Ви прийдеш на вечірку?</div>
         </div>`,
         `<div class="grammar-lesson-block">
           <h3>Present Simple vs Continuous</h3>
@@ -11988,7 +12001,7 @@ ${source}
       past_simple: [
         `<div class="grammar-lesson-block">
           <h3>Past Simple</h3>
-          <p>Описує дії, які <b>вже сталися і закінчилися</b>. Ти точно знаєш коли це було.</p>
+          <p>Описує дії, які <b>вже сталися і закінчилися</b>. Ви точно знаєш коли це було.</p>
           <p>Уяви: ти розказуєш другу про вчорашній день або минулу подорож. Це Past Simple.</p>
           <div class="example">I <b>visited</b> Paris last summer. — Я відвідав Париж минулого літа.</div>
           <div class="example">She <b>called</b> me yesterday. — Вона зателефонувала мені вчора.</div>
@@ -12021,7 +12034,7 @@ ${source}
           <h3>Future Simple</h3>
           <p>Описує дії в <b>майбутньому</b>: спонтанні рішення, прогнози, обіцянки.</p>
           <p>Уяви: хтось дзвонить у двері, і ти кажеш "Я відкрию!" — це спонтанне рішення. Future Simple.</p>
-          <div class="example">I <b>will help</b> you. — Я тобі допоможу.</div>
+          <div class="example">I <b>will help</b> you. — Я вам допоможу.</div>
           <div class="example">It <b>will rain</b> tomorrow. — Завтра буде дощ.</div>
           <div class="example">She <b>will be</b> a great doctor. — Вона стане чудовим лікарем.</div>
         </div>`,
@@ -12039,7 +12052,7 @@ ${source}
           <p style="margin-top:10px;"><b>Спонтанне рішення:</b></p>
           <div class="example">— The phone is ringing! — I<b>'ll answer</b> it! — Я відповім!</div>
           <p><b>Обіцянка:</b></p>
-          <div class="example">I <b>will always love</b> you. — Я завжди тебе любитиму.</div>
+          <div class="example">I <b>will always love</b> you. — Я завжди вас любитиму.</div>
           <p><b>Прогноз:</b></p>
           <div class="example">I think she <b>will pass</b> the exam. — Думаю, вона здасть іспит.</div>
         </div>`,
@@ -12072,9 +12085,9 @@ ${source}
           <h3>Слова-підказки</h3>
           <p style="font-size:16px;text-align:center;padding:8px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>already · yet · just · ever · never · since · for · recently · so far</b></p>
           <div class="example">I have <b>already</b> done it. — Я це вже зробив.</div>
-          <div class="example">Have you finished <b>yet</b>? — Ти вже закінчив?</div>
+          <div class="example">Have you finished <b>yet</b>? — Ви вже закінчив?</div>
           <div class="example">She has <b>never</b> been abroad. — Вона ніколи не була за кордоном.</div>
-          <div class="example">Have you <b>ever</b> tried sushi? — Ти коли-небудь пробував суші?</div>
+          <div class="example">Have you <b>ever</b> tried sushi? — Ви коли-небудь пробував суші?</div>
         </div>`,
         `<div class="grammar-lesson-block">
           <h3>Present Perfect vs Past Simple</h3>
@@ -12188,7 +12201,7 @@ ${source}
           <h3>Модальні дієслова</h3>
           <p>Додають <b>відтінок</b>: можливість, обов'язок, порада, дозвіл. Після них <b>інфінітив без to</b>.</p>
           <div class="example">I <b>can</b> swim. — Я вмію плавати. (здатність)</div>
-          <div class="example">You <b>must</b> stop. — Ти мусиш зупинитися. (обов'язок)</div>
+          <div class="example">You <b>must</b> stop. — Ви мусиш зупинитися. (обов'язок)</div>
           <div class="example">You <b>should</b> rest. — Тобі варто відпочити. (порада)</div>
           <div class="example">It <b>might</b> rain. — Можливо, буде дощ. (ймовірність)</div>
         </div>`,
@@ -12500,7 +12513,7 @@ ${source}
           <b>that</b> — для обох (неформально)<br>
           <b>where</b> — для місць<br>
           <b>when</b> — для часу</p>
-          <div class="example">The girl <b>who</b> called you is my sister. — Дівчина, яка тобі дзвонила.</div>
+          <div class="example">The girl <b>who</b> called you is my sister. — Дівчина, яка вам дзвонила.</div>
           <div class="example">The book <b>which</b> I bought is great. — Книга, яку я купив.</div>
           <div class="example">The café <b>where</b> we met. — Кафе, де ми зустрілись.</div>
         </div>`,
@@ -12539,7 +12552,7 @@ ${source}
           <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>get used to</b> + -ing = звикати: I'm getting used to the new job.</p>
           <div class="example">I <b>am used to</b> living alone. — Я звик жити один.</div>
           <div class="example">She <b>can't get used to</b> the cold weather. — Не може звикнути до холоду.</div>
-          <div class="example">You'll <b>get used to</b> it. — Ти звикнеш.</div>
+          <div class="example">You'll <b>get used to</b> it. — Ви звикнеш.</div>
         </div>`,
         `<div class="grammar-lesson-block">
           <h3>Would — повторювані дії в минулому</h3>
@@ -12573,7 +12586,7 @@ ${source}
           <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;margin-bottom:6px;"><b>Заперечення:</b> had + <b>not</b> (hadn't) + V3</p>
           <p style="padding:10px;background:rgba(96,165,250,0.1);border-radius:8px;"><b>Питання:</b> <b>Had</b> + subject + V3?</p>
           <div class="example">I <b>hadn't finished</b> when the teacher collected the papers.</div>
-          <div class="example"><b>Had</b> you <b>ever been</b> to Japan before? — Ти бував у Японії до цього?</div>
+          <div class="example"><b>Had</b> you <b>ever been</b> to Japan before? — Ви бував у Японії до цього?</div>
           <div class="example">She <b>hadn't seen</b> him for years. — Вона не бачила його роками.</div>
           <p style="padding:10px;background:rgba(239,68,68,0.1);border-radius:8px;">❌ I <b>didn't had</b> eaten. → ✅ I <b>hadn't</b> eaten.<br>❌ <b>Did</b> you <b>had</b> seen? → ✅ <b>Had</b> you <b>seen</b>?</p>
         </div>`
@@ -12648,7 +12661,7 @@ ${source}
           <h3>Question Tags (Питання-хвостики)</h3>
           <p>Короткі питання в кінці речення для <b>підтвердження</b>. Як "правда?" або "так?"</p>
           <p style="padding:10px;background:rgba(232,168,56,0.1);border-radius:8px;"><b>Правило:</b> + речення → - tag, і навпаки<br>Стверджувальне → заперечний tag<br>Заперечне → стверджувальний tag</p>
-          <div class="example">You like coffee, <b>don't you</b>? — Ти любиш каву, так?</div>
+          <div class="example">You like coffee, <b>don't you</b>? — Ви любиш каву, так?</div>
           <div class="example">She is smart, <b>isn't she</b>? — Вона розумна, чи не так?</div>
           <div class="example">They don't know, <b>do they</b>? — Вони не знають, правда?</div>
         </div>`,
@@ -12790,7 +12803,7 @@ ${source}
         </div>`,
         `<div class="grammar-lesson-block">
           <h3>Should — порада</h3>
-          <p><b>Should</b> = тобі варто, я раджу. М'якше за must.</p>
+          <p><b>Should</b> = вам варто, я раджу. М'якше за must.</p>
           <div class="example">You <b>should</b> drink more water. — Тобі варто пити більше води.</div>
           <div class="example">He <b>shouldn't</b> eat so much sugar. — Йому не варто їсти стільки цукру.</div>
           <div class="example"><b>Should</b> I call her? — Мені варто їй зателефонувати?</div>
@@ -13024,7 +13037,7 @@ Answer in Ukrainian, simply and friendly (like explaining to a friend). Keep it 
         }
       } catch (e) {
         console.log('Grammar question error:', e);
-        answerDiv.innerHTML = '<p style="color:#ef4444;font-size:13px;text-align:center;">Помилка. Спробуй ще раз.</p>';
+        answerDiv.innerHTML = '<p style="color:#ef4444;font-size:13px;text-align:center;">Помилка. Спробуйте ще раз.</p>';
       }
     }
 
@@ -13043,7 +13056,7 @@ Answer in Ukrainian, simply and friendly (like explaining to a friend). Keep it 
 
         if (snap.empty) { container.innerHTML = ''; return; }
 
-        let html = '<div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.06);padding-top:10px;"><p style="font-size:13px;color:rgba(240,237,232,0.4);margin-bottom:10px;">Твої попередні питання:</p>';
+        let html = '<div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.06);padding-top:10px;"><p style="font-size:13px;color:rgba(240,237,232,0.4);margin-bottom:10px;">Ваші попередні питання:</p>';
         snap.docs.forEach(doc => {
           const d = doc.data();
           const docId = doc.id;
@@ -13370,9 +13383,9 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
         const el = document.getElementById('phrase-mastery');
         if (el) {
           el.innerHTML = `
-            <div class="acc-mastery-item"><span class="acc-mastery-dot mastered"></span>${mastered} освоєно</div>
-            <div class="acc-mastery-item"><span class="acc-mastery-dot good"></span>${good} добре</div>
-            <div class="acc-mastery-item"><span class="acc-mastery-dot learning"></span>${learning} вивчаю</div>
+            <div class="acc-mastery-item"><span class="acc-mastery-dot mastered"></span>${mastered} впевнено</div>
+            <div class="acc-mastery-item"><span class="acc-mastery-dot good"></span>${good} майже впевнено</div>
+            <div class="acc-mastery-item"><span class="acc-mastery-dot learning"></span>${learning} ще вчаться</div>
             <div class="acc-mastery-item"><span class="acc-mastery-dot new-word"></span>${newP} нових</div>
           `;
         }
@@ -13879,10 +13892,10 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       const xpEarned = phraseCorrectAnswers * 20 + (total - phraseCorrectAnswers) * 5;
       let emoji = '', message = '', scoreClass = '';
 
-      if (pct >= 90) { emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great'; }
+      if (pct >= 90) { emoji = '🔥'; message = 'Неймовірно! Ви монстр!'; scoreClass = 'great'; }
       else if (pct >= 70) { emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great'; }
       else if (pct >= 50) { emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good'; }
-      else if (pct >= 30) { emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good'; }
+      else if (pct >= 30) { emoji = '📚'; message = 'Продовжуйте вчитися!'; scoreClass = 'good'; }
       else { emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low'; }
 
       result.innerHTML = `
@@ -13910,138 +13923,10 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     });
 
     // ========== LEADERBOARD ==========
-    let currentLeaderboardTab = 'weekly';
-    let userNickname = '';
+    // Рейтинг усіх учасників прибрано: він порівнював людей між собою
+    // замість з собою вчорашнім — і саме він змушував правила відкривати
+    // чужі документи користувачів на читання.
 
-    // Generate a consistent anonymous name from user ID
-    const _anonAdj = ['Веселий','Хитрий','Швидкий','Тихий','Сміливий','Мудрий','Яскравий','Спритний','Вірний','Дружній','Зоряний','Лісовий','Грізний','Нічний','Вогняний','Крижаний','Сонячний','Магічний','Золотий','Срібний','Відважний','Таємний','Могутній','Легендарний'];
-    const _anonAnimal = ['Лис','Кіт','Вовк','Їжак','Сокіл','Дельфін','Ведмідь','Панда','Тигр','Олень','Пінгвін','Заєць','Орел','Леопард','Фенек','Хамелеон','Єнот','Ворон','Дракон','Фенікс','Грифон','Мустанг','Барсук','Яструб'];
-    function getAnonName(id) {
-      let h = 0;
-      for (let i = 0; i < id.length; i++) h = ((h << 5) - h + id.charCodeAt(i)) | 0;
-      h = Math.abs(h);
-      return _anonAdj[h % _anonAdj.length] + ' ' + _anonAnimal[(h >> 4) % _anonAnimal.length];
-    }
-
-    function showLeaderboard() {
-      toggleMainTitle();
-      document.getElementById('account-screen').classList.add('hidden');
-      document.getElementById('leaderboard-section').classList.remove('hidden');
-      document.getElementById('nickname-input').value = userNickname;
-      document.getElementById('nickname-label').textContent = userNickname || 'Анонім';
-      document.getElementById('nickname-edit').classList.add('hidden');
-      loadLeaderboard(currentLeaderboardTab);
-    }
-
-    function toggleNicknameEdit() {
-      document.getElementById('nickname-edit').classList.toggle('hidden');
-    }
-
-    function switchLeaderboardTab(tab) {
-      currentLeaderboardTab = tab;
-      document.getElementById('lb-tab-weekly').classList.toggle('active', tab === 'weekly');
-      document.getElementById('lb-tab-total').classList.toggle('active', tab === 'total');
-      loadLeaderboard(tab);
-    }
-
-    async function loadLeaderboard(tab) {
-      const listEl = document.getElementById('leaderboard-list');
-      listEl.innerHTML = '<div class="leaderboard-empty">Завантаження...</div>';
-
-      try {
-        const currentUserId = auth.currentUser.uid;
-        let query;
-
-        if (tab === 'weekly') {
-          // Get this week's XP from xpHistory
-          const today = new Date();
-          const dayOfWeek = today.getDay() || 7; // Monday = 1
-          const weekDates = [];
-          for (let i = 1; i <= 7; i++) {
-            const d = new Date(today);
-            d.setDate(today.getDate() - dayOfWeek + i);
-            weekDates.push(d.toISOString().split('T')[0]);
-          }
-
-          // Query all users, sort client-side for weekly
-          const snapshot = await db.collection('users').get();
-          const users = [];
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const xpHistory = data.xpHistory || {};
-            let weeklyXP = 0;
-            weekDates.forEach(date => { weeklyXP += (xpHistory[date] || 0); });
-            if (weeklyXP > 0) {
-              users.push({
-                id: doc.id,
-                name: data.nickname || getAnonName(doc.id),
-                xp: weeklyXP
-              });
-            }
-          });
-          users.sort((a, b) => b.xp - a.xp);
-          renderLeaderboard(users.slice(0, 20), currentUserId);
-        } else {
-          // Total XP — query top 20
-          const snapshot = await db.collection('users').orderBy('xp', 'desc').limit(20).get();
-          const users = [];
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            users.push({
-              id: doc.id,
-              name: data.nickname || getAnonName(doc.id),
-              xp: data.xp || 0
-            });
-          });
-          renderLeaderboard(users, currentUserId);
-        }
-      } catch (e) {
-        console.log('Leaderboard error:', e);
-        listEl.innerHTML = '<div class="leaderboard-empty">Помилка завантаження</div>';
-      }
-    }
-
-    function renderLeaderboard(users, currentUserId) {
-      const listEl = document.getElementById('leaderboard-list');
-      if (users.length === 0) {
-        listEl.innerHTML = '<div class="leaderboard-empty">Поки що нікого немає</div>';
-        return;
-      }
-
-      listEl.innerHTML = users.map((u, i) => {
-        const rank = i + 1;
-        const rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
-        const isMe = u.id === currentUserId;
-        return `<div class="leaderboard-row ${isMe ? 'is-me' : ''}">
-          <div class="leaderboard-rank">${rankIcon}</div>
-          <div class="leaderboard-name">${escapeHtml(u.name)}${isMe ? ' (ти)' : ''}</div>
-          <div class="leaderboard-xp">${u.xp} XP</div>
-        </div>`;
-      }).join('');
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    async function saveNickname() {
-      const input = document.getElementById('nickname-input');
-      const name = input.value.trim();
-      if (!name) return;
-      userNickname = name;
-      document.getElementById('nickname-label').textContent = name;
-      document.getElementById('nickname-edit').classList.add('hidden');
-      try {
-        const userId = auth.currentUser.uid;
-        await db.collection('users').doc(userId).update({ nickname: name });
-        showNotification('Нікнейм збережено!', 'success');
-        loadLeaderboard(currentLeaderboardTab);
-      } catch (e) { console.log('Nickname save error:', e); }
-    }
-
-    // ========== CONFETTI ==========
     function showConfetti() {
       haptic('success');
       const container = document.createElement('div');
@@ -15525,7 +15410,7 @@ Where "correct" is the index (0-3) of the correct option. ${langInstruction}`;
       if (pct >= 90) { emoji = '🔥'; message = 'Неймовірно!'; scoreClass = 'great'; }
       else if (pct >= 70) { emoji = '💪'; message = 'Чудово!'; scoreClass = 'great'; }
       else if (pct >= 50) { emoji = '👏'; message = 'Непогано!'; scoreClass = 'good'; }
-      else { emoji = '📚'; message = 'Спробуй ще раз!'; scoreClass = 'low'; }
+      else { emoji = '📚'; message = 'Спробуйте ще раз!'; scoreClass = 'low'; }
 
       addXP(xpEarned);
 
@@ -15807,7 +15692,7 @@ function copyStory() {
         submitPaymentForm(data.action, data.payload);
       } catch (error) {
         console.log('Purchase error:', error);
-        showNotification('Не вдалося відкрити оплату. Спробуй пізніше.', 'warning');
+        showNotification('Не вдалося відкрити оплату. Спробуйте пізніше.', 'warning');
         hideLoading();
       }
     }
@@ -15894,6 +15779,7 @@ function copyStory() {
           quizOptionsPool = wordsArray; // Весь пул для варіантів
           currentQuestion = 0;
           correctAnswers = 0;
+          quizMistakes = [];
           showQuestion();
           hideLoading();
         });
@@ -15904,6 +15790,8 @@ function copyStory() {
     let quizWords = [];
     let currentQuestion = 0;
     let correctAnswers = 0;
+    // Рахунок «7/10» не каже, що саме вчити далі — тримаємо самі слова
+    let quizMistakes = [];
 
     function showQuestion() {
       if (currentQuestion >= quizWords.length) {
@@ -15950,13 +15838,13 @@ function copyStory() {
       let emoji = '', message = '', scoreClass = '';
 
       if (pct >= 90) {
-        emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great';
+        emoji = '🔥'; message = 'Неймовірно! Ви монстр!'; scoreClass = 'great';
       } else if (pct >= 70) {
         emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great';
       } else if (pct >= 50) {
         emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good';
       } else if (pct >= 30) {
-        emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good';
+        emoji = '📚'; message = 'Продовжуйте вчитися!'; scoreClass = 'good';
       } else {
         emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low';
       }
@@ -15966,9 +15854,61 @@ function copyStory() {
         <div class="quiz-result-score ${scoreClass}">${correctAnswers}/${total}</div>
         <div class="quiz-result-xp">+${xpEarned} XP</div>
         <div class="quiz-result-message">${message}</div>
+        ${renderMistakes(quizMistakes)}
         <button class="finish-button" onclick="finishQuiz()">Продовжити</button>
       `;
     }
+    /**
+     * Головне, заради чого людина проходила тест: які слова не даються.
+     * Без цього результат — просто цифра, з якою нічого не зробиш.
+     */
+    /**
+     * У новачка перша й остання дата збігаються, і рядок із двома однаковими
+     * числами читався як помилка. Період має сенс, лише коли він справді період.
+     */
+    function describeReportRange(firstDate) {
+      if (!firstDate) return '';
+      const days = Math.floor((Date.now() - firstDate.getTime()) / 86400000);
+      if (days < 1) return 'Ви почали сьогодні — статистика збиратиметься далі';
+      return `За ${days} ${pluralUa(days, 'день', 'дні', 'днів')} — з ${firstDate.toLocaleDateString()}`;
+    }
+
+    /**
+     * Використовувалася в трьох місцях і ніде не була оголошена: список слів
+     * із фото падав із ReferenceError, щойно доходив до відмальовування.
+     * Слова приходять від AI і з фотографій — екранувати їх обов'язково.
+     */
+    function escapeHtml(text) {
+      const holder = document.createElement('div');
+      holder.textContent = text == null ? '' : String(text);
+      return holder.innerHTML;
+    }
+
+    function renderMistakes(mistakes) {
+      if (!mistakes || !mistakes.length) {
+        return `<div class="result-clean">
+          <i class="fas fa-circle-check"></i> Жодної помилки — ці слова можна вважати вивченими
+        </div>`;
+      }
+
+      const rows = mistakes.map(m => `
+        <div class="mistake-row">
+          <div class="mistake-word">
+            <strong>${escapeHtml(m.english)}</strong>
+            <span>${escapeHtml(m.translation)}</span>
+          </div>
+          ${m.given ? `<div class="mistake-given">Ви обрали: ${escapeHtml(m.given)}</div>` : ''}
+        </div>`).join('');
+
+      const noun = pluralUa(mistakes.length, 'слово', 'слова', 'слів');
+      return `
+        <div class="mistakes-block">
+          <h4>Варто повторити: ${mistakes.length} ${noun}</h4>
+          ${rows}
+          <p class="mistakes-hint">Ці слова алгоритм покаже частіше в наступних тренуваннях.</p>
+        </div>`;
+    }
+
     // Перевірка відповіді
     function checkAnswer(selectedOption) {
       const questionWord = quizWords[currentQuestion];
@@ -15985,6 +15925,12 @@ function copyStory() {
       const correct = selectedOption === questionWord.translation;
       if (correct) {
         correctAnswers++;
+      } else {
+        quizMistakes.push({
+          english: questionWord.english,
+          translation: questionWord.translation,
+          given: selectedOption,
+        });
       }
 
       // Обновляем статистику слова и дату последнего взаимодействия (addXP вызывается внутри updateWordStats)
@@ -16429,7 +16375,7 @@ async function translateStory() {
 
     function updateConstructorModeHint() {
       document.getElementById('constructor-mode-hint').textContent = constructorMode === 'full'
-        ? 'Усі 26 літер, жодна не зникає — доведеться згадати слово самому.'
+        ? 'Усі 26 літер, жодна не зникає — доведеться згадати слово самостійно.'
         : 'Тільки літери цього слова, використана літера зникає — легше вгадати.';
     }
 
@@ -16955,10 +16901,10 @@ async function translateStory() {
       const xpEarned = pictureCorrectAnswers * 10 + (total - pictureCorrectAnswers) * 2;
       let emoji = '', message = '', scoreClass = '';
 
-      if (pct >= 90) { emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great'; }
+      if (pct >= 90) { emoji = '🔥'; message = 'Неймовірно! Ви монстр!'; scoreClass = 'great'; }
       else if (pct >= 70) { emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great'; }
       else if (pct >= 50) { emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good'; }
-      else if (pct >= 30) { emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good'; }
+      else if (pct >= 30) { emoji = '📚'; message = 'Продовжуйте вчитися!'; scoreClass = 'good'; }
       else { emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low'; }
 
       result.innerHTML = `
@@ -17595,13 +17541,13 @@ async function translateStory() {
       let emoji = '', message = '', scoreClass = '';
 
       if (pct >= 90) {
-        emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great';
+        emoji = '🔥'; message = 'Неймовірно! Ви монстр!'; scoreClass = 'great';
       } else if (pct >= 70) {
         emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great';
       } else if (pct >= 50) {
         emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good';
       } else if (pct >= 30) {
-        emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good';
+        emoji = '📚'; message = 'Продовжуйте вчитися!'; scoreClass = 'good';
       } else {
         emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low';
       }
@@ -17656,13 +17602,13 @@ async function translateStory() {
       let emoji = '', message = '', scoreClass = '';
 
       if (pct >= 90) {
-        emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great';
+        emoji = '🔥'; message = 'Неймовірно! Ви монстр!'; scoreClass = 'great';
       } else if (pct >= 70) {
         emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great';
       } else if (pct >= 50) {
         emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good';
       } else if (pct >= 30) {
-        emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good';
+        emoji = '📚'; message = 'Продовжуйте вчитися!'; scoreClass = 'good';
       } else {
         emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low';
       }
@@ -18242,13 +18188,13 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
       let emoji = '', message = '', scoreClass = '';
 
       if (pct >= 90) {
-        emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great';
+        emoji = '🔥'; message = 'Неймовірно! Ви монстр!'; scoreClass = 'great';
       } else if (pct >= 70) {
         emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great';
       } else if (pct >= 50) {
         emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good';
       } else if (pct >= 30) {
-        emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good';
+        emoji = '📚'; message = 'Продовжуйте вчитися!'; scoreClass = 'good';
       } else {
         emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low';
       }
@@ -18335,7 +18281,7 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
 
     async function generateDefinitions() {
       if (!aiAvailable()) {
-        showNotification('Увійди в акаунт, щоб користуватися AI-тренуваннями.', 'warning');
+        showNotification('Увійдіть в акаунт, щоб користуватися AI-тренуваннями.', 'warning');
         resetDefinitionQuiz();
         return;
       }
@@ -18509,10 +18455,10 @@ Return ONLY the JSON array, no other text.`;
       const xpEarned = definitionCorrectAnswers * 10 + (total - definitionCorrectAnswers) * 2;
       let emoji = '', message = '', scoreClass = '';
 
-      if (pct >= 90) { emoji = '🔥'; message = 'Неймовірно! Ти монстр!'; scoreClass = 'great'; }
+      if (pct >= 90) { emoji = '🔥'; message = 'Неймовірно! Ви монстр!'; scoreClass = 'great'; }
       else if (pct >= 70) { emoji = '💪'; message = 'Круто! Так тримати!'; scoreClass = 'great'; }
       else if (pct >= 50) { emoji = '👏'; message = 'Непогано! Ще трохи практики!'; scoreClass = 'good'; }
-      else if (pct >= 30) { emoji = '📚'; message = 'Продовжуй вчитися!'; scoreClass = 'good'; }
+      else if (pct >= 30) { emoji = '📚'; message = 'Продовжуйте вчитися!'; scoreClass = 'good'; }
       else { emoji = '💡'; message = 'Кожна спроба — крок вперед!'; scoreClass = 'low'; }
 
       result.innerHTML = `
@@ -18621,14 +18567,11 @@ Return ONLY the JSON array, no other text.`;
 
         // Оновити labels
         document.querySelector('.tile-new p').textContent = tab === 'words' ? 'Нові слова' : 'Нові фрази';
-        document.querySelector('.tile-good p').textContent = 'Гарні знання';
-        document.querySelector('.tile-average p').textContent = 'Середні знання';
-        document.querySelector('.tile-poor p').textContent = 'Погані знання';
+        document.querySelector('.tile-good p').textContent = 'Майже впевнено';
+        document.querySelector('.tile-average p').textContent = 'Ще вчаться';
+        document.querySelector('.tile-poor p').textContent = 'Потребують уваги';
 
-        if (dateAdded) {
-          document.getElementById("dateRange").innerText =
-            `Звіт за період: ${dateAdded.toLocaleDateString()} - ${new Date().toLocaleDateString()}`;
-        }
+        document.getElementById('dateRange').innerText = describeReportRange(dateAdded);
       });
     }
 
@@ -18677,8 +18620,7 @@ Return ONLY the JSON array, no other text.`;
           document.getElementById("averageKnowledge").innerText = averageKnowledge;
           document.getElementById("poorKnowledge").innerText = poorKnowledge;
 
-          document.getElementById("dateRange").innerText =
-            `Звіт за період: ${dateAdded ? dateAdded.toLocaleDateString() : '—'} - ${reportDate.toLocaleDateString()}`;
+          document.getElementById("dateRange").innerText = describeReportRange(dateAdded);
 
           // XP activity chart
           const userData = userDoc.exists ? userDoc.data() : {};
@@ -18731,15 +18673,15 @@ Return ONLY the JSON array, no other text.`;
           description: `${label}, які мають менш ніж 3 взаємодії. Це ${label.toLowerCase()}, які ви нещодавно додали і ще не практикували достатньо.`
         },
         goodKnowledge: {
-          title: "Гарні знання",
+          title: "Майже впевнено",
           description: `${label} з понад 90% правильних відповідей. Ви відмінно знаєте ці ${label.toLowerCase()}!`
         },
         averageKnowledge: {
-          title: "Середні знання",
+          title: "Ще вчаться",
           description: `${label} з 60-90% правильних відповідей. Потрібно ще трохи практики.`
         },
         poorKnowledge: {
-          title: "Погані знання",
+          title: "Потребують уваги",
           description: `${label} з менш ніж 60% правильних відповідей. Рекомендуємо більше практикувати ці ${label.toLowerCase()}.`
         }
       };

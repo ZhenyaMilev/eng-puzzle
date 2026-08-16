@@ -36,6 +36,14 @@ const DAILY_LIMITS = {
   image: 600,
 };
 
+// Пересилаємо лише те, що застосунок справді шле. Раніше тіло йшло далі
+// цілком, і підписаний користувач міг додати n: 50 — п'ятдесят відповідей
+// за одне списання квоти, тобто ліміт в обхід у п'ятдесят разів.
+const FORWARDED_FIELDS = {
+  chat: ['model', 'messages', 'temperature', 'max_tokens', 'response_format', 'top_p'],
+  speech: ['model', 'input', 'voice', 'speed', 'response_format'],
+};
+
 const MAX_TOKENS_CEILING = 8000;
 const MAX_INPUT_CHARS = 60000;
 // Netlify caps a function request at 6 MB and base64 adds a third, so anything
@@ -188,12 +196,17 @@ exports.handler = async (event) => {
         body: transcriptionForm(body),
       });
     } else {
-      const forwarded = { ...body };
+      const allowed = FORWARDED_FIELDS[route] || ['model'];
+      const forwarded = {};
+      for (const field of allowed) {
+        if (body[field] !== undefined) forwarded[field] = body[field];
+      }
       if (forwarded.max_tokens) {
         forwarded.max_tokens = Math.min(Number(forwarded.max_tokens), MAX_TOKENS_CEILING);
       }
-      // Nothing about the caller travels on: no ids, no keys, no stream
-      delete forwarded.stream;
+      // One request, one answer — n is not on the allowlist, and saying so
+      // explicitly keeps it that way if the list ever grows
+      forwarded.n = 1;
       response = await fetch(OPENAI_BASE + spec.path, {
         method: 'POST',
         headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },

@@ -80,6 +80,17 @@ function answerSignature(orderReference, status, time) {
   return sign([orderReference, status, time]);
 }
 
+/**
+ * Signature comparison that does not leak how much of it was right.
+ * The Telegram side already did this; the payment side compared with !==,
+ * which finishes early on the first wrong byte.
+ */
+function signaturesMatch(got, expected) {
+  if (typeof got !== 'string' || typeof expected !== 'string') return false;
+  if (got.length !== expected.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(got), Buffer.from(expected));
+}
+
 // WayForPay posts JSON, but sometimes wrapped as a single form field
 function parseCallbackBody(raw) {
   if (!raw) return null;
@@ -109,6 +120,7 @@ module.exports = {
   purchaseSignature,
   callbackSignature,
   answerSignature,
+  signaturesMatch,
   parseCallbackBody,
   json,
 };

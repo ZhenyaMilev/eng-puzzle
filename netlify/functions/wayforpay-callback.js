@@ -1,7 +1,7 @@
 'use strict';
 
 const {
-  firestore, callbackSignature, answerSignature, parseCallbackBody,
+  firestore, callbackSignature, answerSignature, parseCallbackBody, signaturesMatch,
 } = require('./_shared');
 const { sendMessage, openAppButton } = require('./_telegram');
 
@@ -31,7 +31,7 @@ exports.handler = async (event) => {
   };
 
   try {
-    if (body.merchantSignature !== callbackSignature(body)) {
+    if (!signaturesMatch(body.merchantSignature, callbackSignature(body))) {
       console.error('Rejected callback with a bad signature:', body.orderReference);
       return { statusCode: 403, body: 'Bad signature' };
     }

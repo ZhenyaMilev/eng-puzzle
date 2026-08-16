@@ -60,7 +60,7 @@ const SCENARIOS = [
     confirm: async (ref) => (await ref.collection('words').limit(1).get()).empty,
     message: () => ({
       text: '<b>Словник поки порожній.</b>\n\n'
-        + 'Достатньо однієї спроби: підбери 30 слів під свій рівень — і відкриється перше тренування.',
+        + 'Достатньо однієї спроби: підберіть 30 слів під свій рівень — і відкриється перше тренування.',
       buttons: [openAppButton('Поповнити словник', 'words')],
     }),
   },
@@ -103,7 +103,7 @@ const SCENARIOS = [
     },
     message: () => ({
       text: 'Підписка закінчується <b>через 3 дні</b>.\n\n'
-        + 'Продовжиш зараз — дні додадуться до залишку, нічого не згорить.',
+        + 'Продовжите зараз — дні додадуться до залишку, нічого не згорить.',
       buttons: [openAppButton('Продовжити', 'pay')],
     }),
   },
@@ -132,7 +132,7 @@ const SCENARIOS = [
       return !!active && kyivParts(active).day !== kyivParts(now).day;
     },
     message: (user) => ({
-      text: `<b>Стрик ${Number(user.streak || 0)} дн.</b> — сьогодні ще нічого не робив.\n\n`
+      text: `<b>Стрик ${Number(user.streak || 0)} дн.</b> — сьогодні ще нічого не зроблено.\n\n`
         + 'Одне тренування, і серія залишиться.',
       buttons: [openAppButton('Продовжити серію')],
     }),
@@ -146,7 +146,7 @@ const SCENARIOS = [
     },
     message: () => ({
       text: 'Тиждень без занять — буває.\n\n'
-        + 'Словник нікуди не подівся: п’ять хвилин сьогодні поверне ритм.',
+        + 'Словник нікуди не подівся: п’ять хвилин сьогодні повернуть ритм.',
       buttons: [openAppButton('Повернутись')],
     }),
   },
@@ -214,7 +214,19 @@ async function runOnce(now) {
   return { statusCode: 200, body: JSON.stringify({ sent: sent.length, failed }) };
 }
 
-exports.handler = () => runOnce(new Date());
+/**
+ * Netlify stamps scheduled invocations; a plain HTTP caller cannot. Nothing
+ * here is exploitable — the anti-spam rules live in the data, not the trigger —
+ * but an endpoint that only the scheduler should reach may as well say so.
+ */
+exports.handler = (event) => {
+  const headers = (event && event.headers) || {};
+  const scheduled = headers['x-netlify-event'] === 'schedule';
+  if (!scheduled && process.env.NODE_ENV === 'production') {
+    return { statusCode: 403, body: JSON.stringify({ error: 'Scheduled function' }) };
+  }
+  return runOnce(new Date());
+};
 
 module.exports.runOnce = runOnce;
 module.exports.SCENARIOS = SCENARIOS;

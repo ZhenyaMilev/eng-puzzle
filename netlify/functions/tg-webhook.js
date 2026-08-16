@@ -26,35 +26,40 @@ async function findUid(db, telegramId) {
 
 /**
  * Turns a one-time code into a permanent link between the two accounts.
- * Writes both directions plus deletes the code, in one batch, so a half-linked
- * account cannot survive a crash in the middle.
+ * Both directions and the deletion happen together, so neither a crash nor a
+ * second /start can leave a half-linked account behind.
  */
 async function redeemCode(db, code, telegramId, chat) {
   const codeRef = db.collection('tgLinkCodes').doc(code);
-  const snap = await codeRef.get();
-  if (!snap.exists) return { ok: false, reason: 'unknown' };
 
-  const data = snap.data();
-  const expiresAt = toDate(data.expiresAt);
-  if (expiresAt && expiresAt < new Date()) {
-    await codeRef.delete();
-    return { ok: false, reason: 'expired' };
-  }
+  // Read and burn in one transaction. A read followed by a batch leaves a
+  // window where two /start calls both see an unspent code; 144 bits of
+  // entropy make that unreachable by guessing, but a leaked link is not a
+  // guess, and a transaction costs nothing here.
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(codeRef);
+    if (!snap.exists) return { ok: false, reason: 'unknown' };
 
-  const batch = db.batch();
-  batch.set(db.collection('users').doc(data.uid), {
-    telegramId: Number(telegramId),
-    telegramName: chat && chat.first_name ? String(chat.first_name).slice(0, 64) : '',
-    notificationsOff: false,
-  }, { merge: true });
-  batch.set(db.collection('tgLinks').doc(String(telegramId)), {
-    uid: data.uid,
-    linkedAt: new Date().toISOString(),
+    const data = snap.data();
+    const expiresAt = toDate(data.expiresAt);
+    if (expiresAt && expiresAt < new Date()) {
+      tx.delete(codeRef);
+      return { ok: false, reason: 'expired' };
+    }
+
+    tx.set(db.collection('users').doc(data.uid), {
+      telegramId: Number(telegramId),
+      telegramName: chat && chat.first_name ? String(chat.first_name).slice(0, 64) : '',
+      notificationsOff: false,
+    }, { merge: true });
+    tx.set(db.collection('tgLinks').doc(String(telegramId)), {
+      uid: data.uid,
+      linkedAt: new Date().toISOString(),
+    });
+    tx.delete(codeRef);
+
+    return { ok: true, uid: data.uid };
   });
-  batch.delete(codeRef);
-  await batch.commit();
-
-  return { ok: true, uid: data.uid };
 }
 
 async function handleStart(db, message, code) {
@@ -74,7 +79,7 @@ async function handleStart(db, message, code) {
       ? 'Це посилання застаріло — воно живе 15 хвилин.'
       : 'Це посилання вже використали або воно неправильне.';
     return sendMessage(chatId,
-      `${why}\n\nВідкрий застосунок і натисни «Підключити Telegram» ще раз.`,
+      `${why}\n\nВідкрийте застосунок і натисніть «Підключити Telegram» ще раз.`,
       [openAppButton('Відкрити застосунок')]);
   }
 
@@ -89,7 +94,7 @@ async function handleStart(db, message, code) {
 
   return sendMessage(chatId,
     '<b>Мій словник</b> — англійська через власний словник.\n\n'
-    + 'Щоб отримувати нагадування, відкрий застосунок і натисни «Підключити Telegram».',
+    + 'Щоб отримувати нагадування, відкрийте застосунок і натисніть «Підключити Telegram».',
     [openAppButton('Відкрити застосунок')]);
 }
 
@@ -100,14 +105,14 @@ async function handleStop(db, message) {
   }
   await db.collection('users').doc(uid).set({ notificationsOff: true }, { merge: true });
   return sendMessage(message.chat.id,
-    'Нагадування вимкнені. Твої дані та підписка не змінилися.\n\nУвімкнути назад: /start');
+    'Нагадування вимкнені. Ваші дані та підписка не змінилися.\n\nУвімкнути назад: /start');
 }
 
 async function handleStatus(db, message) {
   const uid = await findUid(db, message.from.id);
   if (!uid) {
     return sendMessage(message.chat.id,
-      'Спочатку підключи акаунт: відкрий застосунок і натисни «Підключити Telegram».',
+      'Спочатку підключіть акаунт: відкрийте застосунок і натисніть «Підключити Telegram».',
       [openAppButton('Відкрити застосунок')]);
   }
 
