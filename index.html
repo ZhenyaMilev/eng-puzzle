@@ -1114,13 +1114,22 @@
       background-color: rgba(255, 255, 255, 0.1);
     }
 
-    #word-list .fa-trash,
-    #phrase-list .fa-trash {
+    /* Кошик у самому рядку більше не малюється — дії живуть у теці за свайпом.
+       Правило лишається для сумісності, але не має чіпати іконки в теці. */
+    #word-list .swipe-content > .fa-trash,
+    #phrase-list .swipe-content > .fa-trash {
       position: absolute;
       top: 50%;
       right: 10px;
       color: coral;
       transform: translate(0, -50%);
+    }
+
+    /* Іконки в теці підпорядковані лише їй */
+    .swipe-action i {
+      position: static;
+      transform: none;
+      color: inherit;
     }
 
     .word-thumbnail {
@@ -1141,8 +1150,8 @@
       padding: 0;
     }
 
-    #word-list li button,
-    #phrase-list li button {
+    #word-list li .swipe-content button,
+    #phrase-list li .swipe-content button {
       width: auto;
       margin-left: auto;
       padding: 5px 10px;
@@ -1153,8 +1162,8 @@
       transition: opacity 0.3s;
     }
 
-    #word-list li button:hover,
-    #phrase-list li button:hover {
+    #word-list li .swipe-content button:hover,
+    #phrase-list li .swipe-content button:hover {
       opacity: 0.7;
     }
 
@@ -5686,44 +5695,64 @@
       justify-content: flex-end;
     }
 
-    /* Рядок зі схованими діями: сам рядок їде, дії лежать під ним */
+    /* Рядок обрізає й лишається на місці; їде його вміст, і з-під нього
+       виїжджають дії, які весь час лежали праворуч. */
     .swipe-row {
       position: relative;
       overflow: hidden;
-      transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
       touch-action: pan-y;
     }
-    .swipe-row.swipe-dragging { transition: none; }
 
+    .swipe-content {
+      display: flex;
+      align-items: center;
+      gap: inherit;
+      width: 100%;
+      /* Рівно те, що дає rgba(255,255,255,0.05) поверх фону сторінки —
+         інакше зсунутий рядок виглядав темнішим за сусідні */
+      background: #1a1c22;
+      transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+    .swipe-content.swipe-dragging { transition: none; }
+
+    /* Тека лежить праворуч усередині рядка, тож у спокої її треба саме
+       приховати: вміст напівпрозорий і не перекриває її. */
     .swipe-actions {
       position: absolute;
       top: 0;
       right: 0;
-      height: 100%;
+      bottom: 0;
       display: flex;
-      /* Праворуч від рядка: видно лише коли рядок від'їхав */
-      transform: translateX(100%);
+      visibility: hidden;
+    }
+    .swipe-row.swipe-active .swipe-actions,
+    .swipe-row.swipe-open .swipe-actions {
+      visibility: visible;
     }
     .swipe-action {
       width: 80px;
+      min-width: 80px;
       height: 100%;
       margin: 0;
       padding: 0;
       border: none;
       border-radius: 0;
-      background: rgba(255, 255, 255, 0.1);
-      color: rgba(240, 237, 232, 0.85);
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(240, 237, 232, 0.9);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 5px;
       font-size: 11px;
+      font-weight: 500;
+      line-height: 1;
+      white-space: nowrap;
       box-shadow: none;
       cursor: pointer;
     }
-    .swipe-action i { font-size: 16px; }
-    .swipe-action.danger {
+    .swipe-action i { font-size: 17px; }
+    .swipe-actions .swipe-action.danger {
       background: #ef4444;
       color: #fff;
     }
@@ -8518,8 +8547,9 @@
 
     function closeOpenSwipeRow() {
       if (!openSwipeRow) return;
-      openSwipeRow.classList.remove('swipe-open');
-      openSwipeRow.style.transform = '';
+      openSwipeRow.classList.remove('swipe-open', 'swipe-active');
+      const content = openSwipeRow.querySelector('.swipe-content');
+      if (content) content.style.transform = '';
       openSwipeRow = null;
     }
 
@@ -8530,6 +8560,14 @@
     function makeSwipeable(row, actions) {
       if (!actions || !actions.length) return;
       row.classList.add('swipe-row');
+
+      // Вміст переїжджає в окрему обгортку: рухається вона, а обрізає сам
+      // рядок. Інакше дії лежали всередині того, що рухається, і його ж
+      // overflow їх ховав — назавжди.
+      const content = document.createElement('div');
+      content.className = 'swipe-content';
+      while (row.firstChild) content.appendChild(row.firstChild);
+      row.appendChild(content);
 
       const tray = document.createElement('div');
       tray.className = 'swipe-actions';
@@ -8547,6 +8585,7 @@
       row.appendChild(tray);
 
       const width = Math.min(SWIPE_MAX_PX, actions.length * 80);
+      tray.style.width = width + 'px';
       let startX = 0;
       let startY = 0;
       let offset = 0;
@@ -8560,7 +8599,8 @@
         offset = row.classList.contains('swipe-open') ? -width : 0;
         dragging = true;
         decided = false;
-        row.classList.add('swipe-dragging');
+        content.classList.add('swipe-dragging');
+        row.classList.add('swipe-active');
       }, { passive: true });
 
       row.addEventListener('touchmove', event => {
@@ -8573,21 +8613,22 @@
         if (!decided) {
           if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
           decided = true;
-          if (Math.abs(dy) > Math.abs(dx)) { dragging = false; row.classList.remove('swipe-dragging'); return; }
+          if (Math.abs(dy) > Math.abs(dx)) { dragging = false; content.classList.remove('swipe-dragging'); return; }
         }
 
         const base = row.classList.contains('swipe-open') ? -width : 0;
         offset = Math.max(-width, Math.min(0, base + dx));
-        row.style.transform = `translateX(${offset}px)`;
+        content.style.transform = `translateX(${offset}px)`;
       }, { passive: true });
 
       const settle = () => {
         if (!dragging) return;
         dragging = false;
-        row.classList.remove('swipe-dragging');
+        content.classList.remove('swipe-dragging');
         const open = offset < -SWIPE_OPEN_PX / 2;
         row.classList.toggle('swipe-open', open);
-        row.style.transform = open ? `translateX(${-width}px)` : '';
+        content.style.transform = open ? `translateX(${-width}px)` : '';
+        row.classList.toggle('swipe-active', open);
         openSwipeRow = open ? row : (openSwipeRow === row ? null : openSwipeRow);
         if (open) haptic('light');
       };
@@ -9007,7 +9048,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.11';
+    const APP_VERSION = '2026-08-16.12';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -14015,7 +14056,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
 
         // Так само, як у словах: дії ховаються за свайпом
         makeSwipeable(li, [
-          { label: 'У папку', icon: 'fa-folder-plus', run: () => openFolderPicker(p.id, 'phrase') },
+          { label: 'Папка', icon: 'fa-folder-plus', run: () => openFolderPicker(p.id, 'phrase') },
           { label: 'Видалити', icon: 'fa-trash', danger: true, run: () => deletePhrase(p.id) },
         ]);
 
@@ -15402,7 +15443,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
         // Видалення й папки — за свайпом. Кошик у кожному рядку був постійною
         // пропозицією знищити те, що щойно додали.
         makeSwipeable(li, [
-          { label: 'У папку', icon: 'fa-folder-plus', run: () => openFolderPicker(word.english, 'word') },
+          { label: 'Папка', icon: 'fa-folder-plus', run: () => openFolderPicker(word.english, 'word') },
           { label: 'Видалити', icon: 'fa-trash', danger: true, run: () => deleteWord(word.english, li) },
         ]);
 
@@ -15666,7 +15707,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
 
         // Ті самі дії за свайпом, що і в основному списку
         makeSwipeable(li, [
-          { label: 'У папку', icon: 'fa-folder-plus', run: () => openFolderPicker(word.english, 'word') },
+          { label: 'Папка', icon: 'fa-folder-plus', run: () => openFolderPicker(word.english, 'word') },
           { label: 'Видалити', icon: 'fa-trash', danger: true, run: () => deleteWord(word.english, li) },
         ]);
 
