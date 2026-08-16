@@ -1336,10 +1336,10 @@
       color: white;
       border: none;
       border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      min-width: 28px;
-      min-height: 28px;
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      min-height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1741,11 +1741,13 @@
       color: rgba(240, 237, 232, 0.4);
     }
 
+    /* Довші, людяніші підписи не влазять у рядок, і останній пункт лишався
+       сам на другому рядку. Дві колонки тримають блок рівним за будь-яких слів. */
     .acc-mastery {
-      display: flex;
-      gap: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 12px;
       margin-bottom: 8px;
-      flex-wrap: wrap;
     }
 
     .acc-mastery-item {
@@ -5535,12 +5537,10 @@
     /* Документи: оферта, повернення, дані, контакти */
     .legal-tabs {
       display: flex;
+      flex-wrap: wrap;
       gap: 6px;
       margin-bottom: 16px;
-      overflow-x: auto;
-      /* остання вкладка не має впиратися в край екрана */
-      padding: 0 2px 4px;
-      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
     }
     .legal-tab {
       flex: 0 0 auto;
@@ -5663,9 +5663,12 @@
       transition: none !important;
     }
 
+    /* На 390px кнопка забирала половину рядка, і опис ліворуч ламався на
+       чотири рядки. Текст займає всю ширину, кнопка — свій рядок під ним. */
     .acc-telegram {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: stretch;
       gap: 12px;
       margin-top: 22px;
       padding: 14px 16px;
@@ -5691,9 +5694,9 @@
     }
     #acc-telegram-btn {
       flex-shrink: 0;
-      width: auto;
+      width: 100%;
       margin: 0;
-      padding: 10px 16px;
+      padding: 12px 16px;
       border: none;
       border-radius: 10px;
       background: #2AABEE;
@@ -5810,13 +5813,18 @@
     }
 
     .goal-help {
-      width: 17px;
-      height: 17px;
-      margin-left: 6px;
+      /* 17x17 було менше за подушечку пальця; сама кружечок лишається
+         дрібним, а зона натискання виростає завдяки прозорій рамці */
+      width: 34px;
+      height: 34px;
+      margin-left: 0;
       padding: 0;
+      background-clip: content-box;
+      border: 9px solid transparent;
+      box-sizing: border-box;
       border-radius: 50%;
-      border: 1px solid rgba(240, 237, 232, 0.25);
-      background: transparent;
+      outline: 1px solid rgba(240, 237, 232, 0.25);
+      outline-offset: -9px;
       color: rgba(240, 237, 232, 0.5);
       font-size: 11px;
       font-weight: 700;
@@ -6153,7 +6161,7 @@
         </button>
         <button class="acc-action-btn" onclick="showDailyWords()">
           <i class="fas fa-magic"></i>
-          <span>Поповни словник</span>
+          <span>Нові слова</span>
         </button>
         <button class="acc-action-btn" onclick="loadUserProgress()">
           <i class="fa-solid fa-chart-line"></i>
@@ -6231,7 +6239,7 @@
       <div class="acc-footer">
         <button class="legal-link" onclick="showLegal('offer')">Оферта</button>
         <span>·</span>
-        <button class="legal-link" onclick="showLegal('refund')">Повернення коштів</button>
+        <button class="legal-link" onclick="showLegal('refund')">Повернення</button>
         <span>·</span>
         <button class="legal-link" onclick="showLegal('privacy')">Конфіденційність</button>
         <span>·</span>
@@ -7767,7 +7775,6 @@
     };
 
     let legalReturnTo = null;
-    let legalHidTitle = false;
 
     function showLegal(doc) {
       const entry = LEGAL_DOCS[doc] || LEGAL_DOCS.offer;
@@ -7778,15 +7785,10 @@
         legalReturnTo = document.getElementById('tariffs-section').classList.contains('hidden')
           ? 'account' : 'tariffs';
 
-        // toggleMainTitle() перемикає, а нам треба саме сховати — і повернути
-        // рівно в тому стані, в якому було
-        const title = document.querySelector('.title-main');
-        legalHidTitle = title && !title.classList.contains('hidden');
-        if (legalHidTitle) toggleMainTitle();
-
         hideAllAppSections();
         document.getElementById('account-screen').classList.add('hidden');
         document.getElementById('legal-section').classList.remove('hidden');
+        syncMainTitle();
       }
 
       document.getElementById('legal-title').textContent = entry.title;
@@ -7805,11 +7807,10 @@
       if (legalReturnTo === 'tariffs') {
         document.getElementById('tariffs-section').classList.remove('hidden');
       } else {
-        if (legalHidTitle) toggleMainTitle();
         document.getElementById('account-screen').classList.remove('hidden');
       }
       legalReturnTo = null;
-      legalHidTitle = false;
+      syncMainTitle();
     }
 
     // ===== Юридичні документи: кінець =====
@@ -8469,7 +8470,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.6';
+    const APP_VERSION = '2026-08-16.7';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -9463,11 +9464,26 @@ function exitSpeedTraining() {
       } catch(e) { console.error('Count error:', e); }
     }
 
+    /**
+     * Шапка застосунку видима рівно тоді, коли ми на головному екрані.
+     *
+     * Раніше це був справжній перемикач, і будь-який перехід, де він
+     * спрацьовував двічі — наприклад «Додати слова» з екрана «бракує слів»,
+     * тобто backToAccount() і одразу showDailyWords() — лишав шапку поверх
+     * заголовка екрана. Тепер стан рахується з того, який екран відкритий.
+     */
     function toggleMainTitle() {
-      let titleMain = document.querySelector('.title-main');
-      let buttonsCorner = document.querySelector('.buttons-right-corner');
-      titleMain.classList.toggle('hidden');
-      if (buttonsCorner) buttonsCorner.classList.toggle('hidden');
+      // Виклик стоїть ПЕРЕД перемиканням класів, тож синхронізуємо після нього
+      Promise.resolve().then(syncMainTitle);
+    }
+
+    function syncMainTitle() {
+      const account = document.getElementById('account-screen');
+      const onAccount = account && !account.classList.contains('hidden');
+      const title = document.querySelector('.title-main');
+      const corner = document.querySelector('.buttons-right-corner');
+      if (title) title.classList.toggle('hidden', !onAccount);
+      if (corner) corner.classList.toggle('hidden', !onAccount);
     }
 
     function showDailyWords() {
@@ -15894,8 +15910,11 @@ function copyStory() {
      * числами читався як помилка. Період має сенс, лише коли він справді період.
      */
     function describeReportRange(firstDate) {
-      if (!firstDate) return '';
+      if (!firstDate || Number.isNaN(firstDate.getTime())) return '';
       const days = Math.floor((Date.now() - firstDate.getTime()) / 86400000);
+      // Зіпсована або відсутня дата давала «За 20681 день — з 1/1/1970».
+      // Краще не показати нічого, ніж показати очевидну дурницю.
+      if (days < 0 || days > 3650) return '';
       if (days < 1) return 'Ви почали сьогодні — статистика збиратиметься далі';
       return `За ${days} ${pluralUa(days, 'день', 'дні', 'днів')} — з ${firstDate.toLocaleDateString()}`;
     }
