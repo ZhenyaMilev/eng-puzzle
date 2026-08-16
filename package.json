@@ -1,9 +1,20 @@
 {
-  "name": "eng-puzzle",
-  "private": true,
+  "name": "eng-app",
   "version": "1.0.0",
-  "description": "Мій словник — static app plus the Netlify functions that handle payments",
-  "dependencies": {
-    "firebase-admin": "^12.7.0"
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:ui": "npx playwright test --ui",
+    "serve": "npx serve eng-puzzle -l 3333"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "serve": "^14.2.6"
   }
 }

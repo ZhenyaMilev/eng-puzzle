@@ -1,0 +1,13 @@
+# Local Netlify folder
+.netlify
+.netlify/
+node_modules/
+
+# Secrets live in Netlify environment variables and must never be committed.
+# There is nothing here today; this is the strap that keeps a stray `git add`
+# from putting FIREBASE_SERVICE_ACCOUNT or OPENAI_API_KEY in a public repo.
+.env
+.env.*
+*.pem
+*-service-account*.json
+serviceAccountKey.json

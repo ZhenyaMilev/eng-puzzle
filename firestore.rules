@@ -1,0 +1,111 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // The API keys used to live here, readable by anyone who had registered —
+    // which made every account a way to spend the owner's OpenAI budget.
+    // They are environment variables of the ai function now; nothing in the
+    // browser needs this collection, so nothing may read it.
+    match /config/{document=**} {
+      allow read, write: if false;
+    }
+
+    // Written only by the ai function (Admin SDK bypasses rules). Kept closed so
+    // a client cannot reset its own daily counter.
+    match /aiUsage/{userId} {
+      allow read, write: if false;
+    }
+
+    // The Telegram link and the one-time codes that create it. A client that
+    // could read tgLinkCodes could claim somebody else's account, and one that
+    // could write tgLinks could point an existing link at itself.
+    match /tgLinks/{telegramId} {
+      allow read, write: if false;
+    }
+    match /tgLinkCodes/{code} {
+      allow read, write: if false;
+    }
+
+    match /users/{userId} {
+      // The leaderboard was the only thing that needed to read other people's
+      // documents. With it gone, nobody but the owner does — and these hold an
+      // email address and a payment history.
+      allow read: if request.auth.uid == userId;
+      allow create, delete: if request.auth.uid == userId;
+
+      // Everything else about themselves is theirs to change, but the paid
+      // fields are not: otherwise a subscription is one console command away.
+      // Only the server (Admin SDK, which bypasses rules) may touch these.
+      // telegramId is on this list for a different reason than the paid fields:
+      // a client that could set it could point somebody else's chat at their
+      // own reminders. Only the webhook, which saw the one-time code, writes it.
+      allow update: if request.auth.uid == userId
+                     && !request.resource.data.diff(resource.data).affectedKeys()
+                          .hasAny(['subscriptionExpiration', 'subscriptionPlan', 'lifetime',
+                                   'telegramId']);
+
+      match /words/{wordId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /phrases/{phraseId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /reports/{reportId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /grammarQuestions/{questionId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+
+      // Rules do not cascade into subcollections, so every one needs its own match.
+      match /customLessons/{lessonId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /folders/{folderId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      // Phrases keep their own folders — a separate entity from the word ones.
+      match /phraseFolders/{folderId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+    }
+
+    // Звернення в підтримку: людина може написати, але не прочитати чужі
+    match /supportRequests/{requestId} {
+      allow create: if request.auth != null
+                     && request.resource.data.uid == request.auth.uid
+                     && request.resource.data.message is string
+                     && request.resource.data.message.size() <= 2000;
+      allow read, update, delete: if false;
+    }
+
+    match /wordBase/{topic} {
+      allow read: if request.auth != null;
+      match /words/{wordId} {
+        allow read: if request.auth != null;
+      }
+    }
+
+    // ---------- NEW — Magic Notes / Public Library ("sets") ----------
+    match /sets/{setId} {
+      // Anyone signed in can read a public set; only the author can read their own private ones.
+      allow read: if request.auth != null
+                   && (resource.data.visibility == 'public' || request.auth.uid == resource.data.authorId);
+
+      allow create: if request.auth != null
+                     && request.resource.data.authorId == request.auth.uid
+                     && request.resource.data.visibility in ['private', 'public'];
+
+      // Author can update anything (keeping authorId unchanged).
+      // Any other signed-in user may ONLY bump importCount by exactly 1 on a public set (import action).
+      allow update: if (request.auth.uid == resource.data.authorId
+                          && request.resource.data.authorId == resource.data.authorId)
+                     || (request.auth != null
+                          && resource.data.visibility == 'public'
+                          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['importCount'])
+                          && request.resource.data.importCount == resource.data.importCount + 1);
+
+      allow delete: if request.auth.uid == resource.data.authorId;
+    }
+  }
+}
