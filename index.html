@@ -1863,43 +1863,8 @@
       background: linear-gradient(90deg, #34d399, #a7f3d0);
     }
 
-    .daily-goal-picker {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin-top: 10px;
-    }
 
-    .daily-goal-picker.hidden {
-      display: none;
-    }
 
-    .daily-goal-opt {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      padding: 10px 6px;
-      color: rgba(240, 237, 232, 0.7);
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: none;
-      width: auto;
-      margin: 0;
-    }
-
-    .daily-goal-opt span {
-      font-weight: 400;
-      font-size: 11px;
-      opacity: 0.6;
-    }
-
-    .daily-goal-opt.selected {
-      background: rgba(52, 211, 153, 0.15);
-      border-color: #34d399;
-      color: #34d399;
-    }
 
     /* Leaderboard */
     .mode-group-label {
@@ -3974,18 +3939,51 @@
       transition: width 0.3s;
     }
 
-    .constructor-letter-buttons.letters-full {
-      margin: 0;
-      gap: 6px;
+    /* Ряд заповнює всю ширину: клавіші діляться нею порівну, тож на будь-якому
+       екрані виходить те саме розташування, що на системній клавіатурі. */
+    .cw-keyboard-row {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 6px;
+    }
+    .cw-keyboard-row:last-child { margin-bottom: 0; }
+
+    /* Середній ряд зсунуто на пів клавіші, як на телефоні */
+    .cw-row-indent {
+      padding: 0 5%;
     }
 
-    .constructor-letter-buttons.letters-full .unique-letter-button {
-      width: 42px;
-      height: 52px;
-      font-size: 24px;
+    .cw-key {
+      flex: 1 1 0;
+      min-width: 0;
+      height: 46px;
       margin: 0;
-      border-radius: 10px;
-      background-color: rgba(255, 255, 255, 0.12);
+      padding: 0;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.14);
+      color: #F0EDE8;
+      font-size: 20px;
+      font-weight: 500;
+      line-height: 1;
+      text-transform: lowercase;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+    }
+
+    .cw-key:active {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .cw-key-wide {
+      flex: 1.5 1 0;
+      font-size: 17px;
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    @media (max-width: 360px) {
+      .cw-key { height: 42px; font-size: 18px; }
+      .cw-keyboard-row { gap: 4px; }
     }
 
     /* Центрирование иконки звука */
@@ -5670,6 +5668,11 @@
       display: none;
     }
 
+    /* Вихід усередині Telegram веде в нікуди — акаунт там той самий завжди */
+    body.in-miniapp .logout-button {
+      display: none;
+    }
+
     /* Заголовок і так відцентровано абсолютним позиціюванням. Коли своя
        кнопка «Назад» зникає, решта має лишитися праворуч — центрування
        зсувало кнопку історії впритул до назви екрана. */
@@ -5831,26 +5834,207 @@
       color: #34d399;
     }
 
-    .goal-help {
-      /* 17x17 було менше за подушечку пальця; сама кружечок лишається
-         дрібним, а зона натискання виростає завдяки прозорій рамці */
-      width: 34px;
-      height: 34px;
-      margin-left: 0;
-      padding: 0;
-      background-clip: content-box;
-      border: 9px solid transparent;
-      box-sizing: border-box;
-      border-radius: 50%;
-      outline: 1px solid rgba(240, 237, 232, 0.25);
-      outline-offset: -9px;
-      color: rgba(240, 237, 232, 0.5);
-      font-size: 11px;
-      font-weight: 700;
-      line-height: 1;
-      vertical-align: middle;
+    .daily-goal-edit {
+      width: 100%;
+      margin: 12px 0 0;
+      padding: 9px;
+      border: 1px solid rgba(240, 237, 232, 0.14);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.04);
+      color: rgba(240, 237, 232, 0.7);
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: none;
       cursor: pointer;
     }
+
+    .folder-picker-box { max-height: 86vh; display: flex; flex-direction: column; }
+    #folder-picker-search {
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+    }
+    .folder-picker-list {
+      flex: 1;
+      min-height: 140px;
+      max-height: 46vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .folder-pick-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      margin: 0 0 6px;
+      padding: 11px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      color: #F0EDE8;
+      font-size: 14px;
+      text-align: left;
+      box-shadow: none;
+      cursor: pointer;
+    }
+    .folder-pick-item.picked {
+      border-color: rgba(52, 211, 153, 0.5);
+      background: rgba(52, 211, 153, 0.1);
+    }
+    .folder-pick-item .tick {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: transparent;
+    }
+    .folder-pick-item.picked .tick {
+      background: #34d399;
+      border-color: #34d399;
+      color: #0f1117;
+    }
+    .folder-pick-item .uk { color: rgba(240, 237, 232, 0.55); }
+    .folder-picker-empty {
+      padding: 24px 8px;
+      text-align: center;
+      font-size: 14px;
+      color: rgba(240, 237, 232, 0.45);
+    }
+
+    #support-modal textarea {
+      width: 100%;
+      box-sizing: border-box;
+      resize: vertical;
+      min-height: 90px;
+    }
+    .support-attach {
+      display: block;
+      margin-top: 10px;
+      padding: 11px;
+      border: 1px dashed rgba(240, 237, 232, 0.25);
+      border-radius: 10px;
+      color: rgba(240, 237, 232, 0.6);
+      font-size: 14px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .support-thumbs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .support-thumb {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .support-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .support-thumb button {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      margin: 0;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      font-size: 12px;
+      line-height: 1;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    /* Смужка оновлення: знизу, поверх усього, на будь-якому екрані.
+       Раніше вона просто дописувалася в кінець сторінки — тобто там, куди
+       людина може й не догортати. */
+    #app-update-banner {
+      position: fixed;
+      left: 10px;
+      right: 10px;
+      bottom: calc(10px + max(env(safe-area-inset-bottom, 0px), var(--safe-bottom, 0px)));
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(23, 26, 34, 0.97);
+      border: 1px solid rgba(232, 168, 56, 0.4);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      font-size: 14px;
+      color: #F0EDE8;
+      transform: translateY(140%);
+      transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+    #app-update-banner.shown { transform: translateY(0); }
+    #app-update-banner span { flex: 1; line-height: 1.35; }
+    #app-update-banner button {
+      flex-shrink: 0;
+      width: auto;
+      margin: 0;
+      padding: 9px 16px;
+      border: none;
+      border-radius: 9px;
+      background: #E8A838;
+      color: #1a1a1a;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    /* Клавіатура конструктора стоїть внизу — банер піднімається над нею */
+    body.cw-keyboard-open #app-update-banner {
+      bottom: calc(230px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .goal-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .goal-option {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      width: 100%;
+      margin: 0;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 11px;
+      background: rgba(255, 255, 255, 0.04);
+      color: #F0EDE8;
+      text-align: left;
+      box-shadow: none;
+      cursor: pointer;
+    }
+    .goal-option strong { font-size: 15px; }
+    .goal-option span { font-size: 12px; color: rgba(240, 237, 232, 0.5); }
+    .goal-option.picked {
+      border-color: #E8A838;
+      background: rgba(232, 168, 56, 0.12);
+    }
+    .goal-option.picked strong { color: #E8A838; }
+    .goal-note {
+      margin-top: 14px !important;
+      font-size: 12px !important;
+      line-height: 1.5;
+    }
+
 
     .tariff { position: relative; }
 
@@ -6085,6 +6269,8 @@
           <i class="fas fa-star"></i>
           <span id="subscription-badge-label"></span>
         </button>
+        <!-- Усередині Telegram виходити нікуди: акаунт — це сам Telegram,
+             і наступний вхід буде тим самим. Кнопка лишається лише на вебі. -->
         <button class="button-with-icon logout-button" onclick="logout()">
           <i class="fas fa-sign-out-alt"></i>
         </button>
@@ -6141,31 +6327,39 @@
     <div id="account-screen" class="hidden">
       <div class="acc-email acc-animate acc-delay-2"><span class="user-email"></span></div>
 
-      <!-- «Проба 3д» на зірочці ні про що не говорить, тож статус живе ще й тут — словами -->
-      <div class="acc-sub-note acc-animate acc-delay-2 hidden" id="acc-sub-note">
+      <!-- Статус підписки і Telegram — усередині головної картки, одним потоком.
+           Окремими блоками вони з'являлися власною анімацією й на пів секунди
+           наповзали на кнопки в шапці при поверненні з вправи. -->
+      <div class="acc-sub-note hidden" id="acc-sub-note">
         <span id="acc-sub-note-text"></span>
         <button id="acc-sub-note-cta" onclick="showTariffs()">Оформити</button>
       </div>
 
-      <!-- Gamification Stats -->
-      <!-- Daily Goal -->
-      <div class="acc-daily-goal acc-animate acc-delay-3" id="acc-daily-goal" onclick="toggleDailyGoalPicker()">
+      <div class="acc-telegram hidden" id="acc-telegram">
+        <div class="acc-telegram-text">
+          <strong id="acc-telegram-title">Нагадування в Telegram</strong>
+          <span id="acc-telegram-sub">Підкажу, коли стрик під загрозою і коли закінчується підписка</span>
+        </div>
+        <button id="acc-telegram-btn" onclick="connectTelegram()">
+          <i class="fab fa-telegram"></i> Підключити
+        </button>
+      </div>
+
+
+      <!-- Денна ціль. Ні олівця, ні знаку питання: чотири кнопки, що виростали
+           прямо в картці, і пояснення в окремому попапі — це три різні способи
+           сказати одне. Тепер один зрозумілий вхід у вікно, де є все. -->
+      <div class="acc-daily-goal acc-animate acc-delay-3" id="acc-daily-goal" onclick="openDailyGoalDialog()">
         <div class="daily-goal-header">
-          <span>Денна ціль
-            <i class="fas fa-pen" style="font-size:11px;opacity:0.5;margin-left:4px;"></i>
-            <button class="goal-help" onclick="event.stopPropagation(); showXPInfo();" title="Що таке XP">?</button>
-          </span>
+          <span>Денна ціль</span>
           <span class="daily-goal-count" id="daily-goal-count">0/200 XP</span>
         </div>
         <div class="daily-goal-bar">
           <div class="daily-goal-fill" id="daily-goal-fill" style="width: 0%"></div>
         </div>
-        <div id="daily-goal-picker" class="daily-goal-picker hidden">
-          <button class="daily-goal-opt" data-target="100" onclick="setDailyGoal(event, 100)">Легко<br><span>≈5 хв</span></button>
-          <button class="daily-goal-opt" data-target="200" onclick="setDailyGoal(event, 200)">Нормально<br><span>≈10 хв</span></button>
-          <button class="daily-goal-opt" data-target="300" onclick="setDailyGoal(event, 300)">Серйозно<br><span>≈15 хв</span></button>
-          <button class="daily-goal-opt" data-target="500" onclick="setDailyGoal(event, 500)">Хардкор<br><span>≈25 хв</span></button>
-        </div>
+        <button class="daily-goal-edit" onclick="event.stopPropagation(); openDailyGoalDialog();">
+          <i class="fas fa-sliders"></i> Редагувати ціль
+        </button>
       </div>
 
       <!-- Quick Actions -->
@@ -6243,18 +6437,6 @@
         </button>
       </div>
 
-      <!-- Нагадування живуть у Telegram: пуші в браузері на iOS не працюють.
-           Усередині самого Telegram цей рядок зайвий — там і так усе підключено. -->
-      <div class="acc-telegram" id="acc-telegram">
-        <div class="acc-telegram-text">
-          <strong id="acc-telegram-title">Нагадування в Telegram</strong>
-          <span id="acc-telegram-sub">Підкажу, коли стрик під загрозою і коли закінчується підписка</span>
-        </div>
-        <button id="acc-telegram-btn" onclick="connectTelegram()">
-          <i class="fab fa-telegram"></i> Підключити
-        </button>
-      </div>
-
       <div class="acc-footer">
         <button class="legal-link" onclick="showLegal('offer')">Оферта</button>
         <span>·</span>
@@ -6315,10 +6497,17 @@
         <ul id="words"></ul>
         <button id="load-more-words" class="long-button hidden" onclick="displayNextWords()">Показати ще</button>
       </div>
+      <!-- Порожній словник і порожня папка — різні задачі. У першому випадку
+           слів ще немає взагалі, у другому вони є, просто не тут. -->
       <button onclick="hideMyVocabulatyAndOpenDailyWords()" id="add-word-from-my-vocabulary"
         class="add-word-from-my-vocabulary hidden">
         <i class="fas fa-magic"></i>
-        Поповни словник
+        Поповнити словник
+      </button>
+      <button onclick="openFolderPicker()" id="add-word-to-folder"
+        class="add-word-from-my-vocabulary hidden">
+        <i class="fas fa-folder-plus"></i>
+        Додати в папку
       </button>
       </div><!-- /vocab-words-content -->
 
@@ -7152,6 +7341,76 @@
       </p>
     </div>
 
+
+    <!-- Вибір слів у папку -->
+    <div id="folder-picker-modal" class="app-modal hidden">
+      <div class="app-modal-box folder-picker-box">
+        <h3>Додати в папку</h3>
+        <p id="folder-picker-sub">Позначте слова, які треба перенести сюди.</p>
+        <input type="text" id="folder-picker-search" placeholder="Пошук слова..."
+               oninput="renderFolderPicker()">
+        <div id="folder-picker-list" class="folder-picker-list"></div>
+        <div class="app-modal-actions">
+          <button class="secondary" onclick="closeFolderPicker()">Скасувати</button>
+          <button class="primary" id="folder-picker-add" onclick="addPickedWordsToFolder()">Додати</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Підтримка: опис і скриншоти -->
+    <div id="support-modal" class="app-modal hidden">
+      <div class="app-modal-box">
+        <h3>Написати в підтримку</h3>
+        <p>Опишіть, що сталося. Скриншот допомагає найбільше — часто по ньому
+        видно причину одразу.</p>
+
+        <textarea id="support-message" rows="4" placeholder="Що саме не працює?"></textarea>
+
+        <label class="support-attach" id="support-attach-label">
+          <i class="fas fa-paperclip"></i> Додати скриншот
+          <input type="file" accept="image/*" multiple onchange="attachSupportImages(this)" hidden>
+        </label>
+        <div id="support-thumbs" class="support-thumbs"></div>
+        <div id="support-error" class="error-message"></div>
+
+        <div class="app-modal-actions">
+          <button class="secondary" onclick="closeSupport()">Скасувати</button>
+          <button class="primary" id="support-send" onclick="sendSupport()">Надіслати</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Денна ціль: вибір і пояснення в одному місці -->
+    <div id="daily-goal-modal" class="app-modal hidden">
+      <div class="app-modal-box">
+        <h3>Денна ціль</h3>
+        <p>XP — це бали за тренування. Вони ні на що не впливають і нічого не
+        відкривають: це просто спосіб бачити, скільки зроблено сьогодні, і не
+        загубити серію днів.</p>
+
+        <div class="goal-options" id="goal-options">
+          <button class="goal-option" data-target="100" onclick="pickDailyGoal(100)">
+            <strong>Легко</strong><span>100 XP · близько 5 хвилин</span>
+          </button>
+          <button class="goal-option" data-target="200" onclick="pickDailyGoal(200)">
+            <strong>Нормально</strong><span>200 XP · близько 10 хвилин</span>
+          </button>
+          <button class="goal-option" data-target="300" onclick="pickDailyGoal(300)">
+            <strong>Серйозно</strong><span>300 XP · близько 15 хвилин</span>
+          </button>
+          <button class="goal-option" data-target="500" onclick="pickDailyGoal(500)">
+            <strong>Хардкор</strong><span>500 XP · близько 25 хвилин</span>
+          </button>
+        </div>
+
+        <p class="goal-note">Правильна відповідь — 10 XP, спроба — 2 XP.
+        Ціль зараховується за будь-які тренування.</p>
+
+        <div class="app-modal-actions">
+          <button class="secondary" onclick="closeDailyGoalDialog()">Закрити</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Секція "Документи": оферта, повернення, конфіденційність, контакти -->
     <div id="legal-section" class="hidden">
@@ -8381,41 +8640,117 @@
     }
 
     /**
-     * Підтримка йде через бот, а не через особистий нік: людина пише в чат
-     * @myslovnyk_bot, повідомлення лягає в Firestore, і власник бачить його
-     * там — без розкритого особистого акаунта і без окремого каналу.
+     * Підтримка. Раніше звернення лише лягало у Firestore — тобто в колекцію,
+     * яку ніхто не відкриває. Тепер воно ще й приходить у Telegram власника,
+     * разом зі скриншотами: опис зламаного екрана коштує значно менше за сам
+     * екран.
      */
-    function showXPInfo() {
-      showInfoPopup(
-        'Що таке XP і денна ціль',
-        'XP — це бали за тренування. Вони не впливають на доступ до функцій: '
-        + 'це просто спосіб побачити, скільки ви сьогодні зробили, і не втратити серію днів.',
-        [
-          'Правильна відповідь — 10 XP, спроба — 2 XP.',
-          '100 XP — приблизно 5 хвилин занять, 500 XP — близько 25 хвилин.',
-          'Ціль зараховується за будь-які тренування, не за конкретне.',
-          'Серія днів зростає, щойно ви набрали хоч трохи XP за день.',
-        ]);
+    let supportImages = [];
+
+    function openSupport() {
+      supportImages = [];
+      document.getElementById('support-message').value = '';
+      document.getElementById('support-error').textContent = '';
+      renderSupportThumbs();
+      document.getElementById('support-modal').classList.remove('hidden');
     }
 
-    async function openSupport() {
-      const text = await appPrompt('Опишіть, що сталося', '');
-      if (!text || !text.trim()) return;
+    function closeSupport() {
+      document.getElementById('support-modal').classList.add('hidden');
+    }
+
+    /**
+     * Стискаємо в браузері: фото з телефона — це 3-5 МБ, а функція Netlify
+     * приймає 6 МБ на весь запит разом із base64, який додає ще третину.
+     */
+    function compressImage(file, maxSide = 1280, quality = 0.7) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', quality).split(',')[1]);
+          };
+          img.onerror = reject;
+          img.src = reader.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function attachSupportImages(input) {
+      const files = Array.from(input.files || []).slice(0, 3 - supportImages.length);
+      input.value = '';
+      for (const file of files) {
+        try {
+          supportImages.push(await compressImage(file));
+        } catch (e) {
+          document.getElementById('support-error').textContent = 'Не вдалося прочитати зображення.';
+        }
+      }
+      renderSupportThumbs();
+    }
+
+    function removeSupportImage(index) {
+      supportImages.splice(index, 1);
+      renderSupportThumbs();
+    }
+
+    function renderSupportThumbs() {
+      const box = document.getElementById('support-thumbs');
+      box.innerHTML = supportImages.map((data, i) => `
+        <div class="support-thumb">
+          <img src="data:image/jpeg;base64,${data}" alt="">
+          <button onclick="removeSupportImage(${i})" aria-label="Прибрати">×</button>
+        </div>`).join('');
+      document.getElementById('support-attach-label').style.display =
+        supportImages.length >= 3 ? 'none' : 'block';
+    }
+
+    async function sendSupport() {
+      const message = document.getElementById('support-message').value.trim();
+      const errorEl = document.getElementById('support-error');
+      const button = document.getElementById('support-send');
+      errorEl.textContent = '';
+
+      if (!message) {
+        errorEl.textContent = 'Опишіть, будь ласка, що сталося.';
+        return;
+      }
+      if (!auth.currentUser) return;
+
+      button.disabled = true;
+      const label = button.textContent;
+      button.textContent = 'Надсилаємо…';
 
       try {
-        await db.collection('supportRequests').add({
-          uid: auth.currentUser ? auth.currentUser.uid : null,
-          email: auth.currentUser ? (auth.currentUser.email || '') : '',
-          telegramId: (currentSubscriptionData && currentSubscriptionData.telegramId) || null,
-          message: text.trim().slice(0, 2000),
-          version: APP_VERSION,
-          platform: isMiniApp() ? 'telegram' : 'web',
-          createdAt: new Date().toISOString(),
-          status: 'new',
+        const token = await auth.currentUser.getIdToken();
+        const response = await fetch('/.netlify/functions/support', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({
+            message,
+            images: supportImages,
+            version: APP_VERSION,
+            platform: isMiniApp() ? 'telegram' : 'web',
+          }),
         });
-        showNotification('Дякуємо — ми отримали звернення і відповімо в Telegram.');
+        if (!response.ok) throw new Error('support ' + response.status);
+
+        closeSupport();
+        haptic('success');
+        showNotification('Дякуємо — звернення надіслано. Відповімо в Telegram.');
       } catch (error) {
-        showNotification('Не вдалося надіслати. Напишіть у бот @myslovnyk_bot.', 'warning');
+        errorEl.textContent = 'Не вдалося надіслати. Спробуйте ще раз за хвилину.';
+      } finally {
+        button.disabled = false;
+        button.textContent = label;
       }
     }
 
@@ -8526,7 +8861,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.9';
+    const APP_VERSION = '2026-08-16.10';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -8546,9 +8881,12 @@
       if (document.getElementById('app-update-banner')) return;
       const bar = document.createElement('div');
       bar.id = 'app-update-banner';
-      bar.innerHTML = `<span>Вийшла нова версія</span>
+      bar.innerHTML = `
+        <span>Доступна нова версія застосунку</span>
         <button onclick="applyAppUpdate()">Оновити</button>`;
       document.body.appendChild(bar);
+      // Наступний кадр — щоб спрацював перехід, а не з'явилося ривком
+      requestAnimationFrame(() => bar.classList.add('shown'));
     }
 
     function applyAppUpdate() {
@@ -10564,22 +10902,26 @@ Return ONLY the JSON array, no other text.`;
       if (el) el.textContent = bestDailyXP > 0 ? bestDailyXP + ' XP' : '—';
     }
 
-    function toggleDailyGoalPicker() {
-      document.getElementById('daily-goal-picker').classList.toggle('hidden');
+    function openDailyGoalDialog() {
+      updateDailyGoalPresetUI();
+      document.getElementById('daily-goal-modal').classList.remove('hidden');
+    }
+
+    function closeDailyGoalDialog() {
+      document.getElementById('daily-goal-modal').classList.add('hidden');
     }
 
     function updateDailyGoalPresetUI() {
-      document.querySelectorAll('.daily-goal-opt').forEach(btn => {
-        btn.classList.toggle('selected', parseInt(btn.dataset.target) === DAILY_GOAL_TARGET);
+      document.querySelectorAll('.goal-option').forEach(btn => {
+        btn.classList.toggle('picked', parseInt(btn.dataset.target, 10) === DAILY_GOAL_TARGET);
       });
     }
 
-    async function setDailyGoal(event, target) {
-      event.stopPropagation();
+    async function pickDailyGoal(target) {
       DAILY_GOAL_TARGET = target;
       updateDailyGoalUI();
       updateDailyGoalPresetUI();
-      document.getElementById('daily-goal-picker').classList.add('hidden');
+      haptic('light');
       try {
         const userId = auth.currentUser.uid;
         await db.collection('users').doc(userId).update({ dailyGoalTarget: target });
@@ -14211,6 +14553,108 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       else await fetchWordsPaged();
     }
 
+    // ---------- Додавання наявних слів у папку ----------
+    let folderPickerWords = [];
+    let folderPickerPicked = new Set();
+
+    async function openFolderPicker() {
+      const folderId = folderState.words.current;
+      if (!folderId) return;
+
+      const folder = folderState.words.list.find(f => f.id === folderId);
+      document.getElementById('folder-picker-sub').textContent = folder
+        ? `Позначте слова, які перенести в «${folder.name}».`
+        : 'Позначте слова, які треба перенести сюди.';
+      document.getElementById('folder-picker-search').value = '';
+      folderPickerPicked = new Set();
+      document.getElementById('folder-picker-list').innerHTML =
+        '<div class="folder-picker-empty">Завантаження…</div>';
+      document.getElementById('folder-picker-modal').classList.remove('hidden');
+
+      try {
+        const userId = auth.currentUser.uid;
+        const snap = await db.collection('users').doc(userId).collection('words').get();
+        // Показуємо лише те, чого в папці ще немає — інакше половина списку
+        // це слова, які вже тут
+        folderPickerWords = snap.docs
+          .map(d => ({ english: d.id, translation: (d.data().translation || ''), folders: d.data().folders || [] }))
+          .filter(w => !w.folders.includes(folderId))
+          .sort((a, b) => a.english.localeCompare(b.english));
+      } catch (e) {
+        folderPickerWords = [];
+      }
+      renderFolderPicker();
+    }
+
+    function closeFolderPicker() {
+      document.getElementById('folder-picker-modal').classList.add('hidden');
+    }
+
+    function renderFolderPicker() {
+      const query = (document.getElementById('folder-picker-search').value || '').trim().toLowerCase();
+      const list = document.getElementById('folder-picker-list');
+      const shown = folderPickerWords.filter(w =>
+        !query || w.english.toLowerCase().includes(query) || w.translation.toLowerCase().includes(query));
+
+      if (!shown.length) {
+        list.innerHTML = `<div class="folder-picker-empty">${
+          folderPickerWords.length ? 'Нічого не знайшлося' : 'Усі слова вже в цій папці'
+        }</div>`;
+      } else {
+        list.innerHTML = shown.map(w => `
+          <button class="folder-pick-item${folderPickerPicked.has(w.english) ? ' picked' : ''}"
+                  onclick="toggleFolderPick('${w.english.replace(/'/g, "\\'")}')">
+            <span class="tick"><i class="fas fa-check"></i></span>
+            <span><strong>${escapeHtml(w.english)}</strong> <span class="uk">${escapeHtml(w.translation)}</span></span>
+          </button>`).join('');
+      }
+
+      const add = document.getElementById('folder-picker-add');
+      add.disabled = folderPickerPicked.size === 0;
+      add.textContent = folderPickerPicked.size
+        ? `Додати (${folderPickerPicked.size})`
+        : 'Додати';
+    }
+
+    function toggleFolderPick(word) {
+      if (folderPickerPicked.has(word)) folderPickerPicked.delete(word);
+      else folderPickerPicked.add(word);
+      haptic('select');
+      renderFolderPicker();
+    }
+
+    async function addPickedWordsToFolder() {
+      const folderId = folderState.words.current;
+      if (!folderId || !folderPickerPicked.size) return;
+
+      const button = document.getElementById('folder-picker-add');
+      button.disabled = true;
+      try {
+        const userId = auth.currentUser.uid;
+        const batch = db.batch();
+        folderPickerPicked.forEach(word => {
+          const ref = db.collection('users').doc(userId).collection('words').doc(word);
+          batch.update(ref, {
+            folders: firebase.firestore.FieldValue.arrayUnion(folderId),
+          });
+        });
+        await batch.commit();
+
+        const added = folderPickerPicked.size;
+        closeFolderPicker();
+        haptic('success');
+        showNotification(`Додано ${added} ${pluralUa(added, 'слово', 'слова', 'слів')}`);
+        await fetchWordsPaged();
+        // Лічильник на чіпі папки зберігається окремо — інакше він лишиться старим
+        refreshFolderCount('words', folderId);
+      } catch (e) {
+        console.log('Add to folder error:', e);
+        showNotification('Не вдалося додати', 'warning');
+      } finally {
+        button.disabled = false;
+      }
+    }
+
     async function createFolderPrompt(scope) {
       const name = await appPrompt('Нова папка', '');
       if (!name) return;
@@ -15104,10 +15548,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
             displayedWords = displayedWords.filter(w => w.english !== word);
             var wcEl = document.getElementById('vocab-words-count');
             if (wcEl) wcEl.textContent = parseInt(wcEl.textContent || '0') - 1;
-            if (allWords.length === 0) {
-              document.getElementById('add-word-from-my-vocabulary').classList.remove(
-                'hidden');
-            }
+            updateSadCatVisibility();
           });
         });
       updateSadCatVisibility();
@@ -16585,6 +17026,30 @@ async function translateStory() {
       return 'qwertyuiopasdfghjklzxcvbnm'.split('').map(letter => ({ letter: letter, count: -1 }));
     }
 
+    /**
+     * Три ряди 10 / 9 / 7 — рівно як на телефоні.
+     *
+     * Раніше всі 26 клавіш лежали в одному контейнері з переносом по ширині,
+     * тож «p» опинялася на другому рядку, а «a» — не першою зліва. Палець
+     * шукає літеру там, де вона стоїть на системній клавіатурі, і будь-який
+     * інший порядок читається як зламаний.
+     */
+    const KEYBOARD_ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
+
+    function fullKeyboardRowsHTML() {
+      return KEYBOARD_ROWS.map((row, index) => {
+        const keys = row.split('').map(letter =>
+          `<button class="cw-key" data-letter="${letter}" onclick="addLetterToConstructor('${letter}')">${letter}</button>`
+        ).join('');
+
+        // Нижній ряд коротший, тож праворуч стоїть стирання — знову як на телефоні
+        const backspace = index === 2
+          ? '<button class="cw-key cw-key-wide" onclick="deleteLastLetter()" aria-label="Стерти"><i class="fas fa-delete-left"></i></button>'
+          : '';
+        return `<div class="cw-keyboard-row${index === 1 ? ' cw-row-indent' : ''}">${keys}${backspace}</div>`;
+      }).join('');
+    }
+
     // Клавіші, дії і прогрес — одним шаром знизу; у режимі букв слова шар не потрібен
     function renderConstructorKeyboard(questionWord, letters, progressPercent) {
       const kb = document.getElementById('constructor-keyboard');
@@ -16595,9 +17060,7 @@ async function translateStory() {
         return;
       }
       kb.innerHTML = `
-        <div class="constructor-letter-buttons letters-full" id="letter-buttons">
-          ${generateLetterButtonsHTML(letters)}
-        </div>
+        ${fullKeyboardRowsHTML()}
         <div class="cw-keyboard-actions">
           <button class="check-button" onclick="submitConstructorAnswer('${questionWord.english}')">Перевірити</button>
           <button class="skip-button" onclick="skipConstructor()">Пропустити</button>
@@ -17629,12 +18092,18 @@ async function translateStory() {
     }
     // ============ Кінець кросворда ============
 
+    /**
+     * Порожній екран пропонує різне залежно від того, ЧОМУ він порожній.
+     * У папці слова є — вони просто не тут, і генерувати нові безглуздо.
+     */
     function updateSadCatVisibility() {
-      if (allWords.length === 0) {
-        document.getElementById('add-word-from-my-vocabulary').classList.remove('hidden');
-      } else {
-        document.getElementById('add-word-from-my-vocabulary').classList.add('hidden');
-      }
+      const empty = allWords.length === 0;
+      const inFolder = !!folderState.words.current;
+      const generate = document.getElementById('add-word-from-my-vocabulary');
+      const toFolder = document.getElementById('add-word-to-folder');
+
+      generate.classList.toggle('hidden', !empty || inFolder);
+      if (toFolder) toFolder.classList.toggle('hidden', !inFolder);
     }
 
     function showListeningResult() {
