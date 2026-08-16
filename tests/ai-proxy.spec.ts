@@ -430,3 +430,52 @@ test.describe('The browser side of the move', () => {
     await expect(page.locator('.notification')).toHaveCount(1);
   });
 });
+
+test.describe('A photo must survive the size check', () => {
+  function sane(body: any) {
+    delete require.cache[require.resolve(AI_PATH)];
+    process.env.WFP_MERCHANT_SECRET = 'x';
+    const mod = require(AI_PATH);
+    return mod.chatBodyIsSane(body);
+  }
+
+  const image = (chars: number) => ({
+    type: 'image_url',
+    image_url: { url: 'data:image/jpeg;base64,' + 'A'.repeat(chars) },
+  });
+
+  test('a real photo passes, though it dwarfs the text limit', () => {
+    // A 1600px JPEG is several hundred thousand base64 characters. The old
+    // single 60k limit covered text and images together, so every photo
+    // request was refused before it ever reached OpenAI.
+    expect(sane({
+      messages: [{ role: 'user', content: [{ type: 'text', text: 'Extract words' }, image(400_000)] }],
+    })).toBe(true);
+  });
+
+  test('an absurd image is still refused', () => {
+    expect(sane({
+      messages: [{ role: 'user', content: [{ type: 'text', text: 'x' }, image(4_000_000)] }],
+    })).toBe(false);
+  });
+
+  test('a wall of text is still refused', () => {
+    expect(sane({ messages: [{ role: 'user', content: 'x'.repeat(70_000) }] })).toBe(false);
+  });
+
+  test('a pile of images is refused', () => {
+    expect(sane({
+      messages: [{ role: 'user', content: [{ type: 'text', text: 'x' }, ...Array.from({ length: 9 }, () => image(100)) ] }],
+    })).toBe(false);
+  });
+
+  test('an unknown content part is refused', () => {
+    expect(sane({
+      messages: [{ role: 'user', content: [{ type: 'audio', data: 'x' }] }],
+    })).toBe(false);
+  });
+
+  test('plain text still works', () => {
+    expect(sane({ messages: [{ role: 'user', content: 'привіт' }] })).toBe(true);
+  });
+});

@@ -323,7 +323,7 @@ test.describe('Custom grammar lesson', () => {
     for (const name of [
       'showCustomLessonForm', 'addCustomLessonImages', 'removeCustomLessonImage',
       'generateCustomLesson', 'openCustomLesson', 'deleteCustomLesson',
-      'loadCustomLessons', 'buildCustomLessonPages', 'compressImage', 'backToGrammarTopics',
+      'loadCustomLessons', 'buildCustomLessonPages', 'compressImageToDataUrl', 'backToGrammarTopics',
     ]) {
       const exists = await page.evaluate((n) => typeof (window as any)[n] === 'function', name);
       expect(exists, `${name} should be a function`).toBe(true);

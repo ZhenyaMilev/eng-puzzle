@@ -45,7 +45,14 @@ const FORWARDED_FIELDS = {
 };
 
 const MAX_TOKENS_CEILING = 8000;
-const MAX_INPUT_CHARS = 60000;
+
+// Текст і зображення міряються окремо. Спільний ліміт у 60k символів був
+// правильний для тексту й фатальний для фото: знімок їде base64 всередині
+// messages і важить сотні тисяч символів, тож розпізнавання слів із фото
+// мовчки почало отримувати 400 на кожен запит.
+const MAX_TEXT_CHARS = 60000;
+const MAX_IMAGES_PER_REQUEST = 4;
+const MAX_IMAGE_CHARS = 3_000_000; // ~2.2 МБ на зображення
 // Netlify caps a function request at 6 MB and base64 adds a third, so anything
 // above ~4 MB would be rejected by the platform before reaching this code
 const MAX_AUDIO_BYTES = 4 * 1024 * 1024;
@@ -113,7 +120,33 @@ function transcriptionForm(payload) {
 
 function chatBodyIsSane(body) {
   if (!Array.isArray(body.messages) || !body.messages.length) return false;
-  return JSON.stringify(body.messages).length <= MAX_INPUT_CHARS;
+
+  let text = 0;
+  let images = 0;
+
+  for (const message of body.messages) {
+    const content = message && message.content;
+    if (typeof content === 'string') {
+      text += content.length;
+      continue;
+    }
+    if (!Array.isArray(content)) return false;
+
+    for (const part of content) {
+      if (!part || typeof part !== 'object') return false;
+      if (part.type === 'text') {
+        text += String(part.text || '').length;
+      } else if (part.type === 'image_url') {
+        images += 1;
+        const url = (part.image_url && part.image_url.url) || '';
+        if (typeof url !== 'string' || url.length > MAX_IMAGE_CHARS) return false;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  return text <= MAX_TEXT_CHARS && images <= MAX_IMAGES_PER_REQUEST;
 }
 
 exports.handler = async (event) => {
@@ -249,3 +282,4 @@ module.exports.ROUTES = ROUTES;
 module.exports.subscriptionActive = subscriptionActive;
 module.exports.bucketFor = bucketFor;
 module.exports.knownRoute = knownRoute;
+module.exports.chatBodyIsSane = chatBodyIsSane;

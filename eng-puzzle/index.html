@@ -6078,6 +6078,34 @@
       bottom: calc(230px + env(safe-area-inset-bottom, 0px));
     }
 
+    .daily-all-added {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 14px 0 4px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(52, 211, 153, 0.09);
+      border: 1px solid rgba(52, 211, 153, 0.28);
+      font-size: 14px;
+      color: rgba(240, 237, 232, 0.85);
+    }
+    .daily-all-added span { flex: 1; }
+    .daily-all-added button {
+      flex-shrink: 0;
+      width: auto;
+      margin: 0;
+      padding: 9px 14px;
+      border: none;
+      border-radius: 9px;
+      background: #E8A838;
+      color: #1a1a1a;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
     .goal-options {
       display: flex;
       flex-direction: column;
@@ -6785,6 +6813,13 @@
       </div>
       <!-- Список слів дня -->
       <div id="daily-words-list-container" class="hidden" style="padding: 0 16px;">
+        <!-- З'являється, коли всі слова вже у словнику: далі робити тут нічого,
+             крім як згенерувати наступні -->
+        <div id="daily-all-added" class="daily-all-added hidden">
+          <span>Усі слова вже у словнику</span>
+          <button onclick="regenerateDailyWords()">Згенерувати нові</button>
+        </div>
+
         <div id="daily-words-header" style="text-align:center;margin:18px 0 14px;">
           <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;" id="daily-words-subtitle">Ваші нові слова на сьогодні</p>
         </div>
@@ -6810,10 +6845,6 @@
         </div>
         <!-- Список фраз дня -->
         <div id="daily-phrases-list-container" class="hidden" style="padding: 0 16px;">
-          <div style="background:rgba(232,168,56,0.08);border:1px solid rgba(232,168,56,0.15);border-radius:12px;padding:16px;margin-bottom:14px;text-align:center;">
-            <div style="font-size:28px;margin-bottom:6px;">💬</div>
-            <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;" id="daily-phrases-subtitle">Ваші нові фрази на сьогодні</p>
-          </div>
           <ul id="daily-phrases-list" style="list-style:none;padding:0;"></ul>
           <button class="finish-button" id="add-all-daily-phrases" onclick="addAllDailyPhrases()" style="width:100%;margin-top:8px;">
             Додати всі до словника
@@ -8846,37 +8877,12 @@
       document.getElementById('support-modal').classList.add('hidden');
     }
 
-    /**
-     * Стискаємо в браузері: фото з телефона — це 3-5 МБ, а функція Netlify
-     * приймає 6 МБ на весь запит разом із base64, який додає ще третину.
-     */
-    function compressImage(file, maxSide = 1280, quality = 0.7) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const img = new Image();
-          img.onload = () => {
-            const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
-            const canvas = document.createElement('canvas');
-            canvas.width = Math.round(img.width * scale);
-            canvas.height = Math.round(img.height * scale);
-            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL('image/jpeg', quality).split(',')[1]);
-          };
-          img.onerror = reject;
-          img.src = reader.result;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
-
     async function attachSupportImages(input) {
       const files = Array.from(input.files || []).slice(0, 3 - supportImages.length);
       input.value = '';
       for (const file of files) {
         try {
-          supportImages.push(await compressImage(file));
+          supportImages.push(await compressImageToBase64(file, 1280, 0.7));
         } catch (e) {
           document.getElementById('support-error').textContent = 'Не вдалося прочитати зображення.';
         }
@@ -9048,7 +9054,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.12';
+    const APP_VERSION = '2026-08-16.13';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -10290,17 +10296,18 @@ Return ONLY the JSON array, no other text.`;
         list.appendChild(li);
       });
 
-      // If all words already added, hide "add all" button and show hint
+      // Коли все вже додано, єдина осмислена дія — згенерувати нові. Раніше
+      // заради неї доводилося гортати тридцять галочок до самого низу.
       const addAllBtn = document.getElementById('add-all-daily-words');
+      const topAction = document.getElementById('daily-all-added');
       if (allAdded) {
         if (addAllBtn) addAllBtn.style.display = 'none';
-        const hint = document.createElement('p');
-        hint.style.cssText = 'text-align:center;color:rgba(240,237,232,0.4);font-size:13px;margin-top:8px;';
-        hint.textContent = 'Всі слова вже додані. Згенеруй нові!';
-        list.appendChild(hint);
+        if (topAction) topAction.classList.remove('hidden');
       } else {
         if (addAllBtn) addAllBtn.style.display = '';
+        if (topAction) topAction.classList.add('hidden');
       }
+      syncMainButton();
     }
 
     async function addDailyWord(index, btn) {
@@ -11335,11 +11342,9 @@ Return ONLY a JSON array of strings.`
       document.getElementById('photo-upload-row').classList.add('hidden');
       document.getElementById('photo-upload-loading').classList.remove('hidden');
       try {
-        const base64 = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result.split(',')[1]);
-          reader.readAsDataURL(file);
-        });
+        // Знімок із телефона — це 3-5 МБ. Розпізнаванню тексту вистачає
+        // 1600px, а дорога до сервера й назад стає в рази коротшою.
+        const base64 = await compressImageToBase64(file, 1600, 0.75);
 
         const response = await aiChat({
             model: 'gpt-4o-mini',
@@ -11462,11 +11467,9 @@ Return ONLY a JSON array of strings.`
       document.getElementById('phrase-photo-upload-row').classList.add('hidden');
       document.getElementById('phrase-photo-upload-loading').classList.remove('hidden');
       try {
-        const base64 = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result.split(',')[1]);
-          reader.readAsDataURL(file);
-        });
+        // Знімок із телефона — це 3-5 МБ. Розпізнаванню тексту вистачає
+        // 1600px, а дорога до сервера й назад стає в рази коротшою.
+        const base64 = await compressImageToBase64(file, 1600, 0.75);
 
         const response = await aiChat({
             model: 'gpt-4o-mini',
@@ -11801,7 +11804,14 @@ Return ONLY a JSON array of strings.`
 
     // Стискаємо фото перед відправкою — знімок з телефона інакше важить кілька МБ.
     // Сторона 2000 px: дрібний текст у таблицях має лишитися читабельним.
-    function compressImage(file, maxSide = 2000, quality = 0.85) {
+    /**
+     * Стискає фото в браузері й повертає ПОВНИЙ data-URL.
+     *
+     * Функцій із цим ім'ям було дві, і вони повертали різне: одна data-URL,
+     * друга — сам base64. Перемагала пізніша, тож скриншоти підтримки їхали
+     * зіпсованими байтами й не доходили. Тепер одна, і в назві видно, що саме.
+     */
+    function compressImageToDataUrl(file, maxSide = 2000, quality = 0.85) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -11822,6 +11832,12 @@ Return ONLY a JSON array of strings.`
       });
     }
 
+    /** Те саме, але без префікса — там, де потрібні самі байти. */
+    async function compressImageToBase64(file, maxSide, quality) {
+      const dataUrl = await compressImageToDataUrl(file, maxSide, quality);
+      return dataUrl.split(',')[1];
+    }
+
     async function addCustomLessonImages(event) {
       const files = Array.from(event.target.files || []);
       if (!files.length) return;
@@ -11833,7 +11849,7 @@ Return ONLY a JSON array of strings.`
             showNotification(`Максимум ${MAX_IMAGES} фото`, 'warning');
             break;
           }
-          customLessonImages.push(await compressImage(file));
+          customLessonImages.push(await compressImageToDataUrl(file));
         }
         document.getElementById('custom-lesson-error').textContent = '';
         renderCustomLessonImages();
@@ -15463,9 +15479,10 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       const correctAnswers = word.correctAnswers || 0;
       const percentage = interactions > 0 ? Math.round((correctAnswers / interactions) * 100) : 0;
 
-      // Отримуємо картинку слова
-      const imgUrl = await getWordImage(word.english);
-      const imageHtml = imgUrl ? `<img src="${imgUrl}" alt="${word.english}" style="display: block; margin: 0 auto 15px auto; max-width: 200px; border-radius: 10px;">` : '';
+      // Картинку чекали ДО показу — тобто на кожен тап по слову людина
+      // дивилася в порожнечу, поки ходив запит у Unsplash. Тепер картка
+      // з'являється миттєво, а знімок доїжджає у відведене йому місце.
+      const imageHtml = '<div id="word-info-image" style="min-height:0;"></div>';
 
       // Іконки папки в рядку більше немає, тож шлях у папки — звідси
       const wordArg = JSON.stringify(word.english).replace(/"/g, '&quot;');
@@ -15490,8 +15507,16 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
 
       const popup = document.getElementById('wordInfoPopup');
       popup.innerHTML = popupContent;
+      popup.scrollTop = 0;
       document.querySelector('.overlay').classList.remove('hidden');
       popup.classList.add('show');
+
+      getWordImage(word.english).then(url => {
+        // Картка могла вже закритися або показувати інше слово
+        const slot = document.getElementById('word-info-image');
+        if (!url || !slot || !popup.classList.contains('show')) return;
+        slot.innerHTML = `<img src="${url}" alt="" style="display:block;margin:0 auto 15px auto;max-width:200px;border-radius:10px;">`;
+      }).catch(() => {});
     }
 
     function closePopupWord() {
