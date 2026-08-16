@@ -5748,6 +5748,67 @@
       padding-bottom: var(--safe-bottom, 0);
     }
 
+    /* Три речі, які миттєво читаються як «це сайт, а не застосунок»:
+       сіра пляма підсвітки на тапі, виділення тексту при довгому натисканні
+       і системне меню «Копіювати / Поділитися» поверх картки зі словом. */
+    body.in-miniapp,
+    body.in-miniapp * {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
+
+    body.in-miniapp {
+      -webkit-user-select: none;
+      user-select: none;
+      overscroll-behavior-y: contain;
+    }
+
+    /* Але те, що людина може захотіти скопіювати, лишається копійованим */
+    body.in-miniapp input,
+    body.in-miniapp textarea,
+    body.in-miniapp .legal-body,
+    body.in-miniapp .sc-msg,
+    body.in-miniapp #story-text,
+    body.in-miniapp #grammar-lesson-content {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    /* Кнопка має відповідати на дотик миттєво, до будь-якої логіки:
+       120 мс просідання — це те, що відрізняє «натиснув» від «клікнув» */
+    body.in-miniapp button:not(:disabled):active,
+    body.in-miniapp .acc-tile:not(:disabled):active,
+    body.in-miniapp .tile:active,
+    body.in-miniapp .word-item:active,
+    body.in-miniapp .grammar-topic:active {
+      transform: scale(0.97);
+      transition: transform 0.06s ease;
+    }
+
+    body.in-miniapp button,
+    body.in-miniapp .acc-tile,
+    body.in-miniapp .tile {
+      transition: transform 0.12s ease;
+    }
+
+    /* Своя кнопка «Назад» зайва, коли Telegram малює власну в шапці */
+    body.tg-native-back .back-button {
+      display: none;
+    }
+
+    /* Заголовок екрана лишався притиснутим до краю, коли кнопка зникла */
+    body.tg-native-back .title-and-btn {
+      justify-content: center;
+    }
+    body.tg-native-back .title-and-btn h2 {
+      margin: 0;
+    }
+
+    /* Шторку тягнемо пальцем — під час перетягування анімація заважає */
+    .sheet-dragging {
+      transition: none !important;
+    }
+
     .acc-telegram {
       display: flex;
       align-items: center;
@@ -7394,6 +7455,7 @@
         <p>Будь-хто за цим посиланням зможе додати це собі.</p>
         <code id="share-link-value" class="share-link-box"></code>
         <div class="app-modal-actions">
+          <button class="primary" id="share-send-btn" onclick="sendShareLink()"><i class="fab fa-telegram" style="margin-right:6px;"></i>Надіслати</button>
           <button class="primary" onclick="copyShareLink()"><i class="fas fa-copy" style="margin-right:6px;"></i>Копіювати</button>
           <button class="secondary" onclick="closeShareLinkModal()">Закрити</button>
         </div>
@@ -7816,6 +7878,10 @@
 
       document.body.classList.add('in-miniapp');
       applyMiniAppMetrics();
+      bindGlobalHaptics();
+      bindSheetGestures();
+      bindTelegramBackButton();
+      bindMainButton();
 
       tg.onEvent('viewportChanged', applyMiniAppMetrics);
       if (tg.onEvent) {
@@ -7824,6 +7890,307 @@
         // Повернення з браузера після оплати: перечитати підписку без перезавантаження
         tg.onEvent('activated', refreshSubscriptionState);
       }
+    }
+
+    // ---------- Головна кнопка Telegram ----------
+    // MainButton живе ПОЗА веб-вью: завжди внизу, завжди на одному місці,
+    // сама піднімається над клавіатурою. Ставимо її туди, де на екрані є
+    // рівно одна головна дія — і не чіпаємо конструктор із кросвордом,
+    // у яких уже є власна нижня панель із «Перевірити».
+    let mainButtonAction = null;
+
+    function showMainButton(text, action) {
+      if (!isMiniApp() || !tg.MainButton) return false;
+      mainButtonAction = action;
+      tg.MainButton.setParams({ text, color: '#E8A838', text_color: '#1a1a1a' });
+      if (!tg.MainButton.isVisible) tg.MainButton.show();
+      return true;
+    }
+
+    function hideMainButton() {
+      mainButtonAction = null;
+      if (isMiniApp() && tg.MainButton && tg.MainButton.isVisible) tg.MainButton.hide();
+    }
+
+    function bindMainButton() {
+      if (!isMiniApp() || !tg.MainButton) return;
+      tg.MainButton.onClick(() => {
+        haptic('medium');
+        if (mainButtonAction) mainButtonAction();
+      });
+    }
+
+    /**
+     * Де саме показувати головну кнопку. Умисно короткий список: MainButton
+     * виправдана там, де на екрані одна очевидна дія. Конструктора й кросворда
+     * тут немає — у них своя нижня панель, дві кнопки внизу били б одна одну.
+     */
+    const MAIN_BUTTON_SCREENS = [
+      {
+        section: 'daily-words-section',
+        // Кнопка «Додати всі» має сенс, лише поки список не порожній
+        when: () => {
+          const btn = document.getElementById('add-all-daily-words');
+          return btn && btn.offsetParent !== null && btn.style.display !== 'none';
+        },
+        text: 'Додати всі до словника',
+        action: () => addAllDailyWords(),
+        hides: 'add-all-daily-words',
+      },
+      {
+        section: 'phrase-constructor-section',
+        when: () => !document.getElementById('phrase-mode-select').classList.contains('hidden'),
+        text: 'Почати',
+        action: () => startPhrasePractice(),
+      },
+      {
+        section: 'tariffs-section',
+        when: () => true,
+        text: 'Обрати тариф',
+        action: () => {
+          const first = document.querySelector('#tariffs-section .tariff button');
+          if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        },
+      },
+    ];
+
+    let mainButtonHidden = null;
+
+    function syncMainButton() {
+      if (!isMiniApp() || !tg.MainButton) return;
+
+      const active = MAIN_BUTTON_SCREENS.find(entry => {
+        const section = document.getElementById(entry.section);
+        return section && !section.classList.contains('hidden') && entry.when();
+      });
+
+      // Дубль на самій сторінці ховаємо: одна дія — одна кнопка
+      if (mainButtonHidden && (!active || active.hides !== mainButtonHidden)) {
+        const old = document.getElementById(mainButtonHidden);
+        if (old) old.classList.remove('hidden');
+        mainButtonHidden = null;
+      }
+
+      if (!active) {
+        hideMainButton();
+        return;
+      }
+
+      if (active.hides) {
+        const dup = document.getElementById(active.hides);
+        if (dup) dup.classList.add('hidden');
+        mainButtonHidden = active.hides;
+      }
+      showMainButton(active.text, active.action);
+    }
+
+    // ---------- Підтвердження виходу ----------
+    // Свайп донизу закриває міні-апп. Посеред вправи це втрачений прогрес,
+    // тож там Telegram спершу перепитає — а на спокійних екранах не заважає.
+    function guardClosing(on) {
+      if (!isMiniApp()) return;
+      try {
+        if (on && tg.enableClosingConfirmation) tg.enableClosingConfirmation();
+        if (!on && tg.disableClosingConfirmation) tg.disableClosingConfirmation();
+      } catch (e) { /* стара версія — просто без підтвердження */ }
+    }
+
+    // Екрани, де є що втрачати
+    const GUARDED_SCREENS = [
+      'quiz-section', 'picture-quiz-section', 'listening-training-section',
+      'word-constructor-training-section', 'speed-training-section',
+      'crossword-section', 'fill-blanks-section', 'definition-quiz-section',
+      'phrase-constructor-section', 'speaking-club-section',
+    ];
+
+    function syncClosingGuard() {
+      if (!isMiniApp()) return;
+      const inExercise = GUARDED_SCREENS.some(id => {
+        const el = document.getElementById(id);
+        return el && !el.classList.contains('hidden');
+      });
+      guardClosing(inExercise);
+    }
+
+    // ---------- Кнопка «Назад» у шапці Telegram ----------
+    // У застосунку 22 власні кнопки «Назад» усередині сторінки. Це головна
+    // прикмета «це сайт»: у Telegram назад шукають у шапці вікна. Показуємо
+    // рідну кнопку і ховаємо свої — але лише в міні-аппі, на вебі шапки немає.
+    let telegramBackAction = null;
+
+    function bindTelegramBackButton() {
+      if (!isMiniApp() || !tg.BackButton) return;
+      document.body.classList.add('tg-native-back');
+      tg.BackButton.onClick(() => {
+        haptic('light');
+        if (telegramBackAction) telegramBackAction();
+        else backToAccount();
+      });
+      // Стан перемальовуємо після кожної зміни екрана
+      observeScreenChanges();
+      syncTelegramBackButton();
+      syncClosingGuard();
+    }
+
+    /**
+     * Екрани перемикаються додаванням класу hidden, а не роутером, тож
+     * стежимо за самими класами — інакше довелося б чіпати 40 функцій показу.
+     */
+    function observeScreenChanges() {
+      const observer = new MutationObserver(() => {
+        syncTelegramBackButton();
+        syncClosingGuard();
+        syncMainButton();
+      });
+      observer.observe(document.body, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+    }
+
+    // Екран → що робить «Назад». Порядок важливий: перший видимий виграє,
+    // тож вкладені екрани (документи, тарифи) стоять перед головним.
+    const BACK_TARGETS = [
+      ['legal-section', () => closeLegal()],
+      ['speaking-club-section', () => scBack()],
+      ['grammar-section', () => grammarBack()],
+      ['add-phrase-section', () => backFromAddPhrase()],
+      ['tariffs-section', () => backToAccount()],
+      ['my-words-section', () => backToAccount()],
+      ['daily-words-section', () => backToAccount()],
+      ['add-word-section', () => backToAccount()],
+      ['quiz-section', () => backToAccount()],
+      ['picture-quiz-section', () => backToAccount()],
+      ['listening-training-section', () => backToAccount()],
+      ['word-constructor-training-section', () => backToAccount()],
+      ['speed-training-section', () => backToAccount()],
+      ['generative-text-section', () => backToAccount()],
+      ['crossword-section', () => backToAccount()],
+      ['fill-blanks-section', () => backToAccount()],
+      ['definition-quiz-section', () => backToAccount()],
+      ['leaderboard-section', () => backToAccount()],
+      ['phrase-constructor-section', () => backToAccount()],
+      ['payment-section', null], // звідси назад нікуди: підписка скінчилася
+    ];
+
+    function syncTelegramBackButton() {
+      if (!isMiniApp() || !tg.BackButton) return;
+
+      const open = BACK_TARGETS.find(([id]) => {
+        const el = document.getElementById(id);
+        return el && !el.classList.contains('hidden');
+      });
+
+      if (open && open[1]) {
+        telegramBackAction = open[1];
+        if (!tg.BackButton.isVisible) tg.BackButton.show();
+      } else {
+        telegramBackAction = null;
+        if (tg.BackButton.isVisible) tg.BackButton.hide();
+      }
+    }
+
+    // ---------- Шторки, які справді тягнуться ----------
+    // Смужка 40×4 над панеллю — універсальний знак «мене можна тягнути».
+    // Досі вона нічого не обіцяла чесно: у файлі не було жодного обробника
+    // дотику. Тепер обіцянку виконано для всіх панелей одразу.
+    const SHEETS = [
+      { id: 'wordInfoPopup', close: () => closePopupWord() },
+      { id: 'infoPopup', close: () => closeInfoPopup() },
+      { id: 'fillBlanksInfoPopup', close: () => closeFillBlanksInfoPopup() },
+      { id: 'dailyWordsSettingsSheet', close: () => closeDailyWordsSettings() },
+    ];
+
+    // Далі третини висоти — відпускаємо; або різкий рух униз, навіть короткий
+    const SHEET_CLOSE_FRACTION = 0.33;
+    const SHEET_FLING_SPEED = 0.5; // px/ms
+
+    function bindSheetGestures() {
+      SHEETS.forEach(sheet => {
+        const el = document.getElementById(sheet.id);
+        if (el) makeSheetDraggable(el, sheet.close);
+      });
+
+      // Тап повз панель теж закриває — цього теж не було
+      const overlay = document.querySelector('.overlay');
+      if (overlay) {
+        overlay.addEventListener('click', () => {
+          const open = SHEETS.map(s => document.getElementById(s.id))
+            .find(el => el && el.classList.contains('show'));
+          if (open) {
+            haptic('light');
+            (SHEETS.find(s => s.id === open.id) || {}).close();
+          }
+        });
+      }
+    }
+
+    function makeSheetDraggable(el, close) {
+      let startY = 0;
+      let startTime = 0;
+      let offset = 0;
+      let dragging = false;
+
+      el.addEventListener('touchstart', event => {
+        // Тягнемо лише коли вміст прокручено доверху, інакше жест
+        // забирав би у людини звичайну прокрутку списку
+        if (el.scrollTop > 0) return;
+        startY = event.touches[0].clientY;
+        startTime = Date.now();
+        offset = 0;
+        dragging = true;
+        el.classList.add('sheet-dragging');
+      }, { passive: true });
+
+      el.addEventListener('touchmove', event => {
+        if (!dragging) return;
+        offset = event.touches[0].clientY - startY;
+        if (offset < 0) offset = 0; // угору не тягнеться
+        el.style.transform = `translateY(${offset}px)`;
+      }, { passive: true });
+
+      el.addEventListener('touchend', () => {
+        if (!dragging) return;
+        dragging = false;
+        el.classList.remove('sheet-dragging');
+        el.style.transform = '';
+
+        const speed = offset / Math.max(1, Date.now() - startTime);
+        if (offset > el.offsetHeight * SHEET_CLOSE_FRACTION || speed > SHEET_FLING_SPEED) {
+          haptic('light');
+          close();
+        }
+      });
+    }
+
+    // ---------- Тактильний відгук ----------
+    // Найдешевше «нативне» відчуття на рядок коду: тіло реагує на дію раніше,
+    // ніж очі встигають прочитати результат.
+    function haptic(kind) {
+      if (!isMiniApp() || !tg.HapticFeedback) return;
+      try {
+        if (kind === 'success' || kind === 'error' || kind === 'warning') {
+          tg.HapticFeedback.notificationOccurred(kind);
+        } else if (kind === 'select') {
+          tg.HapticFeedback.selectionChanged();
+        } else {
+          tg.HapticFeedback.impactOccurred(kind || 'light');
+        }
+      } catch (e) { /* стара версія Telegram — просто без вібрації */ }
+    }
+
+    /**
+     * Один делегований обробник замість сотні onclick: будь-яка кнопка чи
+     * плитка відгукується на дотик, і жодне нове місце в коді про це не думає.
+     */
+    function bindGlobalHaptics() {
+      document.addEventListener('pointerdown', event => {
+        const el = event.target.closest(
+          'button, .acc-tile, .tile, .acc-action-btn, .word-item, .grammar-topic, .vocab-tab, .legal-tab, .mode-option');
+        if (!el || el.disabled) return;
+        haptic(el.classList.contains('cw-key') ? 'select' : 'light');
+      }, { passive: true });
     }
 
     /**
@@ -8089,7 +8456,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.3';
+    const APP_VERSION = '2026-08-16.4';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -9893,6 +10260,10 @@ Return ONLY the JSON array, no other text.`;
     async function addXP(amount) {
       userXP += amount;
       userLevel = getLevelFromXP(userXP);
+      // Усі вправи нараховують більше за правильну відповідь і символічні
+      // 2–5 за спробу, тож поріг тут відрізняє одне від одного без правок
+      // у кожній вправі окремо
+      hapticAnswer(amount >= 10);
 
       // Show feedback immediately (before async Firebase calls)
       updateGamificationUI();
@@ -9930,6 +10301,14 @@ Return ONLY the JSON array, no other text.`;
       } catch (error) {
         console.log('Помилка збереження XP:', error);
       }
+    }
+
+    /**
+     * Правильно чи ні — тіло дізнається раніше за очі. Один виклик у місці,
+     * де нараховується XP, покриває всі вправи одразу.
+     */
+    function hapticAnswer(correct) {
+      haptic(correct ? 'success' : 'error');
     }
 
     // Тост з нарахуванням XP
@@ -13664,6 +14043,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
 
     // ========== CONFETTI ==========
     function showConfetti() {
+      haptic('success');
       const container = document.createElement('div');
       container.className = 'confetti-container';
       const colors = ['#E8A838', '#34d399', '#667eea', '#ef4444', '#F2C94C', '#ec4899'];
@@ -13731,6 +14111,30 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     }
 
     function appConfirm(title, text, okLabel) {
+      // У Telegram це справжнє системне вікно: воно з'являється поверх усього,
+      // не залежить від нашої верстки й закривається жестом, як усі інші
+      if (isMiniApp() && tg.showConfirm) {
+        haptic('warning');
+        return new Promise(resolve => {
+          try {
+            tg.showPopup({
+              title: String(title).slice(0, 64),
+              message: String(text || '').slice(0, 256),
+              buttons: [
+                { id: 'ok', type: 'default', text: (okLabel || 'Так').slice(0, 64) },
+                { id: 'cancel', type: 'cancel' },
+              ],
+            }, id => resolve(id === 'ok'));
+          } catch (e) {
+            // Занадто довгий текст або стара версія — падаємо на своє вікно
+            resolve(appConfirmFallback(title, text, okLabel));
+          }
+        });
+      }
+      return appConfirmFallback(title, text, okLabel);
+    }
+
+    function appConfirmFallback(title, text, okLabel) {
       document.getElementById('app-confirm-title').textContent = title;
       document.getElementById('app-confirm-text').textContent = text || '';
       const ok = document.getElementById('app-confirm-ok');
@@ -14062,11 +14466,41 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     function showShareLink(title, link) {
       document.getElementById('share-link-title').textContent = title;
       document.getElementById('share-link-value').textContent = link;
+      renderShareButtons();
       document.getElementById('share-link-modal').classList.remove('hidden');
     }
 
     function closeShareLinkModal() {
       document.getElementById('share-link-modal').classList.add('hidden');
+    }
+
+    function renderShareButtons() {
+      const send = document.getElementById('share-send-btn');
+      if (send) send.classList.toggle('hidden', !isMiniApp() && !navigator.share);
+    }
+
+    /**
+     * «Посилання скопійовано» — це не «поділився»: далі людина має сама піти
+     * шукати чат. Усередині Telegram відкриваємо вибір чата, і посилання
+     * летить одним дотиком.
+     */
+    function sendShareLink() {
+      const link = document.getElementById('share-link-value').textContent;
+      const title = document.getElementById('share-link-title').textContent;
+      const text = `${title}\n${link}`;
+      haptic('light');
+
+      if (isMiniApp() && tg.openTelegramLink) {
+        tg.openTelegramLink('https://t.me/share/url?url='
+          + encodeURIComponent(link) + '&text=' + encodeURIComponent(title));
+        closeShareLinkModal();
+        return;
+      }
+      if (navigator.share) {
+        navigator.share({ title, text: title, url: link }).catch(() => {});
+        return;
+      }
+      copyShareLink();
     }
 
     function copyShareLink() {
