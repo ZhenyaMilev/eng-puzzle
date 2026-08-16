@@ -8469,7 +8469,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.5';
+    const APP_VERSION = '2026-08-16.6';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -14344,8 +14344,35 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       } finally { hideLoading(); }
     }
 
+    // Ім'я бота й міні-аппа; мають збігатися з TG_BOT_USERNAME / TG_MINIAPP_NAME
+    const TG_BOT_USERNAME = 'myslovnyk_bot';
+    const TG_MINIAPP_NAME = 'app';
+
+    /**
+     * Посиланням діляться там, де його створили. Всередині Telegram веб-адреса
+     * відкривала браузер — тобто людина виходила із застосунку, щоб додати
+     * папку в застосунок. Deep link веде одразу в міні-апп.
+     *
+     * startapp приймає лише [A-Za-z0-9_-], а id набору — саме такий.
+     */
     function buildSetLink(setId) {
+      if (isMiniApp()) {
+        return `https://t.me/${TG_BOT_USERNAME}/${TG_MINIAPP_NAME}?startapp=set_${setId}`;
+      }
       return `${location.origin}${location.pathname}?set=${setId}`;
+    }
+
+    /** Що саме просили відкрити: з адреси у браузері або з startapp у Telegram. */
+    function sharedSetIdFromEntry() {
+      const fromUrl = new URLSearchParams(window.location.search).get('set');
+      if (fromUrl) return fromUrl;
+
+      const startParam = isMiniApp()
+        && tg.initDataUnsafe && tg.initDataUnsafe.start_param;
+      if (typeof startParam === 'string' && startParam.startsWith('set_')) {
+        return startParam.slice(4);
+      }
+      return null;
     }
 
     function showShareLink(title, link) {
@@ -14413,7 +14440,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     let pendingImportSet = null;
 
     async function checkForSharedSetOnLoad() {
-      const setId = new URLSearchParams(window.location.search).get('set');
+      const setId = sharedSetIdFromEntry();
       if (!setId || sessionStorage.getItem('importedSet_' + setId)) return;
       try {
         const doc = await db.collection('sets').doc(setId).get();
