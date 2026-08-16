@@ -6,10 +6,26 @@
   <title>Мій словник</title>
   <!-- Мета-теги для адаптивності та заборона масштабування -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <!-- Підключення шрифтів Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <!-- З'єднання встановлюємо заздалегідь: інакше кожен із цих доменів коштує
+       окремих DNS + TLS перед першим байтом -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://telegram.org">
+
+  <!-- Шрифти й іконки блокували рендер на ~270 мс. media="print" знімає їх із
+       критичного шляху, onload повертає в гру, коли вони приїхали: текст
+       з'являється системним шрифтом одразу, а не через чверть секунди. -->
+  <link rel="stylesheet" media="print" onload="this.media='all'"
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
+  <link rel="stylesheet" media="print" onload="this.media='all'"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap">
+  <link rel="stylesheet" media="print" onload="this.media='all'"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <noscript>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  </noscript>
   <!-- Стилизування додатку -->
   <style>
     /* Прелоадер */
@@ -4071,6 +4087,10 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
+      /* Довга назва не має заповзати на кнопки з боків */
+      max-width: calc(100% - 110px);
+      overflow: hidden;
+      text-overflow: ellipsis;
       margin: 0;
       font-size: 16px;
       color: #F0EDE8;
@@ -5650,12 +5670,11 @@
       display: none;
     }
 
-    /* Заголовок екрана лишався притиснутим до краю, коли кнопка зникла */
+    /* Заголовок і так відцентровано абсолютним позиціюванням. Коли своя
+       кнопка «Назад» зникає, решта має лишитися праворуч — центрування
+       зсувало кнопку історії впритул до назви екрана. */
     body.tg-native-back .title-and-btn {
-      justify-content: center;
-    }
-    body.tg-native-back .title-and-btn h2 {
-      margin: 0;
+      justify-content: flex-end;
     }
 
     /* Шторку тягнемо пальцем — під час перетягування анімація заважає */
@@ -7448,7 +7467,11 @@
 
   </div>
   <!-- Підключення Firebase SDK -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- 579 мс блокованого рендеру. Застосунок його більше не чекає: усе, що
+       потрібно для входу, Telegram кладе в адресний рядок, а рідні кнопки
+       й вібрація підключаються, коли SDK приїде. -->
+  <script async src="https://telegram.org/js/telegram-web-app.js"
+          onload="window.__tgSdkReady && window.__tgSdkReady()"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -7822,16 +7845,49 @@
     // ===== Telegram Mini App =====
     // Усередині Telegram застосунок живе у вбудованому вікні: немає адресного
     // рядка, свайп донизу закриває вікно, а висота в'юпорта не дорівнює 100vh.
-    const tg = (window.Telegram && window.Telegram.WebApp) || null;
+    // Поки скрипт Telegram їде, це порожня заглушка. До неї звертаються з
+    // двох десятків місць, і всі вони вже перевіряють конкретний метод —
+    // об'єкт, який нічого не вміє, читається краще за двадцять перевірок на null.
+    let tg = (window.Telegram && window.Telegram.WebApp) || {};
 
-    function isMiniApp() {
-      return !!(tg && tg.initData);
+    /**
+     * initData, не чекаючи на SDK.
+     *
+     * Telegram кладе підписані дані в адресний рядок (#tgWebAppData=…) ще до
+     * того, як завантажиться його скрипт. Читаємо звідти — і вхід більше не
+     * залежить від 500 мс мережі до telegram.org.
+     */
+    function rawInitData() {
+      if (tg && tg.initData) return tg.initData;
+      const hash = (location.hash || '').replace(/^#/, '');
+      if (!hash) return '';
+      const value = new URLSearchParams(hash).get('tgWebAppData');
+      return value || '';
     }
 
+    function isMiniApp() {
+      return !!rawInitData();
+    }
+
+    /** Те, що можна зробити одразу: без SDK, без мережі. */
     function setupMiniApp() {
       // Сам SDK підвантажується і у звичайному браузері, тож наявність
       // window.Telegram нічого не означає — вирішує підписаний initData
       if (!isMiniApp()) return;
+      document.body.classList.add('in-miniapp');
+      bindGlobalHaptics();
+      bindSheetGestures();
+      setupMiniAppChrome();
+    }
+
+    /** Те, для чого SDK справді потрібен. Може викликатися двічі — воно ідемпотентне. */
+    let miniAppChromeReady = false;
+
+    function setupMiniAppChrome() {
+      tg = (window.Telegram && window.Telegram.WebApp) || tg;
+      if (!tg.ready || miniAppChromeReady || !isMiniApp()) return;
+      miniAppChromeReady = true;
+
       tg.ready();
       tg.expand();
 
@@ -7840,21 +7896,21 @@
       if (tg.setHeaderColor) tg.setHeaderColor('#0f1117');
       if (tg.setBackgroundColor) tg.setBackgroundColor('#0f1117');
 
-      document.body.classList.add('in-miniapp');
       applyMiniAppMetrics();
-      bindGlobalHaptics();
-      bindSheetGestures();
       bindTelegramBackButton();
       bindMainButton();
 
-      tg.onEvent('viewportChanged', applyMiniAppMetrics);
       if (tg.onEvent) {
+        tg.onEvent('viewportChanged', applyMiniAppMetrics);
         tg.onEvent('safeAreaChanged', applyMiniAppMetrics);
         tg.onEvent('contentSafeAreaChanged', applyMiniAppMetrics);
         // Повернення з браузера після оплати: перечитати підписку без перезавантаження
         tg.onEvent('activated', refreshSubscriptionState);
       }
     }
+
+    // Скрипт Telegram їде асинхронно і покличе це, коли приїде
+    window.__tgSdkReady = setupMiniAppChrome;
 
     // ---------- Головна кнопка Telegram ----------
     // MainButton живе ПОЗА веб-вью: завжди внизу, завжди на одному місці,
@@ -8173,7 +8229,7 @@
      * в'юпорта. У міні-аппі 100vh бреше — правильна величина viewportStableHeight.
      */
     function applyMiniAppMetrics() {
-      if (!tg) return;
+      if (!tg.viewportStableHeight && !tg.contentSafeAreaInset) return;
       const root = document.documentElement;
       const stable = tg.viewportStableHeight || window.innerHeight;
       root.style.setProperty('--app-height', stable + 'px');
@@ -8213,7 +8269,7 @@
         const response = await fetch('/.netlify/functions/tg-auth', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData: tg.initData }),
+          body: JSON.stringify({ initData: rawInitData() }),
         });
         if (!response.ok) return false;
         const data = await response.json();
@@ -8470,7 +8526,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.7';
+    const APP_VERSION = '2026-08-16.8';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
