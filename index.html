@@ -2126,6 +2126,12 @@
       color: #E8A838 !important;
     }
 
+    /* Заголовок екрана і вкладки під ним стояли впритул — 28px назва майже
+       торкалася кнопок «Слова / Фрази» */
+    .title-and-btn + .vocab-tabs {
+      margin-top: 6px;
+    }
+
     .vocab-tabs {
       display: flex;
       gap: 6px;
@@ -5680,6 +5686,48 @@
       justify-content: flex-end;
     }
 
+    /* Рядок зі схованими діями: сам рядок їде, дії лежать під ним */
+    .swipe-row {
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+      touch-action: pan-y;
+    }
+    .swipe-row.swipe-dragging { transition: none; }
+
+    .swipe-actions {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+      display: flex;
+      /* Праворуч від рядка: видно лише коли рядок від'їхав */
+      transform: translateX(100%);
+    }
+    .swipe-action {
+      width: 80px;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(240, 237, 232, 0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 11px;
+      box-shadow: none;
+      cursor: pointer;
+    }
+    .swipe-action i { font-size: 16px; }
+    .swipe-action.danger {
+      background: #ef4444;
+      color: #fff;
+    }
+
     /* Шторку тягнемо пальцем — під час перетягування анімація заважає */
     .sheet-dragging {
       transition: none !important;
@@ -5848,20 +5896,20 @@
       cursor: pointer;
     }
 
-    .folder-picker-box { max-height: 86vh; display: flex; flex-direction: column; }
+    .add-to-folder-box { max-height: 86vh; display: flex; flex-direction: column; }
     #folder-picker-search {
       width: 100%;
       box-sizing: border-box;
       margin-bottom: 10px;
     }
-    .folder-picker-list {
+    .add-to-folder-list {
       flex: 1;
       min-height: 140px;
       max-height: 46vh;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
-    .folder-pick-item {
+    .add-to-folder-item {
       display: flex;
       align-items: center;
       gap: 10px;
@@ -5877,11 +5925,11 @@
       box-shadow: none;
       cursor: pointer;
     }
-    .folder-pick-item.picked {
+    .add-to-folder-item.picked {
       border-color: rgba(52, 211, 153, 0.5);
       background: rgba(52, 211, 153, 0.1);
     }
-    .folder-pick-item .tick {
+    .add-to-folder-item .tick {
       flex-shrink: 0;
       width: 20px;
       height: 20px;
@@ -5893,13 +5941,13 @@
       font-size: 11px;
       color: transparent;
     }
-    .folder-pick-item.picked .tick {
+    .add-to-folder-item.picked .tick {
       background: #34d399;
       border-color: #34d399;
       color: #0f1117;
     }
-    .folder-pick-item .uk { color: rgba(240, 237, 232, 0.55); }
-    .folder-picker-empty {
+    .add-to-folder-item .uk { color: rgba(240, 237, 232, 0.55); }
+    .add-to-folder-empty {
       padding: 24px 8px;
       text-align: center;
       font-size: 14px;
@@ -6466,12 +6514,12 @@
 
     <!-- Секція "Мої слова" -->
     <div id="my-words-section" class="hidden">
-      <div class="title-and-btn">
+      <div class="title-and-btn" style="margin-bottom:22px;">
         <button class="button-with-icon back-button" onclick="backToAccount()">
           <i class="fas fa-arrow-left"></i>
           <span>Назад</span>
         </button>
-        <h2 style="font-size: 28px;">Мій словник</h2>
+        <h2 style="font-size: 24px;">Мій словник</h2>
       </div>
       <div class="vocab-tabs">
         <button class="vocab-tab active" id="vocab-tab-words" onclick="switchVocabTab('words')">Слова (<span id="vocab-words-count">...</span>)</button>
@@ -6504,7 +6552,7 @@
         <i class="fas fa-magic"></i>
         Поповнити словник
       </button>
-      <button onclick="openFolderPicker()" id="add-word-to-folder"
+      <button onclick="openAddToFolder()" id="add-word-to-folder"
         class="add-word-from-my-vocabulary hidden">
         <i class="fas fa-folder-plus"></i>
         Додати в папку
@@ -6650,13 +6698,13 @@
           <i class="fas fa-arrow-left"></i>
           <span>Назад</span>
         </button>
-        <h2 style="font-size: 28px;">Генерація</h2>
+        <h2 style="font-size: 24px;">Генерація</h2>
         <button class="button-with-icon small-button info-button" id="daily-settings-btn" onclick="openDailyWordsSettings()" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);">
           <i class="fas fa-info-circle"></i>
         </button>
       </div>
       <!-- Табы Слова / Фрази -->
-      <div class="vocab-tabs" style="padding: 0 16px;">
+      <div class="vocab-tabs" style="padding: 0 16px; margin-top: 22px;">
         <button class="vocab-tab active" id="daily-tab-words" onclick="switchDailyTab('words')">Слова</button>
         <button class="vocab-tab" id="daily-tab-phrases" onclick="switchDailyTab('phrases')">Фрази</button>
       </div>
@@ -6708,8 +6756,7 @@
       </div>
       <!-- Список слів дня -->
       <div id="daily-words-list-container" class="hidden" style="padding: 0 16px;">
-        <div id="daily-words-header" style="text-align:center;margin:16px 0;">
-          <div style="font-size:36px;margin-bottom:8px;">✨</div>
+        <div id="daily-words-header" style="text-align:center;margin:18px 0 14px;">
           <p style="font-size:14px;color:rgba(240,237,232,0.6);margin:0;" id="daily-words-subtitle">Ваші нові слова на сьогодні</p>
         </div>
         <ul id="daily-words-list" style="list-style:none;padding:0;"></ul>
@@ -7343,16 +7390,16 @@
 
 
     <!-- Вибір слів у папку -->
-    <div id="folder-picker-modal" class="app-modal hidden">
-      <div class="app-modal-box folder-picker-box">
+    <div id="add-to-folder-modal" class="app-modal hidden">
+      <div class="app-modal-box add-to-folder-box">
         <h3>Додати в папку</h3>
-        <p id="folder-picker-sub">Позначте слова, які треба перенести сюди.</p>
-        <input type="text" id="folder-picker-search" placeholder="Пошук слова..."
-               oninput="renderFolderPicker()">
-        <div id="folder-picker-list" class="folder-picker-list"></div>
+        <p id="add-to-folder-sub">Позначте слова, які треба перенести сюди.</p>
+        <input type="text" id="add-to-folder-search" placeholder="Пошук слова..."
+               oninput="renderAddToFolder()">
+        <div id="add-to-folder-list" class="add-to-folder-list"></div>
         <div class="app-modal-actions">
-          <button class="secondary" onclick="closeFolderPicker()">Скасувати</button>
-          <button class="primary" id="folder-picker-add" onclick="addPickedWordsToFolder()">Додати</button>
+          <button class="secondary" onclick="closeAddToFolder()">Скасувати</button>
+          <button class="primary" id="add-to-folder-add" onclick="addPickedWordsToFolder()">Додати</button>
         </div>
       </div>
     </div>
@@ -7567,7 +7614,7 @@
       <div id="sc-config-screen">
         <div id="sc-memory-badge" class="hidden" style="display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:14px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:10px;color:#34d399;font-size:13px;">
           <i class="fas fa-brain"></i>
-          <span style="flex:1;">Співрозмовник вас пам'ятає — розмов разом: <b id="sc-memory-count">0</b></span>
+          <span style="flex:1;">AI-співрозмовник вас пам'ятає — розмов разом: <b id="sc-memory-count">0</b></span>
           <button onclick="scForgetMemory()" title="Забути" style="width:28px;min-width:28px;height:28px;padding:0;margin:0;border-radius:7px;background:transparent;border:none;box-shadow:none;color:rgba(240,237,232,0.35);font-size:12px;cursor:pointer;">
             <i class="fas fa-eraser"></i>
           </button>
@@ -7591,7 +7638,7 @@
             <div class="sc-chips" id="sc-durations"></div>
           </div>
           <div>
-            <div class="sc-config-label">Голос співрозмовника</div>
+            <div class="sc-config-label">Голос AI-співрозмовника</div>
             <div class="sc-chips" id="sc-voices"></div>
           </div>
           <div>
@@ -8207,16 +8254,11 @@
     const MAIN_BUTTON_SCREENS = [
       {
         section: 'daily-words-section',
-        // Кнопка «Додати всі» має сенс, лише поки список не порожній
-        when: () => {
-          const btn = document.getElementById('add-all-daily-words');
-          // Свідомо без вимірювання розкладки: браузер рахував би її щоразу,
-          // а сюди ми потрапляємо після кожної зміни класів
-          return !!btn && btn.style.display !== 'none';
-        },
-        text: 'Додати всі до словника',
-        action: () => addAllDailyWords(),
-        hides: 'add-all-daily-words',
+        // Кнопка залежить від вкладки: на «Фразах» вона додає фрази
+        when: () => !!currentDailyButton(),
+        text: () => (activeDailyTab === 'phrases' ? 'Додати всі фрази' : 'Додати всі слова'),
+        action: () => (activeDailyTab === 'phrases' ? addAllDailyPhrases() : addAllDailyWords()),
+        hides: () => currentDailyButton(),
       },
       {
         section: 'phrase-constructor-section',
@@ -8236,6 +8278,13 @@
     ];
 
     let mainButtonHidden = null;
+
+    /** Яку саме кнопку «Додати всі» зараз показує екран генерації. */
+    function currentDailyButton() {
+      const id = activeDailyTab === 'phrases' ? 'add-all-daily-phrases' : 'add-all-daily-words';
+      const btn = document.getElementById(id);
+      return btn && btn.style.display !== 'none' ? id : null;
+    }
 
     function syncMainButton() {
       if (!isMiniApp() || !tg.MainButton) return;
@@ -8257,12 +8306,13 @@
         return;
       }
 
-      if (active.hides) {
-        const dup = document.getElementById(active.hides);
+      const hides = typeof active.hides === 'function' ? active.hides() : active.hides;
+      if (hides) {
+        const dup = document.getElementById(hides);
         if (dup) dup.classList.add('hidden');
-        mainButtonHidden = active.hides;
+        mainButtonHidden = hides;
       }
-      showMainButton(active.text, active.action);
+      showMainButton(typeof active.text === 'function' ? active.text() : active.text, active.action);
     }
 
     // ---------- Підтвердження виходу ----------
@@ -8453,6 +8503,102 @@
         }
       });
     }
+
+    // ---------- Свайп по рядку ----------
+    /**
+     * Кнопка «видалити» в кожному рядку — це постійна пропозиція знищити
+     * те, що людина щойно додала. Ховаємо дії за свайпом ліворуч: список
+     * стає чистим, а небезпечна дія вимагає навмисного жесту.
+     *
+     * Один помічник на всі списки — слова, фрази, історія розмов.
+     */
+    const SWIPE_OPEN_PX = 76;      // за скільки рядок «клацає» у відкритий стан
+    const SWIPE_MAX_PX = 160;      // ширина двох дій
+    let openSwipeRow = null;
+
+    function closeOpenSwipeRow() {
+      if (!openSwipeRow) return;
+      openSwipeRow.classList.remove('swipe-open');
+      openSwipeRow.style.transform = '';
+      openSwipeRow = null;
+    }
+
+    /**
+     * @param row      елемент рядка
+     * @param actions  [{ label, icon, danger, run }] — праворуч наліво
+     */
+    function makeSwipeable(row, actions) {
+      if (!actions || !actions.length) return;
+      row.classList.add('swipe-row');
+
+      const tray = document.createElement('div');
+      tray.className = 'swipe-actions';
+      actions.forEach(action => {
+        const btn = document.createElement('button');
+        btn.className = 'swipe-action' + (action.danger ? ' danger' : '');
+        btn.innerHTML = `<i class="fas ${action.icon}"></i><span>${action.label}</span>`;
+        btn.onclick = (event) => {
+          event.stopPropagation();
+          closeOpenSwipeRow();
+          action.run();
+        };
+        tray.appendChild(btn);
+      });
+      row.appendChild(tray);
+
+      const width = Math.min(SWIPE_MAX_PX, actions.length * 80);
+      let startX = 0;
+      let startY = 0;
+      let offset = 0;
+      let dragging = false;
+      let decided = false;
+
+      row.addEventListener('touchstart', event => {
+        if (openSwipeRow && openSwipeRow !== row) closeOpenSwipeRow();
+        startX = event.touches[0].clientX;
+        startY = event.touches[0].clientY;
+        offset = row.classList.contains('swipe-open') ? -width : 0;
+        dragging = true;
+        decided = false;
+        row.classList.add('swipe-dragging');
+      }, { passive: true });
+
+      row.addEventListener('touchmove', event => {
+        if (!dragging) return;
+        const dx = event.touches[0].clientX - startX;
+        const dy = event.touches[0].clientY - startY;
+
+        // Поки не зрозуміло, це горизонтальний жест чи прокрутка сторінки —
+        // не чіпаємо нічого. Інакше список неможливо гортати.
+        if (!decided) {
+          if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+          decided = true;
+          if (Math.abs(dy) > Math.abs(dx)) { dragging = false; row.classList.remove('swipe-dragging'); return; }
+        }
+
+        const base = row.classList.contains('swipe-open') ? -width : 0;
+        offset = Math.max(-width, Math.min(0, base + dx));
+        row.style.transform = `translateX(${offset}px)`;
+      }, { passive: true });
+
+      const settle = () => {
+        if (!dragging) return;
+        dragging = false;
+        row.classList.remove('swipe-dragging');
+        const open = offset < -SWIPE_OPEN_PX / 2;
+        row.classList.toggle('swipe-open', open);
+        row.style.transform = open ? `translateX(${-width}px)` : '';
+        openSwipeRow = open ? row : (openSwipeRow === row ? null : openSwipeRow);
+        if (open) haptic('light');
+      };
+      row.addEventListener('touchend', settle);
+      row.addEventListener('touchcancel', settle);
+    }
+
+    // Тап будь-де на сторінці закриває відкритий рядок
+    document.addEventListener('click', event => {
+      if (openSwipeRow && !openSwipeRow.contains(event.target)) closeOpenSwipeRow();
+    }, true);
 
     // ---------- Тактильний відгук ----------
     // Найдешевше «нативне» відчуття на рядок коду: тіло реагує на дію раніше,
@@ -8861,7 +9007,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.10';
+    const APP_VERSION = '2026-08-16.11';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -10232,6 +10378,8 @@ Return ONLY the JSON array, no other text.`;
       if (tab === 'phrases') {
         loadDailyPhrasesScreen();
       }
+      // Головна кнопка Telegram підписана під вкладку — хай перемалюється
+      syncMainButton();
     }
 
     async function loadDailyPhrasesScreen() {
@@ -13865,14 +14013,11 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
           li.appendChild(folderBtn);
         }
 
-        // Delete button
-        const deleteBtn = document.createElement('i');
-        deleteBtn.classList.add('fas', 'fa-trash');
-        deleteBtn.onclick = (e) => {
-          e.stopPropagation();
-          deletePhrase(p.id);
-        };
-        li.appendChild(deleteBtn);
+        // Так само, як у словах: дії ховаються за свайпом
+        makeSwipeable(li, [
+          { label: 'У папку', icon: 'fa-folder-plus', run: () => openFolderPicker(p.id, 'phrase') },
+          { label: 'Видалити', icon: 'fa-trash', danger: true, run: () => deletePhrase(p.id) },
+        ]);
 
         ul.appendChild(li);
       });
@@ -14554,85 +14699,85 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     }
 
     // ---------- Додавання наявних слів у папку ----------
-    let folderPickerWords = [];
-    let folderPickerPicked = new Set();
+    let addToFolderWords = [];
+    let addToFolderPicked = new Set();
 
-    async function openFolderPicker() {
+    async function openAddToFolder() {
       const folderId = folderState.words.current;
       if (!folderId) return;
 
       const folder = folderState.words.list.find(f => f.id === folderId);
-      document.getElementById('folder-picker-sub').textContent = folder
+      document.getElementById('add-to-folder-sub').textContent = folder
         ? `Позначте слова, які перенести в «${folder.name}».`
         : 'Позначте слова, які треба перенести сюди.';
-      document.getElementById('folder-picker-search').value = '';
-      folderPickerPicked = new Set();
-      document.getElementById('folder-picker-list').innerHTML =
-        '<div class="folder-picker-empty">Завантаження…</div>';
-      document.getElementById('folder-picker-modal').classList.remove('hidden');
+      document.getElementById('add-to-folder-search').value = '';
+      addToFolderPicked = new Set();
+      document.getElementById('add-to-folder-list').innerHTML =
+        '<div class="add-to-folder-empty">Завантаження…</div>';
+      document.getElementById('add-to-folder-modal').classList.remove('hidden');
 
       try {
         const userId = auth.currentUser.uid;
         const snap = await db.collection('users').doc(userId).collection('words').get();
         // Показуємо лише те, чого в папці ще немає — інакше половина списку
         // це слова, які вже тут
-        folderPickerWords = snap.docs
+        addToFolderWords = snap.docs
           .map(d => ({ english: d.id, translation: (d.data().translation || ''), folders: d.data().folders || [] }))
           .filter(w => !w.folders.includes(folderId))
           .sort((a, b) => a.english.localeCompare(b.english));
       } catch (e) {
-        folderPickerWords = [];
+        addToFolderWords = [];
       }
-      renderFolderPicker();
+      renderAddToFolder();
     }
 
-    function closeFolderPicker() {
-      document.getElementById('folder-picker-modal').classList.add('hidden');
+    function closeAddToFolder() {
+      document.getElementById('add-to-folder-modal').classList.add('hidden');
     }
 
-    function renderFolderPicker() {
-      const query = (document.getElementById('folder-picker-search').value || '').trim().toLowerCase();
-      const list = document.getElementById('folder-picker-list');
-      const shown = folderPickerWords.filter(w =>
+    function renderAddToFolder() {
+      const query = (document.getElementById('add-to-folder-search').value || '').trim().toLowerCase();
+      const list = document.getElementById('add-to-folder-list');
+      const shown = addToFolderWords.filter(w =>
         !query || w.english.toLowerCase().includes(query) || w.translation.toLowerCase().includes(query));
 
       if (!shown.length) {
-        list.innerHTML = `<div class="folder-picker-empty">${
-          folderPickerWords.length ? 'Нічого не знайшлося' : 'Усі слова вже в цій папці'
+        list.innerHTML = `<div class="add-to-folder-empty">${
+          addToFolderWords.length ? 'Нічого не знайшлося' : 'Усі слова вже в цій папці'
         }</div>`;
       } else {
         list.innerHTML = shown.map(w => `
-          <button class="folder-pick-item${folderPickerPicked.has(w.english) ? ' picked' : ''}"
-                  onclick="toggleFolderPick('${w.english.replace(/'/g, "\\'")}')">
+          <button class="folder-pick-item${addToFolderPicked.has(w.english) ? ' picked' : ''}"
+                  onclick="toggleAddToFolderPick('${w.english.replace(/'/g, "\\'")}')">
             <span class="tick"><i class="fas fa-check"></i></span>
             <span><strong>${escapeHtml(w.english)}</strong> <span class="uk">${escapeHtml(w.translation)}</span></span>
           </button>`).join('');
       }
 
-      const add = document.getElementById('folder-picker-add');
-      add.disabled = folderPickerPicked.size === 0;
-      add.textContent = folderPickerPicked.size
-        ? `Додати (${folderPickerPicked.size})`
+      const add = document.getElementById('add-to-folder-add');
+      add.disabled = addToFolderPicked.size === 0;
+      add.textContent = addToFolderPicked.size
+        ? `Додати (${addToFolderPicked.size})`
         : 'Додати';
     }
 
-    function toggleFolderPick(word) {
-      if (folderPickerPicked.has(word)) folderPickerPicked.delete(word);
-      else folderPickerPicked.add(word);
+    function toggleAddToFolderPick(word) {
+      if (addToFolderPicked.has(word)) addToFolderPicked.delete(word);
+      else addToFolderPicked.add(word);
       haptic('select');
-      renderFolderPicker();
+      renderAddToFolder();
     }
 
     async function addPickedWordsToFolder() {
       const folderId = folderState.words.current;
-      if (!folderId || !folderPickerPicked.size) return;
+      if (!folderId || !addToFolderPicked.size) return;
 
-      const button = document.getElementById('folder-picker-add');
+      const button = document.getElementById('add-to-folder-add');
       button.disabled = true;
       try {
         const userId = auth.currentUser.uid;
         const batch = db.batch();
-        folderPickerPicked.forEach(word => {
+        addToFolderPicked.forEach(word => {
           const ref = db.collection('users').doc(userId).collection('words').doc(word);
           batch.update(ref, {
             folders: firebase.firestore.FieldValue.arrayUnion(folderId),
@@ -14640,8 +14785,8 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
         });
         await batch.commit();
 
-        const added = folderPickerPicked.size;
-        closeFolderPicker();
+        const added = addToFolderPicked.size;
+        closeAddToFolder();
         haptic('success');
         showNotification(`Додано ${added} ${pluralUa(added, 'слово', 'слова', 'слів')}`);
         await fetchWordsPaged();
@@ -15241,8 +15386,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
         wordInfo.innerHTML = `<strong>${word.english}</strong> - ${word.translation}<br><em>${word.example}</em>`;
         li.appendChild(wordInfo);
 
-        // Іконку показуємо лише коли слово справді лежить у папці —
-        // додати в папку можна з картки слова, тому сірих іконок у кожному рядку не треба
+        // Іконку показуємо лише коли слово справді лежить у папці
         if ((word.folders || []).length) {
           const folderBtn = document.createElement('i');
           folderBtn.classList.add('fas', 'fa-folder', 'word-folder-btn', 'has-folder');
@@ -15255,13 +15399,12 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
           li.appendChild(folderBtn);
         }
 
-        const deleteBtn = document.createElement('i');
-        deleteBtn.classList.add('fas', 'fa-trash');
-        deleteBtn.onclick = (e) => {
-          e.stopPropagation();
-          deleteWord(word.english, li);
-        };
-        li.appendChild(deleteBtn);
+        // Видалення й папки — за свайпом. Кошик у кожному рядку був постійною
+        // пропозицією знищити те, що щойно додали.
+        makeSwipeable(li, [
+          { label: 'У папку', icon: 'fa-folder-plus', run: () => openFolderPicker(word.english, 'word') },
+          { label: 'Видалити', icon: 'fa-trash', danger: true, run: () => deleteWord(word.english, li) },
+        ]);
 
         wordsElement.appendChild(li);
       });
@@ -15521,14 +15664,11 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
         wordInfo.innerHTML = `<strong>${word.english}</strong> - ${word.translation}<br><em>${word.example}</em>`;
         li.appendChild(wordInfo);
 
-        // Кнопка удаления
-        const deleteBtn = document.createElement('i');
-        deleteBtn.classList.add('fas', 'fa-trash');
-        deleteBtn.onclick = (e) => {
-          e.stopPropagation(); // Останавливаем всплытие события
-          deleteWord(word.english, li);
-        };
-        li.appendChild(deleteBtn);
+        // Ті самі дії за свайпом, що і в основному списку
+        makeSwipeable(li, [
+          { label: 'У папку', icon: 'fa-folder-plus', run: () => openFolderPicker(word.english, 'word') },
+          { label: 'Видалити', icon: 'fa-trash', danger: true, run: () => deleteWord(word.english, li) },
+        ]);
 
         wordsElement.appendChild(li);
       });
@@ -19515,9 +19655,36 @@ Write it in English, as short factual lines. No headings, no markdown, no commen
           html += '</div>';
         });
         el.innerHTML = html;
+
+        // Свайп ліворуч — видалити запис. Той самий жест, що у словнику.
+        el.querySelectorAll('.sc-analysis-card').forEach(function(card, index) {
+          makeSwipeable(card, [
+            { label: 'Видалити', icon: 'fa-trash', danger: true, run: function() { scDeleteHistory(index); } },
+          ]);
+        });
       } catch(e) {
         console.error('Load history error:', e);
         el.innerHTML = '<p style="text-align:center;color:rgba(240,237,232,0.4);padding:40px 0;">Помилка: ' + scEscape(e.message || String(e)) + '</p>';
+      }
+    }
+
+    /**
+     * Історія лежить масивом у документі користувача, тож видаляємо за
+     * позицією — саме в тому порядку, в якому її щойно намалювали.
+     */
+    async function scDeleteHistory(index) {
+      if (!await appConfirm('Видалити цю розмову?', 'Аналіз і слова з неї зникнуть.', 'Видалити')) return;
+      try {
+        const userId = auth.currentUser.uid;
+        const doc = await db.collection('users').doc(userId).get();
+        const history = (doc.exists && doc.data().scHistory) || [];
+        history.splice(index, 1);
+        await db.collection('users').doc(userId).update({ scHistory: history });
+        haptic('success');
+        scLoadHistory();
+      } catch (e) {
+        console.error('Delete history error:', e);
+        showNotification('Не вдалося видалити', 'warning');
       }
     }
 
