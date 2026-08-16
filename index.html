@@ -5742,12 +5742,6 @@
       font-size: 13px;
     }
 
-    #merge-modal input {
-      width: 100%;
-      margin-bottom: 8px;
-      box-sizing: border-box;
-    }
-
     /* Усередині Telegram немає адресного рядка, зате є власні відступи */
     body.in-miniapp {
       padding-top: var(--safe-top, 0);
@@ -6191,8 +6185,6 @@
       </div>
 
       <div class="acc-footer">
-        <button class="legal-link hidden" id="merge-link" onclick="openMergeDialog()">Підключити старий акаунт</button>
-        <span class="hidden" id="merge-link-dot">·</span>
         <button class="legal-link" onclick="showLegal('offer')">Оферта</button>
         <span>·</span>
         <button class="legal-link" onclick="showLegal('refund')">Повернення коштів</button>
@@ -7110,22 +7102,6 @@
     </div>
 
 
-    <!-- Злиття акаунтів: рідкісна дія, тож живе у вікні, а не на головному екрані -->
-    <div id="merge-modal" class="app-modal hidden">
-      <div class="app-modal-box">
-        <h3>Підключити старий акаунт</h3>
-        <p>Якщо ти вже користувався застосунком через пошту — увійди один раз,
-        і словник із підпискою переїдуть сюди.</p>
-        <input type="email" id="merge-email" placeholder="Email" autocomplete="email">
-        <input type="password" id="merge-password" placeholder="Пароль" autocomplete="current-password">
-        <div id="merge-error" class="error-message"></div>
-        <div class="app-modal-actions">
-          <button class="secondary" onclick="closeMergeDialog()">Скасувати</button>
-          <button class="primary" onclick="mergeTelegramAccount()">Підключити</button>
-        </div>
-      </div>
-    </div>
-
     <!-- Секція "Документи": оферта, повернення, конфіденційність, контакти -->
     <div id="legal-section" class="hidden">
       <div class="title-and-btn">
@@ -7900,7 +7876,6 @@
         if (!response.ok) return false;
         const data = await response.json();
         await auth.signInWithCustomToken(data.token);
-        miniAppFreshAccount = !!data.created;
         return true;
       } catch (error) {
         console.log('Telegram sign-in failed');
@@ -7908,72 +7883,38 @@
       }
     }
 
-    let miniAppFreshAccount = false;
-
     /**
-     * Той, хто раніше реєструвався поштою, з Telegram отримав би новий порожній
-     * акаунт. Поки словник порожній — пропонуємо забрати старий.
+     * Єдиний екран, який людина може побачити замість застосунку в Telegram.
+     * Форму входу тут не показуємо ніколи — вона б виглядала так, ніби ми
+     * забули, хто вона, хоча Telegram щойно це підписав.
      */
-    async function maybeOfferAccountMerge() {
-      const link = document.getElementById('merge-link');
-      const dot = document.getElementById('merge-link-dot');
-      if (!link) return;
-      if (!isMiniApp() || !auth.currentUser) return;
+    function showMiniAppSignInError() {
+      const preloader = document.getElementById('page-preloader');
+      if (preloader) preloader.classList.add('hidden');
+      document.getElementById('login-form').classList.add('hidden');
+      document.getElementById('register-form').classList.add('hidden');
 
-      // Показуємо лише поки словник порожній: у того, хто вже щось додав,
-      // це радше спосіб втратити свої слова, ніж знайти старі
-      try {
-        const words = await db.collection('users').doc(auth.currentUser.uid)
-          .collection('words').limit(1).get();
-        link.classList.toggle('hidden', !words.empty);
-        dot.classList.toggle('hidden', !words.empty);
-      } catch (e) {
-        link.classList.add('hidden');
+      let screen = document.getElementById('miniapp-error');
+      if (!screen) {
+        screen = document.createElement('div');
+        screen.id = 'miniapp-error';
+        screen.className = 'not-enough';
+        screen.innerHTML = `
+          <i class="fa-solid fa-plug-circle-exclamation"></i>
+          <h3>Не вдалося увійти</h3>
+          <p>Схоже, зникло з'єднання. Спробуй ще раз — пароль не потрібен.</p>
+          <div class="not-enough-actions">
+            <button class="not-enough-cta" onclick="retryMiniAppSignIn()">Спробувати ще раз</button>
+          </div>`;
+        document.body.appendChild(screen);
       }
+      screen.classList.remove('hidden');
     }
 
-    function openMergeDialog() {
-      document.getElementById('merge-error').textContent = '';
-      document.getElementById('merge-modal').classList.remove('hidden');
-    }
-
-    function closeMergeDialog() {
-      document.getElementById('merge-modal').classList.add('hidden');
-    }
-
-    async function mergeTelegramAccount() {
-      const email = document.getElementById('merge-email').value.trim();
-      const password = document.getElementById('merge-password').value;
-      const errorEl = document.getElementById('merge-error');
-      errorEl.textContent = '';
-
-      if (!email || !password) {
-        errorEl.textContent = 'Введи пошту й пароль від старого акаунта.';
-        return;
-      }
-
-      showLoading();
-      try {
-        await auth.signInWithEmailAndPassword(email, password);
-        const token = await auth.currentUser.getIdToken();
-        const response = await fetch('/.netlify/functions/tg-merge', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ initData: tg.initData }),
-        });
-        if (!response.ok) throw new Error('merge failed');
-
-        closeMergeDialog();
-        document.getElementById('merge-link').classList.add('hidden');
-        document.getElementById('merge-link-dot').classList.add('hidden');
-        showNotification('Готово — це твій старий акаунт із усім словником.');
-        updateUI();
-      } catch (error) {
-        const known = AUTH_ERRORS[error && error.code];
-        errorEl.textContent = known ? known[1] : 'Не вдалося підключити акаунт. Перевір пошту й пароль.';
-      } finally {
-        hideLoading();
-      }
+    async function retryMiniAppSignIn() {
+      const screen = document.getElementById('miniapp-error');
+      if (screen) screen.classList.add('hidden');
+      if (!(await signInFromTelegram())) showMiniAppSignInError();
     }
 
     // ===== Telegram =====
@@ -8148,7 +8089,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.2';
+    const APP_VERSION = '2026-08-16.3';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -9103,6 +9044,8 @@ function exitSpeedTraining() {
       // не показуємо взагалі — заходимо мовчки й лишаємо прелоадер до кінця
       if (!user && isMiniApp()) {
         if (await signInFromTelegram()) return; // подія прилетить ще раз, уже з користувачем
+        showMiniAppSignInError();
+        return;
       }
 
       updateUI();
@@ -9110,7 +9053,6 @@ function exitSpeedTraining() {
       if (user) {
         loadGamificationData();
         loadDailyGoal();
-        if (isMiniApp()) maybeOfferAccountMerge();
       }
       // Ховаємо прелоадер після завантаження
       const preloader = document.getElementById('page-preloader');
