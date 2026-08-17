@@ -130,6 +130,9 @@ test.describe('Crossword direction', () => {
     const label = page.locator('#crossword-direction-label');
     await expect(label).toHaveText('→ Пишемо вправо');
 
+    // Switching is about the cell being written in, so stand on the crossing
+    await page.locator(sel(2, 2)).click();
+
     await page.click('#crossword-direction-toggle');
     expect(await direction(page)).toBe('down');
     await expect(label).toHaveText('↓ Пишемо вниз');
@@ -137,6 +140,58 @@ test.describe('Crossword direction', () => {
     await page.click('#crossword-direction-toggle');
     expect(await direction(page)).toBe('across');
     await expect(label).toHaveText('→ Пишемо вправо');
+  });
+
+  /**
+   * The chip used to offer a swap on every cell, including the ones that belong
+   * to a single word, where pressing it changed the label and nothing else. And
+   * at a real crossing it lost the lit word: the tap moved focus off the grid
+   * and onto the chip, and the highlight followed the focus out.
+   */
+  test('the swap is offered only where two words cross', async ({ page }) => {
+    await loadApp(page);
+    await openCrossword(page);
+    const chip = page.locator('#crossword-direction-toggle');
+
+    await page.locator(sel(2, 1)).click();       // "CAT" only
+    await expect(chip).toHaveClass(/cw-fixed-direction/);
+
+    await page.locator(sel(2, 2)).click();       // CAT × WORD
+    await expect(chip).not.toHaveClass(/cw-fixed-direction/);
+  });
+
+  test('pressing it where nothing crosses leaves the direction alone', async ({ page }) => {
+    await loadApp(page);
+    await openCrossword(page);
+
+    await page.locator(sel(0, 2)).click();       // "WORD" only
+    expect(await direction(page)).toBe('down');
+    await page.click('#crossword-direction-toggle');
+    expect(await direction(page)).toBe('down');
+    await expect(page.locator('#crossword-direction-label')).toHaveText('↓ Пишемо вниз');
+  });
+
+  test('switching keeps the caret in the grid and the word lit', async ({ page }) => {
+    await loadApp(page);
+    await openCrossword(page);
+
+    await page.locator(sel(2, 2)).click();
+    await expect(page.locator('.crossword-cell.highlight')).toHaveCount(3);  // CAT
+
+    await page.click('#crossword-direction-toggle');
+    await expect(page.locator('.crossword-cell.highlight')).toHaveCount(4);  // WORD
+    expect(await activeCell(page)).toBe('2-2');
+    expect(await page.locator('.crossword-cell input:focus').count()).toBe(1);
+  });
+
+  test('a letter key does not pull the focus out of the grid either', async ({ page }) => {
+    await loadApp(page);
+    await openCrossword(page);
+
+    await page.locator(sel(2, 1)).click();
+    await page.click('#crossword-keyboard .cw-key[data-letter="c"]');
+    expect(await page.locator('.crossword-cell input:focus').count()).toBe(1);
+    await expect(page.locator('.crossword-cell.highlight')).toHaveCount(3);
   });
 
   test('clicking a clue jumps to its first cell and sets its direction', async ({ page }) => {
@@ -307,5 +362,75 @@ test.describe('The crossword keyboard', () => {
     await expect(page.locator('#crossword-keyboard')).toBeHidden();
     expect(await page.evaluate(() =>
       document.body.classList.contains('cw-crossword-keyboard-open'))).toBe(false);
+  });
+});
+
+/**
+ * The grid was sizing its cells from window.innerWidth - 24, but the page
+ * gutter and the section padding take 46 on a phone. It laid out for a width
+ * it did not have, the table squeezed itself, and the squares came out smaller
+ * than the ones it had calculated.
+ */
+test.describe('How big the squares come out', () => {
+  const PHONE = { width: 390, height: 800 };
+  test.use({ viewport: PHONE });
+
+  async function grid(page: Page, words: any[]) {
+    await loadApp(page);
+    await page.evaluate(() => {
+      document.getElementById('account-screen')!.classList.add('hidden');
+      document.getElementById('crossword-section')!.classList.remove('hidden');
+    });
+    await page.evaluate((placed) => {
+      // @ts-ignore
+      crosswordSize = 15;
+      // @ts-ignore
+      crosswordGrid = Array.from({ length: 15 }, () => new Array(15).fill(null));
+      // @ts-ignore
+      placedWords = placed;
+      // @ts-ignore
+      placedWords.forEach((w: any) => {
+        for (let i = 0; i < w.english.length; i++) {
+          const r = w.direction === 'down' ? w.row + i : w.row;
+          const c = w.direction === 'across' ? w.col + i : w.col;
+          // @ts-ignore
+          crosswordGrid[r][c] = w.english[i];
+        }
+      });
+      // @ts-ignore
+      renderCrossword();
+    }, words);
+
+    return page.evaluate(() => {
+      const wrap = document.getElementById('crossword-grid-wrapper')!;
+      return {
+        cell: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cw-cell')),
+        wrapper: Math.round(wrap.getBoundingClientRect().width),
+        gridScrollsSideways: wrap.scrollWidth > wrap.clientWidth,
+        pageScrollsSideways: document.body.scrollWidth > window.innerWidth,
+      };
+    });
+  }
+
+  test('the grid takes the whole width, gutters and all', async ({ page }) => {
+    const m = await grid(page, [
+      { english: 'ATTRACTION', translation: 'атракція', row: 6, col: 0, direction: 'across' },
+      { english: 'AGENT', translation: 'агент', row: 2, col: 2, direction: 'down' },
+      { english: 'TOUR', translation: 'тур', row: 6, col: 8, direction: 'down' },
+    ]);
+    expect(m.wrapper).toBe(PHONE.width);
+    expect(m.gridScrollsSideways).toBe(false);
+    expect(m.pageScrollsSideways).toBe(false);
+    expect(m.cell).toBeGreaterThanOrEqual(30);
+  });
+
+  test('a short crossword gets big squares instead of a lot of empty room', async ({ page }) => {
+    const m = await grid(page, [
+      { english: 'CAT', translation: 'кіт', row: 2, col: 1, direction: 'across' },
+      { english: 'CAR', translation: 'авто', row: 2, col: 1, direction: 'down' },
+    ]);
+    // The old ceiling was 36px, reached long before the width ran out
+    expect(m.cell).toBeGreaterThan(36);
+    expect(m.pageScrollsSideways).toBe(false);
   });
 });

@@ -2978,6 +2978,8 @@
     /* Стилі для кросворда - оптимізовано для мобільних */
     #crossword-section {
       --screen-bg: #161822;
+      /* Скільки сітці треба відіграти назад: 15 від .container + 6 звідси */
+      --cw-bleed: 21px;
       background: var(--screen-bg);
       padding: 10px 6px;
       border-radius: 10px;
@@ -3044,6 +3046,20 @@
       flex-shrink: 0;
     }
 
+    /* Клітинка належить одному слову — міняти нічого. Плашка лишається як
+       підпис до слова, але значок обміну прибираємо і на дотик не реагуємо. */
+    #crossword-direction-toggle.cw-fixed-direction {
+      cursor: default;
+    }
+
+    #crossword-direction-toggle.cw-fixed-direction i {
+      visibility: hidden;
+    }
+
+    #crossword-direction-toggle.cw-fixed-direction:active {
+      background: rgba(102, 126, 234, 0.12);
+    }
+
     #crossword-direction-toggle .cw-bar-text {
       flex: 1;
       min-width: 0;
@@ -3082,12 +3098,22 @@
       margin-bottom: 12px;
     }
 
+    /* Кожен піксель ширини тут — це більша клітинка, а відступи сторінки (15)
+       і секції (6) з обох боків коштували 42: майже півтори клітинки, віддані
+       порожнечі. Сітка виходить із них і займає вікно від краю до краю.
+       box-sizing — бо з width:100% і власними полями вона була ширша за
+       батька на 8 px і мовчки вилазила за нього. */
     #crossword-grid-wrapper {
-      width: 100%;
+      box-sizing: border-box;
+      /* Батько центрує дітей, тобто стискає їх по вмісту. Тоді ширина обгортки
+         залежала б від таблиці, а розмір клітинки — від обгортки: коло. */
+      align-self: stretch;
+      width: auto;
+      margin: 0 calc(-1 * var(--cw-bleed, 0px));
       overflow-x: auto;
       overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
-      padding: 10px 4px;
+      padding: 10px 2px;
       display: flex;
       justify-content: center;
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -3145,10 +3171,13 @@
       appearance: none;
     }
 
+    /* Бурштин лишився від решти застосунку, а кросворд синьо-фіолетовий: жовта
+       пляма посеред сітки читалася як помилка, а не як «ви тут». Беремо той
+       самий колір, яким підсвічено слово, тільки насиченіший. */
     .crossword-cell input:focus {
-      background: rgba(232, 168, 56, 0.2);
+      background: rgba(102, 126, 234, 0.45);
       color: #F0EDE8;
-      box-shadow: 0 0 0 2px rgba(232, 168, 56, 0.4);
+      box-shadow: 0 0 0 2px #8b9dff;
     }
 
     .crossword-cell input.correct {
@@ -7904,8 +7933,11 @@
     <!-- Клавіатура конструктора: поза секцією, бо її анімація ламає position:fixed -->
     <div id="constructor-keyboard" class="cw-keyboard hidden"></div>
 
-    <!-- Клавіатура кросворда: ті самі клавіші плюс напрямок, підказка і дії -->
-    <div id="crossword-keyboard" class="cw-keyboard cw-keyboard-crossword hidden"></div>
+    <!-- Клавіатура кросворда: ті самі клавіші плюс напрямок, підказка і дії.
+         mousedown гасимо на всьому шарі: інакше кожен тап по клавіші забирав
+         фокус у клітинки, і підсвітка слова зникала просто під пальцем. -->
+    <div id="crossword-keyboard" class="cw-keyboard cw-keyboard-crossword hidden"
+         onmousedown="event.preventDefault()"></div>
 
     <!-- Свій ввід замість браузерного prompt() -->
     <div id="app-prompt-modal" class="app-modal hidden">
@@ -9274,7 +9306,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-18.1';
+    const APP_VERSION = '2026-08-18.2';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -18373,10 +18405,21 @@ async function translateStory() {
       const numCols = maxCol - minCol + 1;
       // Раніше ширина обмежувалася 400px, а клітинка — 24px, тож на телефоні
       // сітка не влазила і кросворд доводилося возити вбік під час набору
-      const availW = Math.min(window.innerWidth - 24, 520);
+      // Ширину питаємо в самої обгортки. Раніше її вгадували як innerWidth - 24,
+      // а насправді відступи з'їдали 46 — сітка вважала, що місця більше, ніж є,
+      // і таблиця стискалася сама: клітинки виходили дрібніші за пораховані.
+      const wrapper = document.getElementById('crossword-grid-wrapper');
+      const wrapperStyle = wrapper && wrapper.clientWidth ? getComputedStyle(wrapper) : null;
+      const measured = wrapperStyle
+        ? wrapper.clientWidth - parseFloat(wrapperStyle.paddingLeft) - parseFloat(wrapperStyle.paddingRight)
+        : 0;
+      // Схована секція нічого не міряє — тоді лишається стара оцінка
+      const availW = Math.min(measured || (window.innerWidth - 24), 520);
       const spacing = 2; // border-spacing
-      const cellSize = Math.max(20, Math.min(36, Math.floor((availW - (numCols + 1) * spacing) / numCols)));
-      const fontSize = Math.max(11, Math.min(18, Math.floor(cellSize * 0.55)));
+      // Стеля була 36 px: на короткому кросворді клітинки лишалися дрібними,
+      // хоч місця довкола було вдосталь
+      const cellSize = Math.max(20, Math.min(44, Math.floor((availW - (numCols + 1) * spacing) / numCols)));
+      const fontSize = Math.max(11, Math.min(22, Math.floor(cellSize * 0.55)));
       document.documentElement.style.setProperty('--cw-cell', cellSize + 'px');
       document.documentElement.style.setProperty('--cw-font', fontSize + 'px');
 
@@ -18571,12 +18614,29 @@ async function translateStory() {
       highlightCrosswordWord(row, col);
     }
 
+    /**
+     * Перемикати напрямок є сенс лише там, де слова перетинаються: у клітинці,
+     * що належить одному слову, кнопка нічого не робила і тільки збивала з
+     * пантелику. Плашка лишається — вона ще й показує підказку, — але без
+     * значка обміну і без реакції на дотик.
+     */
+    function crosswordCanSwitch() {
+      if (!cwActiveCell) return false;
+      const [row, col] = cwActiveCell.split('-').map(Number);
+      return crosswordWordsAt(row, col).length > 1;
+    }
+
     function toggleCrosswordDirection() {
+      if (!crosswordCanSwitch()) return;
       cwDirection = cwDirection === 'across' ? 'down' : 'across';
       updateCrosswordDirectionLabel();
-      const active = document.activeElement;
-      if (active && active.dataset && active.dataset.row !== undefined) {
-        highlightCrosswordWord(parseInt(active.dataset.row), parseInt(active.dataset.col));
+      // Раніше тут питали document.activeElement — але тап по плашці забирав
+      // фокус у клітинки, і підсвітка слова просто зникала. Клітинку пам'ятаємо
+      // самі, а фокус повертаємо їй.
+      if (cwActiveCell) {
+        const [row, col] = cwActiveCell.split('-').map(Number);
+        focusCrosswordInput(crosswordInputAt(row, col));
+        highlightCrosswordWord(row, col);
       }
     }
 
@@ -18585,6 +18645,8 @@ async function translateStory() {
       if (label) {
         label.textContent = cwDirection === 'across' ? '→ Пишемо вправо' : '↓ Пишемо вниз';
       }
+      const toggle = document.getElementById('crossword-direction-toggle');
+      if (toggle) toggle.classList.toggle('cw-fixed-direction', !crosswordCanSwitch());
     }
 
     // Клік по підказці — перехід на початок слова і його напрямок
@@ -18753,6 +18815,8 @@ async function translateStory() {
       // Сюди раніше йшов scrollIntoView до списку підказок — на телефоні він
       // висмикував сторінку з сітки під час набору. Тепер підказка над сіткою.
       showCurrentClue(matchedWord, clueIdx + 1);
+      // Курсор переїхав — значок обміну має зникнути чи повернутися разом з ним
+      updateCrosswordDirectionLabel();
     }
 
     function showCurrentClue(word, number) {

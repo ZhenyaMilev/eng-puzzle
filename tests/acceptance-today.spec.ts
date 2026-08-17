@@ -907,6 +907,9 @@ test.describe('8. Crossword direction', () => {
     await loadApp(page);
     await buildCrossword(page);
     await expect(page.locator('#crossword-direction-label')).toHaveText('→ Пишемо вправо');
+    // The swap belongs to the cell being written in, and only where two words
+    // cross — on a single-word cell there is nothing to swap it to
+    await page.locator(sel(2, 2)).click();
     await page.click('#crossword-direction-toggle');
     await expect(page.locator('#crossword-direction-label')).toHaveText('↓ Пишемо вниз');
   });
