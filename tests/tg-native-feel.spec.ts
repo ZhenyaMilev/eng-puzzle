@@ -233,6 +233,38 @@ test.describe('Back belongs in the header', () => {
     await expect(page.locator('#my-words-section')).toBeHidden();
   });
 
+  /**
+   * The progress screen was never registered with the window button, and its
+   * own "Назад" is hidden here like every other one — so it had no way out at
+   * all. It lies over whatever screen opened it, so it answers first.
+   */
+  test('the progress screen has a way out, and it is the window button', async ({ page }) => {
+    await asMiniApp(page);
+    await loadApp(page);
+    await page.evaluate(() => (window as any).loadUserProgress());
+    await expect(page.locator('#progressPopup')).toBeVisible();
+
+    await expect(page.locator('#progressPopup .back-button')).toBeHidden();
+    await expect.poll(async () => (await tg(page)).backVisible).toBe(true);
+
+    await page.evaluate(() => (window as any).__pressBack());
+    await expect(page.locator('#progressPopup')).toBeHidden();
+  });
+
+  test('and it closes the progress screen before the one underneath', async ({ page }) => {
+    await asMiniApp(page);
+    await loadApp(page);
+    await page.evaluate(() => (window as any).showMyWords());
+    await page.evaluate(() => (window as any).loadUserProgress());
+    await expect(page.locator('#progressPopup')).toBeVisible();
+    // The window button is re-aimed on the frame after a screen changes
+    await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => done(null))));
+
+    await page.evaluate(() => (window as any).__pressBack());
+    await expect(page.locator('#progressPopup')).toBeHidden();
+    await expect(page.locator('#my-words-section')).toBeVisible();
+  });
+
   test('from the documents it goes back to the documents’ caller', async ({ page }) => {
     await asMiniApp(page);
     await loadApp(page);

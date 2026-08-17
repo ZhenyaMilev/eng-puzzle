@@ -691,12 +691,12 @@ test.describe('A crossword from start to finish', () => {
       }, wrongEvery);
 
     await fill(4);
-    await page.click('#crossword-actions button:has-text("Перевірити")');
+    await page.click('#crossword-keyboard button:has-text("Перевірити")');
     await expect(page.locator('#crossword-popup')).toContainText('Є помилки');
     await page.locator('#crossword-popup button').first().click();
 
     await fill(0);
-    await page.click('#crossword-actions button:has-text("Перевірити")');
+    await page.click('#crossword-keyboard button:has-text("Перевірити")');
     await expect(page.locator('#crossword-popup')).toContainText('розгадано правильно');
 
     await page.locator('#crossword-popup button', { hasText: 'Новий' }).click();
@@ -1007,6 +1007,85 @@ test.describe('The sticky screen header', () => {
     await page.waitForTimeout(400);
     await expect(page.locator('#my-words-section .title-and-btn')).toBeInViewport();
     await expect(page.locator('#my-words-section .title-and-btn')).toContainText('Мій словник');
+  });
+
+  /**
+   * The header is opaque on purpose — content has to scroll under something.
+   * But it painted one fixed colour, and the exercise screens are lighter than
+   * the page, so on the crossword it read as a black patch above the grid; over
+   * a word in the dictionary its shadow read as a dark band across the row.
+   */
+  test('paints the colour of the screen it sits on, not a darker one', async ({ page }) => {
+    await loadApp(page, { seed: { words: vocabulary(40) } });
+    await page.click('.acc-tile:has-text("Кросворд")');
+    await expect(page.locator('#crossword-container input').first()).toBeVisible({ timeout: 15000 });
+
+    const colours = await page.evaluate(() => {
+      const section = document.getElementById('crossword-section')!;
+      const header = section.querySelector('.title-and-btn')!;
+      return {
+        section: getComputedStyle(section).backgroundColor,
+        header: getComputedStyle(header).backgroundColor,
+      };
+    });
+    expect(colours.header).toBe(colours.section);
+  });
+
+  test('casts no shadow across the row it passes over', async ({ page }) => {
+    await loadApp(page, { seed: { words: bigVocabulary(200) } });
+    await page.click('.acc-action-btn:has-text("Словник")');
+    await expect(page.locator('#words li').first()).toBeVisible({ timeout: 15000 });
+
+    const shadow = await page.evaluate(() => {
+      const header = document.querySelector('#my-words-section .title-and-btn')!;
+      return getComputedStyle(header, '::after').content;
+    });
+    expect(shadow).toBe('none');
+  });
+
+  /**
+   * Inside Telegram the app's own "Назад" is hidden — the window has one. On a
+   * screen with no title left in it, the header became an empty bar that only
+   * covered the top of the content.
+   */
+  test('an empty row leaves no bar behind in Telegram', async ({ page }) => {
+    await loadApp(page, { seed: { words: vocabulary(40) } });
+    await page.evaluate(() => {
+      document.body.classList.add('tg-native-back');
+      (window as any).collapseEmptyHeaders();
+    });
+    await page.click('.acc-tile:has-text("Кросворд")');
+    await expect(page.locator('#crossword-container input').first()).toBeVisible({ timeout: 15000 });
+
+    await expect(page.locator('#crossword-section .title-and-btn')).toBeHidden();
+    // A header that still has something to show stays
+    await expect(page.locator('#my-words-section .title-and-btn')).not.toHaveClass(/is-empty/);
+  });
+});
+
+test.describe('The "i" beside a screen name', () => {
+  test('is an icon, not a plate bigger than the title', async ({ page }) => {
+    await loadApp(page, { seed: { words: vocabulary(40) } });
+    await page.click('.acc-tile:has-text("Генеративний")').catch(() => {});
+    await page.evaluate(() => {
+      document.getElementById('account-screen')!.classList.add('hidden');
+      document.getElementById('generative-text-section')!.classList.remove('hidden');
+    });
+
+    const look = await page.evaluate(() => {
+      const btn = document.querySelector('#generative-text-section .info-button') as HTMLElement;
+      const style = getComputedStyle(btn);
+      return {
+        background: style.backgroundColor,
+        borderTop: style.borderTopWidth,
+        glyph: getComputedStyle(btn.querySelector('i')!).fontSize,
+        box: btn.getBoundingClientRect().width,
+      };
+    });
+    expect(look.background).toBe('rgba(0, 0, 0, 0)');
+    expect(look.borderTop).toBe('0px');
+    expect(parseFloat(look.glyph)).toBeLessThan(34); // was the size used inside help sheets
+    expect(look.box).toBeLessThan(60);
   });
 });
 

@@ -182,3 +182,130 @@ test.describe('Crossword direction', () => {
     await expect(page.locator('.crossword-cell.highlight')).toHaveCount(3); // "CAT"
   });
 });
+
+/**
+ * The crossword has its own keyboard now. The system one took half the screen
+ * along with the grid, and the word being solved was left somewhere above it —
+ * so everything the hand needs while typing moved into one layer at the bottom.
+ */
+test.describe('The crossword keyboard', () => {
+  const key = (letter: string) => `#crossword-keyboard .cw-key[data-letter="${letter}"]`;
+
+  test('the grid never asks the device for its keyboard', async ({ page }) => {
+    await loadApp(page);
+    await openCrossword(page);
+
+    const inputs = await page.locator('.crossword-cell input').evaluateAll((els) =>
+      (els as HTMLInputElement[]).map((el) => ({
+        readOnly: el.readOnly,
+        inputMode: el.getAttribute('inputmode'),
+      })));
+    expect(inputs.length).toBeGreaterThan(0);
+    expect(inputs.every((i) => i.readOnly && i.inputMode === 'none')).toBe(true);
+  });
+
+  test('its keys fill the grid and move the caret on', async ({ page }) => {
+    await loadApp(page);
+    await openCrossword(page);
+
+    await page.locator(sel(2, 1)).click(); // "CAT" runs across from here
+    await page.click(key('c'));
+    expect(await activeCell(page)).toBe('2-2');
+    await page.click(key('a'));
+    await page.click(key('t'));
+
+    const word = await page.locator(sel(2, 1)).inputValue()
+      + await page.locator(sel(2, 2)).inputValue()
+      + await page.locator(sel(2, 3)).inputValue();
+    expect(word).toBe('CAT');
+  });
+
+  test('backspace clears the cell, then steps back through the word', async ({ page }) => {
+    await loadApp(page);
+    await openCrossword(page);
+
+    await page.locator(sel(2, 1)).click();
+    await page.click(key('c'));
+    await page.click(key('a'));
+    expect(await activeCell(page)).toBe('2-3');
+
+    // The caret is past the last letter typed, so backspace takes that letter
+    await page.click('#crossword-keyboard .cw-key-wide');
+    expect(await activeCell(page)).toBe('2-2');
+    expect(await page.locator(sel(2, 2)).inputValue()).toBe('');
+
+    // Standing on a filled cell, it clears that one and stays put
+    await page.locator(sel(2, 1)).click();
+    await page.click('#crossword-keyboard .cw-key-wide');
+    expect(await activeCell(page)).toBe('2-1');
+    expect(await page.locator(sel(2, 1)).inputValue()).toBe('');
+  });
+
+  test('a physical keyboard still types, one letter per key', async ({ page }) => {
+    await loadApp(page);
+    await openCrossword(page);
+
+    await page.locator(sel(2, 1)).click();
+    await page.keyboard.type('cat');
+
+    const word = await page.locator(sel(2, 1)).inputValue()
+      + await page.locator(sel(2, 2)).inputValue()
+      + await page.locator(sel(2, 3)).inputValue();
+    expect(word).toBe('CAT');
+    expect(await activeCell(page)).toBe('2-3');
+  });
+
+  test('direction, clue and both actions live in the keyboard', async ({ page }) => {
+    await loadApp(page);
+    await openCrossword(page);
+
+    for (const inside of ['#crossword-direction-toggle', '#crossword-current-clue',
+      '.check-button', '.new-crossword-button']) {
+      await expect(page.locator(`#crossword-keyboard ${inside}`)).toHaveCount(1);
+    }
+    await expect(page.locator('#crossword-section #crossword-direction-toggle')).toHaveCount(0);
+  });
+
+  test('"Перевірити" and "Новий" stand level with each other', async ({ page }) => {
+    await loadApp(page);
+    await openCrossword(page);
+
+    const [check, fresh] = await page.evaluate(() => ['check-button', 'new-crossword-button']
+      .map((cls) => {
+        const r = document.querySelector(`#crossword-keyboard .${cls}`)!.getBoundingClientRect();
+        return { top: Math.round(r.top), height: Math.round(r.height), width: Math.round(r.width) };
+      }));
+    expect(check.top).toBe(fresh.top);
+    expect(check.height).toBe(fresh.height);
+    expect(Math.abs(check.width - fresh.width)).toBeLessThanOrEqual(1);
+  });
+
+  test('a long clue is shown whole, not cut off', async ({ page }) => {
+    await loadApp(page);
+    await openCrossword(page);
+    await page.evaluate(() => {
+      // @ts-ignore — a translation longer than the bar is wide
+      placedWords[0].translation = 'догляд за дітьми у великому місті';
+      // @ts-ignore
+      renderCrossword();
+    });
+
+    await page.locator(sel(2, 1)).click();
+    const clue = page.locator('#crossword-current-clue');
+    await expect(clue).toContainText('у великому місті');
+    // Wrapped onto more lines rather than clipped to one
+    const fits = await clue.evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
+    expect(fits).toBe(true);
+  });
+
+  test('the keyboard leaves with the exercise', async ({ page }) => {
+    await loadApp(page);
+    await openCrossword(page);
+    await expect(page.locator('#crossword-keyboard')).toBeVisible();
+
+    await page.evaluate(() => (window as any).backToAccount());
+    await expect(page.locator('#crossword-keyboard')).toBeHidden();
+    expect(await page.evaluate(() =>
+      document.body.classList.contains('cw-crossword-keyboard-open'))).toBe(false);
+  });
+});

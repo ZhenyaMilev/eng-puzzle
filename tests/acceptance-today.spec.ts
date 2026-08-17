@@ -988,7 +988,7 @@ test.describe('9. Word constructor', () => {
     expect(new Set(keys)).toEqual(new Set(word.split('')));
   });
 
-  test('9.3 the full keyboard is laid out in three rows, like a phone', async ({ page }) => {
+  test('9.3 the full keyboard is laid out like a phone', async ({ page }) => {
     await loadApp(page);
     await start(page, 'full');
 
@@ -999,8 +999,9 @@ test.describe('9. Word constructor', () => {
           .filter(Boolean).join('')));
 
     // All 26 letters, but crucially in rows of 10 / 9 / 7 — a single wrapping
-    // container put "p" on the second row and "a" not first on the left
-    expect(rows).toEqual(['qwertyuiop', 'asdfghjkl', 'zxcvbnm']);
+    // container put "p" on the second row and "a" not first on the left.
+    // Under them the apostrophe and the space, which no letter row can hold.
+    expect(rows).toEqual(['qwertyuiop', 'asdfghjkl', 'zxcvbnm', "' "]);
   });
 
   test('9.3b every key sits on the row a thumb expects', async ({ page }) => {

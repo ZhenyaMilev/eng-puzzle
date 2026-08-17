@@ -193,13 +193,21 @@ test.describe('Crossword on a phone', () => {
     await loadApp(page);
     await buildCrossword(page);
 
-    const before = await page.evaluate(() => window.scrollY);
+    // Where the page stood the instant the tap landed. Playwright scrolls an
+    // element into view before clicking it, and the screen now leaves room for
+    // the keyboard, so the page has somewhere to go — that scroll is the
+    // harness's, not the app's, and reading it here keeps the two apart.
+    await page.evaluate(() => {
+      document.addEventListener('pointerdown', () => {
+        (window as any).__scrollAtTap = window.scrollY;
+      }, { capture: true, once: true });
+    });
+
     await page.locator('.crossword-cell input[data-row="4"][data-col="1"]').click();
     await page.waitForTimeout(600); // the old smooth scroll had time to land
 
-    // A focused input may nudge the page a few pixels; the clue list is far below,
-    // so the old behaviour moved it by hundreds.
-    const moved = Math.abs((await page.evaluate(() => window.scrollY)) - before);
+    // The clue list is far below; the old behaviour moved the page by hundreds.
+    const moved = await page.evaluate(() => Math.abs(window.scrollY - (window as any).__scrollAtTap));
     expect(moved).toBeLessThan(60);
   });
 

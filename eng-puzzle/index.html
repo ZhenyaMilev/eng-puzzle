@@ -2618,7 +2618,8 @@
 
     #speed-training-section,
     #listening-training-section {
-      background: #161822;
+      --screen-bg: #161822;
+      background: var(--screen-bg);
       padding: 20px;
       border-radius: 10px;
     }
@@ -2849,7 +2850,8 @@
     }
 
     #quiz-section {
-      background: #161822;
+      --screen-bg: #161822;
+      background: var(--screen-bg);
       padding: 20px;
       border-radius: 10px;
     }
@@ -2862,7 +2864,8 @@
 
     /* Стилі для тренування по картинках */
     #picture-quiz-section {
-      background: #161822;
+      --screen-bg: #161822;
+      background: var(--screen-bg);
       padding: 20px;
       border-radius: 10px;
     }
@@ -2950,7 +2953,8 @@
 
     /* Стилі для кросворда - оптимізовано для мобільних */
     #crossword-section {
-      background: #161822;
+      --screen-bg: #161822;
+      background: var(--screen-bg);
       padding: 10px 6px;
       border-radius: 10px;
     }
@@ -2986,20 +2990,19 @@
       margin: 0;
     }
 
-    /* На телефоні підказку не видно без прокрутки до списку, тому активне
-       слово підписуємо просто над сіткою */
+    /* Напрямок і слово, яке зараз розгадують, — перший рядок клавіатури: одразу
+       над клавішами, тож видно і що писати, і куди, не відриваючись від набору */
     #crossword-direction-toggle {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
       width: 100%;
-      max-width: 420px;
-      margin: 0 auto 10px;
-      padding: 10px 14px;
+      margin: 0 0 8px;
+      padding: 8px 12px;
       background: rgba(102, 126, 234, 0.12);
       border: 1px solid rgba(102, 126, 234, 0.35);
-      border-radius: 20px;
+      border-radius: 12px;
       color: #8b9dff;
       font-size: 13px;
       font-weight: 600;
@@ -3012,7 +3015,7 @@
     }
 
     #crossword-direction-toggle i {
-      font-size: 11px;
+      font-size: 12px;
       opacity: 0.7;
       flex-shrink: 0;
     }
@@ -3023,15 +3026,16 @@
       text-align: left;
     }
 
+    /* Підказку раніше різало трьома крапками на першому ж довгому слові —
+       «догляд за дітьми» перетворювався на «догляд за…». Тепер переносимо. */
     #crossword-current-clue {
       display: block;
       margin-top: 2px;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 700;
       color: #F0EDE8;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
     }
 
     #crossword-current-clue.hidden {
@@ -3222,37 +3226,40 @@
       font-weight: 700;
     }
 
-    /* Кнопки дій */
-    #crossword-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-      padding: 0 4px;
-    }
-
-    #crossword-section .check-button,
-    #crossword-section .new-crossword-button {
+    /* Кнопки дій — в останньому рядку клавіатури. Рівна пара: базовий стиль
+       button дає одній margin-bottom 20px, а .check-button — 10px згори, і в
+       ряду вони стояли на різній висоті. */
+    .cw-keyboard-crossword .cw-keyboard-actions .check-button,
+    .cw-keyboard-crossword .cw-keyboard-actions .new-crossword-button {
       flex: 1;
-      padding: 14px 10px;
+      margin: 0;
+      padding: 13px 8px;
       font-size: 15px;
       font-weight: 700;
-      color: #fffdfd;
-      background-color: #90A4AE;
-      border: none;
       border-radius: 12px;
-      cursor: pointer;
-      transition: background-color 0.2s, transform 0.15s;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+      box-shadow: none;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
+      transition: background-color 0.2s;
     }
 
-    #crossword-section .check-button:active,
-    #crossword-section .new-crossword-button:active {
-      background-color: #607D8B;
-      transform: scale(0.97);
+    /* «Перевірити» бере вигляд головної дії з .cw-keyboard-actions — той самий,
+       що в конструкторі. «Новий» — другорядна, як «Пропустити» там. */
+    .cw-keyboard-crossword .new-crossword-button {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(240, 237, 232, 0.6);
+    }
+
+    .cw-keyboard-crossword .new-crossword-button:active {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Місце під клавіатуру, щоб останній ряд сітки та підказки не ховалися */
+    body.cw-crossword-keyboard-open #crossword-section {
+      padding-bottom: 300px;
     }
 
     /* Попап з результатом */
@@ -3266,7 +3273,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      /* Вище за клавіатуру (1100), інакше вона лишалася поверх результату */
+      z-index: 1200;
       padding: 20px;
       animation: fadeIn 0.3s ease;
     }
@@ -3405,6 +3413,34 @@
     .button-with-icon .icon {
       margin-right: 8px;
       /* Відступ між іконкою та текстом, якщо є */
+    }
+
+    /* Знак «і» — це підпис поруч із назвою екрана, а не дія. Плитка з рамкою
+       під ним важила більше за саму назву; лишаємо саму іконку, але з полем
+       навколо, щоб у неї було куди влучити пальцем. */
+    .info-button {
+      background: none;
+      border: none;
+      box-shadow: none;
+      width: auto;
+      padding: 4px 6px;
+      margin: 0;
+      color: rgba(240, 237, 232, 0.45);
+    }
+
+    .info-button:active {
+      color: rgba(240, 237, 232, 0.75);
+    }
+
+    /* 34px — це розмір іконки в довідкових вікнах, а не в шапці */
+    .info-button .fas.fa-info-circle,
+    .info-btn-small .fas.fa-info-circle {
+      font-size: 20px;
+    }
+
+    .info-btn-small {
+      background: none;
+      color: rgba(240, 237, 232, 0.45);
     }
 
     /* Стиль для email користувача всередині заголовка */
@@ -3754,6 +3790,12 @@
       scroll-behavior: smooth;
     }
 
+    /* Кросворд сам вирішує, коли рухати сторінку (див. keepCrosswordCellInView).
+       Плавна прокрутка тут лише розтягувала чужий стрибок у видиму анімацію. */
+    html.cw-instant-scroll {
+      scroll-behavior: auto;
+    }
+
     .notification.warning {
       background-color: #FFC107;
       /* Желтый фон */
@@ -3871,7 +3913,8 @@
     }
 
     #word-constructor-training-section {
-      background: #161822;
+      --screen-bg: #161822;
+      background: var(--screen-bg);
       padding: 20px;
       border-radius: 10px;
     }
@@ -3887,7 +3930,7 @@
     /* Повна розкладка — окремий шар знизу, як системна клавіатура, але більший */
     /* Панель перекриває низ сторінки, тож лишаємо під неї місце */
     body.cw-keyboard-open #word-constructor-training-section {
-      padding-bottom: 340px;
+      padding-bottom: 400px;
     }
 
     .cw-keyboard {
@@ -3997,6 +4040,15 @@
     .cw-key-wide {
       flex: 1.5 1 0;
       font-size: 17px;
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    /* Пробіл на всю решту ряду — як на телефоні */
+    .cw-key-space {
+      flex: 9 1 0;
+      font-size: 14px;
+      font-weight: 400;
+      color: rgba(240, 237, 232, 0.55);
       background: rgba(255, 255, 255, 0.07);
     }
 
@@ -4110,7 +4162,12 @@
       align-items: center;
       margin-bottom: 16px;
       padding: 10px 0;
-      background: #0f1117;
+      /* Шапка непрозора — вміст їде під нею. Тому колір має бути той самий, що
+         й у полотна під нею: секції вправ світліші за сторінку, і фіксований
+         #0f1117 читався там як чорна пляма над сіткою кросворда. Тінь-градієнт
+         під шапкою прибрано з тієї ж причини: щойно рядок словника заїжджав під
+         неї, вона лягала на слово темною смугою. Край шапки видно й без неї. */
+      background: var(--screen-bg, #0f1117);
     }
 
     /* Усередині вікон і шторок липкість зайва — вони й так не прокручуються далеко */
@@ -4121,15 +4178,11 @@
       background: transparent;
     }
 
-    .title-and-btn::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: -12px;
-      height: 12px;
-      background: linear-gradient(#0f1117, rgba(15, 17, 23, 0));
-      pointer-events: none;
+    /* У Telegram власна кнопка «Назад» зникає, і на екранах без назви від шапки
+       лишається порожня смуга, яка просто закриває вміст. Ховаємо її.
+       !important — бо секції перекривають display через свій id. */
+    .title-and-btn.is-empty {
+      display: none !important;
     }
 
     .title-and-btn h2 {
@@ -4337,14 +4390,16 @@
 
     /* ========== Стилі для генеративного тексту ========== */
     #generative-text-section {
-      background: #161822;
+      --screen-bg: #161822;
+      background: var(--screen-bg);
       padding: 20px;
       border-radius: 16px;
       position: relative;
     }
 
     #repetition-training-section {
-      background: #161822;
+      --screen-bg: #161822;
+      background: var(--screen-bg);
       padding: 20px;
       border-radius: 10px;
       overflow: hidden;
@@ -6137,7 +6192,11 @@
 
     /* Клавіатура конструктора стоїть внизу — банер піднімається над нею */
     body.cw-keyboard-open #app-update-banner {
-      bottom: calc(230px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(285px + env(safe-area-inset-bottom, 0px));
+    }
+
+    body.cw-crossword-keyboard-open #app-update-banner {
+      bottom: calc(290px + env(safe-area-inset-bottom, 0px));
     }
 
     .daily-all-added {
@@ -7302,14 +7361,8 @@
       </div>
       <p class="crossword-note">* Не впливає на статистику слів</p>
 
-      <!-- Куди зараз пишемо. Тап по клітинці на перетині вдруге теж перемикає -->
-      <button id="crossword-direction-toggle" onclick="toggleCrosswordDirection()">
-        <span class="cw-bar-text">
-          <span id="crossword-direction-label">→ Пишемо вправо</span>
-          <span id="crossword-current-clue" class="hidden"></span>
-        </span>
-        <i class="fas fa-arrows-rotate"></i>
-      </button>
+      <!-- Куди зараз пишемо, підказка і дії живуть у клавіатурі внизу екрана:
+           там, де палець, і не забирають місця в сітки -->
 
       <!-- Сітка кросворда зверху -->
       <div id="crossword-container">
@@ -7334,15 +7387,6 @@
           </div>
           <ul id="down-clues" class="clues-list"></ul>
         </div>
-      </div>
-
-      <div id="crossword-actions">
-        <button class="check-button" onclick="checkCrossword()">
-          <i class="fas fa-check"></i> Перевірити
-        </button>
-        <button class="new-crossword-button" onclick="generateNewCrossword()">
-          <i class="fas fa-sync-alt"></i> Новий
-        </button>
       </div>
 
       <!-- Попап з результатом -->
@@ -7835,6 +7879,9 @@
 
     <!-- Клавіатура конструктора: поза секцією, бо її анімація ламає position:fixed -->
     <div id="constructor-keyboard" class="cw-keyboard hidden"></div>
+
+    <!-- Клавіатура кросворда: ті самі клавіші плюс напрямок, підказка і дії -->
+    <div id="crossword-keyboard" class="cw-keyboard cw-keyboard-crossword hidden"></div>
 
     <!-- Свій ввід замість браузерного prompt() -->
     <div id="app-prompt-modal" class="app-modal hidden">
@@ -8519,10 +8566,25 @@
         if (telegramBackAction) telegramBackAction();
         else backToAccount();
       });
+      collapseEmptyHeaders();
       // Стан перемальовуємо після кожної зміни екрана
       observeScreenChanges();
       syncTelegramBackButton();
       syncClosingGuard();
+    }
+
+    /**
+     * Шапка липка й непрозора, бо має перекривати вміст, що їде під нею. Але на
+     * екранах без назви в ній лишається сама лише кнопка «Назад», а в Telegram
+     * вона схована — і смуга закриває вміст, нічого не показуючи натомість.
+     * Вміст шапок статичний, тож досить одного проходу.
+     */
+    function collapseEmptyHeaders() {
+      document.querySelectorAll('.title-and-btn').forEach(header => {
+        const hasVisibleChild = Array.from(header.children)
+          .some(child => getComputedStyle(child).display !== 'none');
+        header.classList.toggle('is-empty', !hasVisibleChild);
+      });
     }
 
     /**
@@ -8555,6 +8617,10 @@
     // Екран → що робить «Назад». Порядок важливий: перший видимий виграє,
     // тож вкладені екрани (документи, тарифи) стоять перед головним.
     const BACK_TARGETS = [
+      // Прогрес лежить поверх усього, тож і в списку стоїть перший. Своя кнопка
+      // «Назад» у ньому в Telegram схована, а рідну ніхто не вмикав — з екрана
+      // не було виходу взагалі.
+      ['progressPopup', () => closeProgressPopup()],
       ['legal-section', () => closeLegal()],
       ['speaking-club-section', () => scBack()],
       ['grammar-section', () => grammarBack()],
@@ -9184,7 +9250,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-17.2';
+    const APP_VERSION = '2026-08-17.3';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -9566,6 +9632,7 @@ function hideAllAppSections() {
   // Клавіатура конструктора лежить поза секціями, тож ховати її треба окремо —
   // інакше вона лишалася поверх словника після виходу з вправи
   hideConstructorKeyboard();
+  hideCrosswordKeyboard();
   clearNotEnoughPanels();
   [
     'my-words-section', 'daily-words-section', 'add-word-section', 'quiz-section',
@@ -17504,18 +17571,32 @@ async function translateStory() {
      */
     const KEYBOARD_ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
 
-    function fullKeyboardRowsHTML() {
-      return KEYBOARD_ROWS.map((row, index) => {
+    // Розкладка одна на конструктор і кросворд — різняться лише обробники
+    function fullKeyboardRowsHTML(onLetter = 'addLetterToConstructor', onBackspace = 'deleteLastLetter', opts = {}) {
+      const rows = KEYBOARD_ROWS.map((row, index) => {
+        // data-count="-1" — «літера не закінчується»: конструктор тоді лише
+        // дописує її і клавіші не чіпає. Інакше він переписує напис самою
+        // літерою — і «пробіл» після першого ж натиску став би порожнім.
         const keys = row.split('').map(letter =>
-          `<button class="cw-key" data-letter="${letter}" onclick="addLetterToConstructor('${letter}')">${letter}</button>`
+          `<button class="cw-key" data-letter="${letter}" data-count="-1" onclick="${onLetter}('${letter}')">${letter}</button>`
         ).join('');
 
         // Нижній ряд коротший, тож праворуч стоїть стирання — знову як на телефоні
         const backspace = index === 2
-          ? '<button class="cw-key cw-key-wide" onclick="deleteLastLetter()" aria-label="Стерти"><i class="fas fa-delete-left"></i></button>'
+          ? `<button class="cw-key cw-key-wide" onclick="${onBackspace}()" aria-label="Стерти"><i class="fas fa-delete-left"></i></button>`
           : '';
         return `<div class="cw-keyboard-row${index === 1 ? ' cw-row-indent' : ''}">${keys}${backspace}</div>`;
-      }).join('');
+      });
+
+      // У словнику є і «don't», і «ice cream» — без цих двох клавіш таке слово
+      // просто не набрати. Кросворду вони ні до чого: там сітка лише з A–Z.
+      if (opts.punctuation) {
+        rows.push(`<div class="cw-keyboard-row">
+          <button class="cw-key" data-letter="'" data-count="-1" onclick="${onLetter}(&quot;'&quot;)">'</button>
+          <button class="cw-key cw-key-space" data-letter=" " data-count="-1" onclick="${onLetter}(' ')">пробіл</button>
+        </div>`);
+      }
+      return rows.join('');
     }
 
     // Клавіші, дії і прогрес — одним шаром знизу; у режимі букв слова шар не потрібен
@@ -17528,7 +17609,7 @@ async function translateStory() {
         return;
       }
       kb.innerHTML = `
-        ${fullKeyboardRowsHTML()}
+        ${fullKeyboardRowsHTML('addLetterToConstructor', 'deleteLastLetter', { punctuation: true })}
         <div class="cw-keyboard-actions">
           <button class="check-button" onclick="submitConstructorAnswer(${jsArg(questionWord.english)})">Перевірити</button>
           <button class="skip-button" onclick="skipConstructor()">Пропустити</button>
@@ -17577,8 +17658,16 @@ async function translateStory() {
     let constructedWord = '';
     let usedLetters = {};
 
+    /**
+     * Апостроф в одинарних лапках селектора обривав його на середині, і
+     * querySelector падав — тож клавіші беремо тільки через це.
+     */
+    function constructorKeyButton(letter) {
+      return document.querySelector(`button[data-letter="${letter.replace(/["\\]/g, '\\$&')}"]`);
+    }
+
     function addLetterToConstructor(letter) {
-      const letterButton = document.querySelector(`button[data-letter='${letter}']`);
+      const letterButton = constructorKeyButton(letter);
       // Літери без клавіші просто немає що додавати — інакше тут падав
       // TypeError і вправа зупинялася посеред слова
       if (!letterButton) return;
@@ -18036,6 +18125,8 @@ async function translateStory() {
         if (wordsArray.length < 5) {
           document.getElementById('crossword-grid').innerHTML =
             notEnoughHtml(wordsArray.length, 5, { needText: '5 слів завдовжки від 3 до 10 літер' });
+          // Клавіатура без сітки ні до чого — і закрила б саме пояснення
+          hideCrosswordKeyboard();
           hideLoading();
           return;
         }
@@ -18278,9 +18369,10 @@ async function translateStory() {
             html += `<td class="crossword-cell" data-row="${r}" data-col="${c}">
               ${number ? `<span class="cell-number">${number}</span>` : ''}
               <input type="text" maxlength="1" data-row="${r}" data-col="${c}"
-                     inputmode="text" enterkeyhint="next"
+                     readonly inputmode="none"
                      onkeyup="handleCrosswordInput(event, this)"
                      onkeydown="onCrosswordKeyDown(event, this)"
+                     onpointerdown="rememberCrosswordScroll()"
                      onfocus="onCrosswordCellFocus(${r},${c})"
                      onclick="onCrosswordCellClick(${r},${c})"
                      autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
@@ -18315,8 +18407,46 @@ async function translateStory() {
 
       cwDirection = 'across';
       cwActiveCell = null;
+      cwKeyHandled = false;  // клавіші старої сітки вже нікуди не дійдуть
+      renderCrosswordKeyboard();
       updateCrosswordDirectionLabel();
       showCurrentClue(null);
+    }
+
+    /**
+     * Клавіатура кросворда: напрямок і підказка, клавіші, дії — одним шаром знизу.
+     *
+     * Системна клавіатура забирала пів екрана разом із сіткою, а слово, яке
+     * розгадуєш, лишалося десь угорі, над нею. Тепер усе, що потрібне під час
+     * набору, стоїть в одному місці під великим пальцем: рядок «куди пишемо» з
+     * підказкою (тап по ньому перемикає напрямок), клавіші і «Перевірити»/«Новий».
+     */
+    function renderCrosswordKeyboard() {
+      const kb = document.getElementById('crossword-keyboard');
+      if (!kb) return;
+      kb.innerHTML = `
+        <button id="crossword-direction-toggle" onclick="toggleCrosswordDirection()">
+          <span class="cw-bar-text">
+            <span id="crossword-direction-label">→ Пишемо вправо</span>
+            <span id="crossword-current-clue" class="hidden"></span>
+          </span>
+          <i class="fas fa-arrows-rotate"></i>
+        </button>
+        ${fullKeyboardRowsHTML('addCrosswordLetter', 'crosswordBackspace')}
+        <div class="cw-keyboard-actions">
+          <button class="check-button" onclick="checkCrossword()"><i class="fas fa-check"></i> Перевірити</button>
+          <button class="new-crossword-button" onclick="generateNewCrossword()"><i class="fas fa-sync-alt"></i> Новий</button>
+        </div>`;
+      kb.classList.remove('hidden');
+      document.body.classList.add('cw-crossword-keyboard-open');
+      document.documentElement.classList.add('cw-instant-scroll');
+    }
+
+    function hideCrosswordKeyboard() {
+      const kb = document.getElementById('crossword-keyboard');
+      if (kb) { kb.classList.add('hidden'); kb.innerHTML = ''; }
+      document.body.classList.remove('cw-crossword-keyboard-open');
+      document.documentElement.classList.remove('cw-instant-scroll');
     }
 
     // ===== Навігація по кросворду =====
@@ -18327,6 +18457,7 @@ async function translateStory() {
     let cwProgrammaticFocus = false;  // фокус від автопереходу, а не від пальця
     let cwJustFocused = false;        // щоб перший тап не рахувався за повторний
     let cwActiveCell = null;
+    let cwKeyHandled = false;         // клавішу вже опрацював keydown
 
     // Усі слова, яким належить клітинка (на перетині їх два)
     function crosswordWordsAt(row, col) {
@@ -18346,9 +18477,41 @@ async function translateStory() {
     function focusCrosswordInput(input) {
       if (!input) return;
       cwProgrammaticFocus = true;
-      input.focus();
+      input.focus({ preventScroll: true });
       input.select();
       cwProgrammaticFocus = false;
+      keepCrosswordCellInView(input);
+    }
+
+    /**
+     * Браузер сам возить сторінку до поля, що дістало фокус. На сітці це зайве:
+     * клітинка вже на екрані, а сторінка з місцем під клавіатуру стала вища за
+     * вікно — і від кожного тапа сітка стрибала, часом аж донизу, до списку
+     * підказок. Тож запам'ятовуємо прокрутку до тапу, повертаємо її і рухаємо
+     * сторінку самі — рівно настільки, щоб клітинку не закривала клавіатура.
+     */
+    let cwScrollBeforeFocus = null;
+
+    function rememberCrosswordScroll() {
+      cwScrollBeforeFocus = window.scrollY;
+    }
+
+    function keepCrosswordCellInView(input) {
+      if (!input) return;
+      if (cwScrollBeforeFocus !== null) {
+        window.scrollTo({ top: cwScrollBeforeFocus, behavior: 'instant' });
+        cwScrollBeforeFocus = null;
+      }
+      const keyboard = document.getElementById('crossword-keyboard');
+      const covered = keyboard && !keyboard.classList.contains('hidden');
+      const floor = covered ? keyboard.getBoundingClientRect().top : window.innerHeight;
+      const cell = input.getBoundingClientRect();
+      const gap = 8;
+      if (cell.bottom > floor - gap) {
+        window.scrollBy({ top: cell.bottom - floor + gap, behavior: 'instant' });
+      } else if (cell.top < gap) {
+        window.scrollBy({ top: cell.top - gap, behavior: 'instant' });
+      }
     }
 
     function crosswordInputAt(row, col) {
@@ -18367,6 +18530,8 @@ async function translateStory() {
         cwActiveCell = `${row}-${col}`;
       }
       highlightCrosswordWord(row, col);
+      // Список підказок щойно розгорнувся — міряємо вже по новій розкладці
+      keepCrosswordCellInView(crosswordInputAt(row, col));
     }
 
     // Повторний тап по вже активній клітинці на перетині — перемикає напрямок
@@ -18407,12 +18572,73 @@ async function translateStory() {
       highlightCrosswordWord(word.row, word.col);
     }
 
+    // Клітинка, у яку зараз пишемо: фокус, а якщо його загубили — остання активна
+    function crosswordFocusedInput() {
+      const active = document.activeElement;
+      if (active && active.dataset && active.dataset.row !== undefined) return active;
+      if (cwActiveCell) {
+        const [row, col] = cwActiveCell.split('-');
+        return crosswordInputAt(Number(row), Number(col));
+      }
+      return document.querySelector('.crossword-cell input');
+    }
+
+    function moveCrosswordCaret(input) {
+      const row = parseInt(input.dataset.row);
+      const col = parseInt(input.dataset.col);
+      cwActiveCell = `${row}-${col}`;
+      focusCrosswordInput(input);
+      highlightCrosswordWord(row, col);
+    }
+
+    // Клавіша власної клавіатури — те саме, що літера з фізичної
+    function addCrosswordLetter(letter) {
+      const input = crosswordFocusedInput();
+      if (!input) return;
+      if (document.activeElement !== input) moveCrosswordCaret(input);
+      input.value = letter.toUpperCase();
+      input.classList.remove('correct', 'incorrect');
+      const next = findNextCrosswordInput(
+        parseInt(input.dataset.row), parseInt(input.dataset.col), cwDirection, 1);
+      if (next) moveCrosswordCaret(next);
+    }
+
+    function crosswordBackspace() {
+      const input = crosswordFocusedInput();
+      if (!input) return;
+      if (document.activeElement !== input) moveCrosswordCaret(input);
+      input.classList.remove('correct', 'incorrect');
+      // У заповненій клітинці стираємо літеру, у порожній — крокуємо назад
+      if (input.value) { input.value = ''; return; }
+      const prev = findNextCrosswordInput(
+        parseInt(input.dataset.row), parseInt(input.dataset.col), cwDirection, -1);
+      if (!prev) return;
+      prev.value = '';
+      prev.classList.remove('correct', 'incorrect');
+      moveCrosswordCaret(prev);
+    }
+
     // Стрілки на десктопі: рухають і водночас задають напрямок
     function onCrosswordKeyDown(event, input) {
       const arrows = { ArrowLeft: ['across', -1], ArrowRight: ['across', 1], ArrowUp: ['down', -1], ArrowDown: ['down', 1] };
       const move = arrows[event.key];
-      if (!move) return;
+      if (!move) {
+        // Клітинки readonly, щоб на телефоні поверх власної клавіатури не
+        // вилазила системна. Отже фізичний набір проводимо самі.
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
+        if (/^[a-zA-Z]$/.test(event.key)) {
+          event.preventDefault();
+          cwKeyHandled = true;
+          addCrosswordLetter(event.key);
+        } else if (event.key === 'Backspace') {
+          event.preventDefault();
+          cwKeyHandled = true;
+          crosswordBackspace();
+        }
+        return;
+      }
       event.preventDefault();
+      cwKeyHandled = true;
       const [dir, step] = move;
       const row = parseInt(input.dataset.row);
       const col = parseInt(input.dataset.col);
@@ -18430,6 +18656,10 @@ async function translateStory() {
     }
 
     function handleCrosswordInput(event, input) {
+      // keydown уже зробив крок — керує саме він, бо клітинки readonly. Без
+      // цього keyup доганяв курсор і той перескакував клітинку через одну.
+      if (cwKeyHandled) { cwKeyHandled = false; return; }
+
       input.value = input.value.toUpperCase().replace(/[^A-Z]/g, '');
 
       const row = parseInt(input.dataset.row);
@@ -18633,7 +18863,7 @@ async function translateStory() {
       constructedWord = constructedWord.slice(0, -1);
       document.getElementById('constructor-answer').value = constructedWord;
       // Увеличение количества доступных букв
-      const letterButton = document.querySelector(`button[data-letter='${lastLetter}']`);
+      const letterButton = constructorKeyButton(lastLetter);
       if (!letterButton || letterButton.getAttribute('data-count') === '-1') return;
       let remainingCount = parseInt(letterButton.getAttribute('data-count')) + 1;
       const initialCount = parseInt(letterButton.getAttribute('data-initial-count'));

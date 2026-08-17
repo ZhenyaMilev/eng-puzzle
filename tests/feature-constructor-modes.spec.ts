@@ -77,10 +77,17 @@ test.describe('Word constructor modes', () => {
     await loadApp(page);
     await openConstructor(page, 'full');
 
-    const keys = await page.locator('.cw-key[data-letter]').allTextContents();
-    expect(keys).toHaveLength(26);
-    expect(keys.slice(0, 10).join('')).toBe('qwertyuiop');
-    expect(new Set(keys).size).toBe(26);
+    const keys = await page.locator('.cw-key[data-letter]').evaluateAll((els) =>
+      (els as HTMLElement[]).map((el) => el.dataset.letter!));
+
+    const letters = keys.filter((k) => /^[a-z]$/.test(k));
+    expect(letters).toHaveLength(26);
+    expect(letters.slice(0, 10).join('')).toBe('qwertyuiop');
+    expect(new Set(letters).size).toBe(26);
+
+    // Plus the two an alphabet cannot supply — "don't", "ice cream"
+    expect(keys).toContain("'");
+    expect(keys).toContain(' ');
   });
 
   test('on the full keyboard a letter never runs out', async ({ page }) => {
@@ -223,5 +230,55 @@ test.describe('Word constructor modes', () => {
 
     await page.click('.cw-keyboard-actions .check-button');
     await expect(page.locator('#constructor-feedback')).toContainText('авильно');
+  });
+});
+
+/**
+ * The dictionary holds "don't" and "ice cream" as readily as "apple". With the
+ * device keyboard gone, a layout of 26 letters cannot spell either of them.
+ */
+test.describe('Words that are not 26 letters', () => {
+  test('the full keyboard offers an apostrophe and a space', async ({ page }) => {
+    await loadApp(page);
+    await openConstructor(page, 'full');
+
+    await expect(page.locator('#constructor-keyboard .cw-key[data-letter="\'"]')).toBeVisible();
+    await expect(page.locator('#constructor-keyboard .cw-key-space')).toBeVisible();
+  });
+
+  test('both of them reach the answer box', async ({ page }) => {
+    await loadApp(page);
+    await openConstructor(page, 'full');
+
+    await page.click('#constructor-keyboard .cw-key[data-letter="i"]');
+    await page.click('#constructor-keyboard .cw-key[data-letter="t"]');
+    await page.click('#constructor-keyboard .cw-key[data-letter="\'"]');
+    await page.click('#constructor-keyboard .cw-key[data-letter="s"]');
+    await page.click('#constructor-keyboard .cw-key-space');
+    await page.click('#constructor-keyboard .cw-key[data-letter="a"]');
+
+    await expect(page.locator('#constructor-answer')).toHaveValue("it's a");
+  });
+
+  test('the space key keeps its name after it is used', async ({ page }) => {
+    await loadApp(page);
+    await openConstructor(page, 'full');
+
+    const space = page.locator('#constructor-keyboard .cw-key-space');
+    await space.click();
+    await space.click();
+    await expect(space).toHaveText('пробіл');
+  });
+
+  test('backspace takes an apostrophe back like any other key', async ({ page }) => {
+    await loadApp(page);
+    await openConstructor(page, 'full');
+
+    await page.click('#constructor-keyboard .cw-key[data-letter="o"]');
+    await page.click('#constructor-keyboard .cw-key[data-letter="\'"]');
+    await expect(page.locator('#constructor-answer')).toHaveValue("o'");
+
+    await page.click('#constructor-keyboard .cw-key-wide');
+    await expect(page.locator('#constructor-answer')).toHaveValue('o');
   });
 });
