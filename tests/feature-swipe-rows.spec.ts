@@ -192,3 +192,41 @@ test.describe('Wording and layout the audit asked for', () => {
     expect((html.match(/function openFolderPicker\(/g) || []).length).toBe(1);
   });
 });
+
+test.describe('You always know which screen you are on', () => {
+  test('the header stays put when a long list is scrolled', async ({ page }) => {
+    await loadApp(page);
+    await page.click('.acc-tile:has-text("Граматика")');
+    await expect(page.locator('#grammar-section')).toBeVisible();
+
+    await page.evaluate(() => window.scrollTo(0, 900));
+    await page.waitForTimeout(300);
+
+    const header = await page.evaluate(() => {
+      const box = document.querySelector('#grammar-section .title-and-btn')!.getBoundingClientRect();
+      return { top: Math.round(box.top), title: document.querySelector('#grammar-section h2')?.textContent };
+    });
+
+    // Telegram does not unload a Mini App: reopening lands wherever it was
+    // left, and a list of grammar topics with no title says nothing
+    expect(header.top).toBeLessThan(60);
+    expect(header.title).toBe('Граматика');
+  });
+
+  test('the dictionary keeps its header too', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => (window as any).showMyWords());
+    await page.waitForTimeout(600);
+    await page.evaluate(() => window.scrollTo(0, 600));
+    await page.waitForTimeout(250);
+
+    const top = await page.evaluate(() =>
+      Math.round(document.querySelector('#my-words-section .title-and-btn')!.getBoundingClientRect().top));
+    expect(top).toBeLessThan(60);
+  });
+
+  test('a dialog header is not made sticky — it has nowhere to scroll', () => {
+    const html = readFileSync(INDEX, 'utf-8');
+    expect(html).toMatch(/#progressPopup \.title-and-btn,[\s\S]{0,60}\.app-modal \.title-and-btn \{[\s\S]{0,60}position: relative;/);
+  });
+});

@@ -73,7 +73,7 @@ test.describe('Account Screen (mocked auth)', () => {
 
   test('quick action buttons are present', async ({ page }) => {
     await loadApp(page);
-    await expect(page.locator('button:has-text("Мої слова")')).toBeVisible();
+    await expect(page.locator('.acc-action-btn:has-text("Словник")')).toBeVisible();
     await expect(page.locator('.acc-action-btn:has-text("Додати")')).toBeVisible();
   });
 

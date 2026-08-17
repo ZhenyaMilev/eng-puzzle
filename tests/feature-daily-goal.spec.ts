@@ -69,17 +69,18 @@ test.describe('Daily goal lives in a dialog', () => {
 });
 
 test.describe('Best Daily XP Record', () => {
-  test('best daily XP display exists on account screen', async ({ page }) => {
+  // The record lives on the progress screen, next to the week's chart — the
+  // account screen shows the goal, not the record.
+  test('the day record is shown with the week of XP', async ({ page }) => {
     await loadApp(page);
-    const bestDaily = page.locator('#best-daily-xp');
-    await expect(bestDaily).toBeAttached();
+    await page.click('.acc-action-btn:has-text("Прогрес")');
+    await expect(page.locator('#progressPopup')).toBeVisible();
+    await expect(page.locator('#best-daily-xp')).toBeVisible();
   });
 
   test('best daily XP shows value from Firestore', async ({ page }) => {
     await loadApp(page);
-    await page.waitForTimeout(500);
-    const text = await page.locator('#best-daily-xp').textContent();
-    // Should show 150 from our mock (bestDailyXP: 150)
-    expect(text).toContain('150');
+    await page.click('.acc-action-btn:has-text("Прогрес")');
+    await expect(page.locator('#best-daily-xp')).toHaveText(/150/);
   });
 });

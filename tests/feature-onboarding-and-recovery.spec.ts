@@ -217,7 +217,7 @@ test.describe('A forgotten password is not a lost account', () => {
   test('the login screen offers recovery', async ({ page }) => {
     await loadAppNoAuth(page);
     await expect(page.locator('#forgot-password-btn')).toBeVisible();
-    await expect(page.locator('#forgot-password-btn')).toHaveText('Забув пароль?');
+    await expect(page.locator('#forgot-password-btn')).toHaveText('Забули пароль?');
   });
 
   test('recovery sends to the address that was typed', async ({ page }) => {
@@ -234,7 +234,7 @@ test.describe('A forgotten password is not a lost account', () => {
     await loadAppNoAuth(page);
     await page.click('#forgot-password-btn');
 
-    await expect(page.locator('#login-email-error')).toContainText('Введи свій email');
+    await expect(page.locator('#login-email-error')).toContainText('Введіть свій email');
     expect(await page.evaluate(() => (window as any).__authCalls?.passwordResets || [])).toEqual([]);
   });
 
@@ -253,7 +253,7 @@ test.describe('Firebase speaks Ukrainian', () => {
     { code: 'auth/wrong-password', field: '#login-password-error', says: 'Невірний пароль' },
     { code: 'auth/invalid-email', field: '#login-email-error', says: 'в адресі помилка' },
     { code: 'auth/too-many-requests', field: '#login-password-error', says: 'Забагато спроб' },
-    { code: 'auth/network-request-failed', field: '#login-password-error', says: 'Перевір інтернет' },
+    { code: 'auth/network-request-failed', field: '#login-password-error', says: 'Перевірте інтернет' },
   ];
 
   for (const f of failures) {

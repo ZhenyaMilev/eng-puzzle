@@ -4,13 +4,13 @@ import { loadApp } from './helpers';
 test.describe('Navigation', () => {
   test('My Words button opens words section', async ({ page }) => {
     await loadApp(page);
-    await page.click('button:has-text("Мої слова")');
+    await page.click('.acc-action-btn:has-text("Словник")');
     await expect(page.locator('#my-words-section')).toBeVisible();
   });
 
   test('back button returns to account screen', async ({ page }) => {
     await loadApp(page);
-    await page.click('button:has-text("Мої слова")');
+    await page.click('.acc-action-btn:has-text("Словник")');
     await expect(page.locator('#my-words-section')).toBeVisible();
     await page.locator('#my-words-section .back-button').click();
     await expect(page.locator('#account-screen')).toBeVisible();

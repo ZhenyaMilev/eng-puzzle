@@ -24,7 +24,7 @@ test.describe('Login Form', () => {
 test.describe('Account Screen Elements', () => {
   test('all back buttons have consistent padding', async ({ page }) => {
     await loadApp(page);
-    await page.click('button:has-text("Мої слова")');
+    await page.click('.acc-action-btn:has-text("Словник")');
     const backBtn = page.locator('#my-words-section .back-button');
     await expect(backBtn).toBeVisible();
     const paddingTop = await backBtn.evaluate(el => getComputedStyle(el).paddingTop);

@@ -4,14 +4,14 @@ import { loadApp } from './helpers';
 test.describe('Phrases - Vocabulary Tabs', () => {
   test('My Words section has words/phrases tabs', async ({ page }) => {
     await loadApp(page);
-    await page.click('button:has-text("Мої слова")');
+    await page.click('.acc-action-btn:has-text("Словник")');
     await expect(page.locator('#vocab-tab-words')).toBeVisible();
     await expect(page.locator('#vocab-tab-phrases')).toBeVisible();
   });
 
   test('words tab is active by default', async ({ page }) => {
     await loadApp(page);
-    await page.click('button:has-text("Мої слова")');
+    await page.click('.acc-action-btn:has-text("Словник")');
     const wordsActive = await page.evaluate(() =>
       document.getElementById('vocab-tab-words')!.classList.contains('active')
     );
@@ -20,7 +20,7 @@ test.describe('Phrases - Vocabulary Tabs', () => {
 
   test('switching to phrases tab updates active state', async ({ page }) => {
     await loadApp(page);
-    await page.click('button:has-text("Мої слова")');
+    await page.click('.acc-action-btn:has-text("Словник")');
     await page.click('#vocab-tab-phrases');
     const phrasesActive = await page.evaluate(() =>
       document.getElementById('vocab-tab-phrases')!.classList.contains('active')
@@ -34,7 +34,7 @@ test.describe('Phrases - Vocabulary Tabs', () => {
 
   test('phrases tab shows phrases content area', async ({ page }) => {
     await loadApp(page);
-    await page.click('button:has-text("Мої слова")');
+    await page.click('.acc-action-btn:has-text("Словник")');
     await page.click('#vocab-tab-phrases');
     await expect(page.locator('#vocab-phrases-content')).toBeVisible();
   });
@@ -43,7 +43,7 @@ test.describe('Phrases - Vocabulary Tabs', () => {
 test.describe('Phrases - Add Phrase', () => {
   test('add phrase section opens from phrases tab', async ({ page }) => {
     await loadApp(page);
-    await page.click('button:has-text("Мої слова")');
+    await page.click('.acc-action-btn:has-text("Словник")');
     await page.click('#vocab-tab-phrases');
     await page.click('button:has-text("Додати фразу")');
     await expect(page.locator('#add-phrase-section')).toBeVisible();
@@ -73,7 +73,7 @@ test.describe('Phrases - Add Phrase', () => {
 
   test('back button from add phrase returns to words section', async ({ page }) => {
     await loadApp(page);
-    await page.click('button:has-text("Мої слова")');
+    await page.click('.acc-action-btn:has-text("Словник")');
     await page.click('#vocab-tab-phrases');
     await page.click('button:has-text("Додати фразу")');
     await expect(page.locator('#add-phrase-section')).toBeVisible();

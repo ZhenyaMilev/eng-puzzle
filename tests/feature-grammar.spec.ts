@@ -14,11 +14,16 @@ test.describe('Grammar Section', () => {
     await expect(page.locator('#grammar-topics')).toBeVisible();
   });
 
-  test('grammar has 12 topic buttons rendered', async ({ page }) => {
+  test('every grammar topic is offered as its own button', async ({ page }) => {
     await loadApp(page);
     await page.click('button:has-text("Граматика")');
-    const topicCount = await page.locator('#grammar-topic-list .grammar-topic').count();
-    expect(topicCount).toBe(12);
+    // The list grows as topics are written, so pin the shape rather than a
+    // number that keeps moving: every button opens a distinct topic.
+    const opens = await page.locator('#grammar-topic-list .grammar-topic')
+      .evaluateAll((btns) => btns.map((b) => b.getAttribute('onclick')));
+    expect(opens.length).toBeGreaterThanOrEqual(12);
+    expect(new Set(opens).size).toBe(opens.length);
+    expect(opens.every((o) => /loadGrammarLesson\('.+'\)/.test(o || ''))).toBe(true);
   });
 
   test('topic buttons include expected grammar names', async ({ page }) => {

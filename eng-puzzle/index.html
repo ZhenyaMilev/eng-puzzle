@@ -4086,12 +4086,43 @@
       margin-top: 15px;
     }
 
+    /**
+     * Шапка екрана лишається на місці при прокрутці.
+     *
+     * Telegram не вивантажує міні-апп, коли вікно закривають: наступного разу
+     * він відкривається рівно там, де його лишили. Якщо це була середина
+     * списку граматики, людина бачить перелік тем без жодної підказки, що це
+     * взагалі за екран. Назва має бути видима завжди, а не лише згори.
+     */
     .title-and-btn {
-      position: relative;
+      position: sticky;
+      top: 0;
+      z-index: 60;
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 16px;
+      padding: 10px 0;
+      background: #0f1117;
+    }
+
+    /* Усередині вікон і шторок липкість зайва — вони й так не прокручуються далеко */
+    #progressPopup .title-and-btn,
+    .app-modal .title-and-btn {
+      position: relative;
+      padding: 0;
+      background: transparent;
+    }
+
+    .title-and-btn::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -12px;
+      height: 12px;
+      background: linear-gradient(#0f1117, rgba(15, 17, 23, 0));
+      pointer-events: none;
     }
 
     .title-and-btn h2 {
@@ -5635,6 +5666,22 @@
       padding-bottom: var(--safe-bottom, 0);
     }
 
+    /* Відступ на body не діє на position:fixed — той міряє себе від вікна.
+       Через це шапка «Мого прогресу» з кнопкою «Назад» ховалася під власною
+       панеллю Telegram, і з екрана не було виходу. Кожен шар поверх сторінки
+       відсуває себе сам. */
+    body.in-miniapp #progressPopup,
+    body.in-miniapp .app-modal {
+      box-sizing: border-box;
+      padding-top: calc(var(--safe-top, 0px) + var(--overlay-pad, 0px));
+      padding-bottom: calc(var(--safe-bottom, 0px) + var(--overlay-pad, 0px));
+    }
+    body.in-miniapp .app-modal { --overlay-pad: 20px; }
+    body.in-miniapp #wordInfoPopup,
+    body.in-miniapp #infoPopup {
+      padding-bottom: calc(20px + var(--safe-bottom, 0px));
+    }
+
     /* Три речі, які миттєво читаються як «це сайт, а не застосунок»:
        сіра пляма підсвітки на тапі, виділення тексту при довгому натисканні
        і системне меню «Копіювати / Поділитися» поверх картки зі словом. */
@@ -5728,6 +5775,12 @@
     .swipe-row.swipe-active .swipe-actions,
     .swipe-row.swipe-open .swipe-actions {
       visibility: visible;
+    }
+
+    /* З мишею свайпнути нічим — на комп'ютері дії з'являються під курсором,
+       інакше слово неможливо було видалити взагалі. */
+    @media (hover: hover) and (pointer: fine) {
+      .swipe-row:hover .swipe-actions { visibility: visible; }
     }
     .swipe-action {
       width: 80px;
@@ -6324,7 +6377,7 @@
         </div>
         <!-- Серія, рівень і XP: перенесені з головного екрана -->
         <div class="acc-gamification" style="margin-top:20px;">
-          <div class="acc-streak" id="acc-streak" onclick="showInfoPopup('🔥 Серія днів', 'Серія показує скільки днів поспіль ти навчаєшся. Заходьте щодня, щоб не втратити свій прогрес!\n\n• Кожен день, коли ти відкриваєш додаток — серія зростає.\n• Якщо пропустиш день — серія скидається до 1.\n• Намагайся утримати найдовшу серію!')" style="cursor:pointer;">
+          <div class="acc-streak" id="acc-streak" onclick="showInfoPopup('🔥 Серія днів', 'Серія показує, скільки днів поспіль ви навчаєтесь. Заходьте щодня, щоб не втратити свій прогрес!\n\n• Кожен день, коли ти відкриваєш додаток — серія зростає.\n• Якщо пропустиш день — серія скидається до 1.\n• Намагайся утримати найдовшу серію!')" style="cursor:pointer;">
             <span class="acc-streak-icon">🔥</span>
             <span class="acc-streak-count" id="streak-count">0</span>
             <span class="acc-streak-label">днів</span>
@@ -6636,6 +6689,11 @@
           <ul id="phrases"></ul>
           <button id="load-more-phrases" class="long-button hidden" onclick="loadMorePhrases()">Показати ще</button>
         </div>
+        <button onclick="goAddPhrases()" id="add-phrase-from-my-vocabulary"
+          class="add-word-from-my-vocabulary hidden">
+          <i class="fas fa-plus"></i>
+          Додати фразу
+        </button>
       </div>
     </div>
     <!-- Секція "Генеративний текст" -->
@@ -6652,11 +6710,11 @@
 
       <!-- Кнопки вместо селектов -->
       <div class="title-wrapper">
-        <label for="text-style">Cтиль тексту:</label>
+        <label for="text-style">Стиль тексту:</label>
         <button class="option-button" onclick="openOptionMenu('text-style', this)">-- Виберіть стиль --</button>
       </div>
       <div class="title-wrapper">
-        <label for="text-difficulty">Cкладність тексту:</label>
+        <label for="text-difficulty">Складність тексту:</label>
         <button class="option-button" onclick="openOptionMenu('text-difficulty', this)">-- Виберіть складність
           --</button>
       </div>
@@ -6673,7 +6731,7 @@
       </div>
       <button class="generate" onclick="generateStory()">
         <div class="spinner hidden"></div>
-        <span>Сгенерувати</span>
+        <span>Згенерувати</span>
       </button>
 <!-- Область для відображення згенерованого тексту -->
 <div id="generated-story" class="hidden">
@@ -7934,8 +7992,29 @@
       }
     }
 
+    /**
+     * Останній рубіж озвучення. Якщо і він мовчить — сказати про це вголос:
+     * вправа «На слух» без звуку просто нерозв'язна, а виглядала як зламана
+     * кнопка. Одне повідомлення на 15 секунд, скільки б разів не тиснули.
+     */
+    var _voiceProblemShownAt = 0;
+
+    function announceNoVoice() {
+      var now = Date.now();
+      if (now - _voiceProblemShownAt < 15000) return;
+      _voiceProblemShownAt = now;
+      if (typeof showNotification === 'function') {
+        showNotification('Пристрій не вміє озвучувати текст — звук недоступний', 'warning');
+      }
+    }
+
     function kokoroSpeakNative(text, voice, options) {
-      if (!text || !window.speechSynthesis) return;
+      if (!text) return;
+      if (!window.speechSynthesis) {
+        announceNoVoice();
+        if (options && options.onend) options.onend();
+        return;
+      }
       kokoroCancel();
 
       var utt = new SpeechSynthesisUtterance(text);
@@ -7959,7 +8038,12 @@
       };
       var origEnd = utt.onend;
       utt.onend = function(e) { clearInterval(timer); if (origEnd) origEnd(e); };
-      utt.onerror = function() { clearInterval(timer); };
+      utt.onerror = function() {
+        clearInterval(timer);
+        announceNoVoice();
+        // Іконка динаміка чекає саме на onend — без цього вона світиться далі
+        if (origEnd) origEnd();
+      };
 
       speechSynthesis.speak(utt);
     }
@@ -8271,7 +8355,12 @@
         tg.onEvent('safeAreaChanged', applyMiniAppMetrics);
         tg.onEvent('contentSafeAreaChanged', applyMiniAppMetrics);
         // Повернення з браузера після оплати: перечитати підписку без перезавантаження
-        tg.onEvent('activated', refreshSubscriptionState);
+        tg.onEvent('activated', () => {
+          refreshSubscriptionState();
+          // Вікно відкрили знову — показуємо початок екрана, а не те місце,
+          // де його лишили тиждень тому
+          window.scrollTo(0, 0);
+        });
       }
     }
 
@@ -8631,7 +8720,8 @@
         dragging = true;
         decided = false;
         content.classList.add('swipe-dragging');
-        row.classList.add('swipe-active');
+        // Клас, що показує дії, з'явиться лише коли стане ясно, що це свайп:
+        // раніше досить було торкнутися рядка — і «Видалити» вже блимало.
       }, { passive: true });
 
       row.addEventListener('touchmove', event => {
@@ -8644,7 +8734,8 @@
         if (!decided) {
           if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
           decided = true;
-          if (Math.abs(dy) > Math.abs(dx)) { dragging = false; content.classList.remove('swipe-dragging'); return; }
+          if (Math.abs(dy) > Math.abs(dx)) { cancelDrag(); return; }
+          row.classList.add('swipe-active');
         }
 
         const base = row.classList.contains('swipe-open') ? -width : 0;
@@ -8652,8 +8743,17 @@
         content.style.transform = `translateX(${offset}px)`;
       }, { passive: true });
 
+      // Вертикальна прокрутка йшла сюди з dragging=false, і settle() виходив
+      // одразу — рядок лишався в swipe-active, тобто з видимим «Видалити»,
+      // аж доки щось інше його не закриє.
+      const cancelDrag = () => {
+        dragging = false;
+        content.classList.remove('swipe-dragging');
+        if (!row.classList.contains('swipe-open')) row.classList.remove('swipe-active');
+      };
+
       const settle = () => {
-        if (!dragging) return;
+        if (!dragging) { cancelDrag(); return; }
         dragging = false;
         content.classList.remove('swipe-dragging');
         const open = offset < -SWIPE_OPEN_PX / 2;
@@ -8989,6 +9089,23 @@
       return response;
     }
 
+    /**
+     * Зв'язок обірвався посеред вправи — раніше це було видно тільки в консолі:
+     * людина відповідала далі, XP не нараховувався, статистика не писалася,
+     * і жодного натяку, що робота йде в нікуди. Кажемо один раз на 15 секунд,
+     * щоб не сипати плашками на кожну відповідь.
+     */
+    let _saveProblemShownAt = 0;
+
+    function announceSaveProblem() {
+      const now = Date.now();
+      if (now - _saveProblemShownAt < 15000) return;
+      _saveProblemShownAt = now;
+      if (typeof showNotification === 'function') {
+        showNotification('Немає зв\'язку — результат не збережено', 'warning');
+      }
+    }
+
     let _aiProblemShownAt = 0;
     let _aiProblemLast = 0;
 
@@ -9054,7 +9171,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-16.14';
+    const APP_VERSION = '2026-08-17.1';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -9144,7 +9261,7 @@
       const errorClass = 'training-error'; // Класс для ошибки
 
       // Перевірка, чи достатньо слів для тренування
-      if (allWords.length < 60) {
+      if (wordPool.length < 60) {
         // Отключаем кнопки
         document.getElementById('ukr-to-eng-button').disabled = true;
         document.getElementById('eng-to-ukr-button').disabled = true;
@@ -9155,7 +9272,7 @@
           errorBlock.classList.add(errorClass);
           speedTrainingInfo.appendChild(errorBlock);
         }
-        errorBlock.innerHTML = notEnoughHtml(allWords.length, 60);
+        errorBlock.innerHTML = notEnoughHtml(wordPool.length, 60);
       } else {
         // Включаем кнопки
         document.getElementById('ukr-to-eng-button').disabled = false;
@@ -9179,7 +9296,7 @@
 
     function initializeSpeedTraining() {
       // Выбираем 60 случайных слов
-      speedTrainingWords = allWords.slice();
+      speedTrainingWords = wordPool.slice();
       // Перемешиваем массив слов
       speedTrainingWords.sort(() => 0.5 - Math.random());
       // Берем первые 60 слов
@@ -9233,8 +9350,8 @@
         questionText = questionWord.translation;
         options = [questionWord.english];
         // Добавляем случайные английские слова
-        while (options.length < 4 && allWords.length > options.length) {
-          const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+        while (options.length < 4 && wordPool.length > options.length) {
+          const randomWord = wordPool[Math.floor(Math.random() * wordPool.length)];
           if (!options.includes(randomWord.english)) {
             options.push(randomWord.english);
           }
@@ -9244,8 +9361,8 @@
         questionText = questionWord.english;
         options = [questionWord.translation];
         // Добавляем случайные украинские слова
-        while (options.length < 4 && allWords.length > options.length) {
-          const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+        while (options.length < 4 && wordPool.length > options.length) {
+          const randomWord = wordPool[Math.floor(Math.random() * wordPool.length)];
           if (!options.includes(randomWord.translation)) {
             options.push(randomWord.translation);
           }
@@ -9256,8 +9373,8 @@
       // Отображаем вопрос и варианты
       let questionHTML = `
     <button onclick="playSpeedWordSound(this)" class="listening-sound-icon"><i class="fas fa-volume-up"></i></button>
-    <h3>${questionText}</h3>
-    ${options.map(option => `<button onclick="checkSpeedAnswer('${option.replace(/'/g, "\\'")}', this)">${option}</button>`).join('')}
+    <h3>${escapeHtml(questionText)}</h3>
+    ${options.map(option => `<button onclick="checkSpeedAnswer(${jsArg(option)}, this)">${escapeHtml(option)}</button>`).join('')}
   `;
       document.getElementById('speed-training-question').innerHTML = questionHTML;
     }
@@ -9478,6 +9595,43 @@ function exitSpeedTraining() {
     }
 
     // 1 слово, 2 слова, 5 слів
+    /**
+     * Панель ховається після своєї анімації — але таймер мусить бути один.
+     *
+     * Раніше «закрив і одразу відкрив» ламало екран: відкриття знімало
+     * .hidden, а таймер від попереднього закриття через 300 мс вішав його
+     * назад — на вже відкриту панель. Меню вибору стилю історії так і
+     * лишалося невидимим, і перший тап пропадав даремно.
+     */
+    const _pendingHides = new Map();
+
+    function hideAfterAnimation(el, ms) {
+      if (!el) return;
+      clearTimeout(_pendingHides.get(el));
+      _pendingHides.set(el, setTimeout(() => {
+        _pendingHides.delete(el);
+        el.classList.add('hidden');
+      }, ms));
+    }
+
+    function cancelPendingHide(el) {
+      if (!el) return;
+      clearTimeout(_pendingHides.get(el));
+      _pendingHides.delete(el);
+    }
+
+    /**
+     * Ключ слова у словнику — це саме слово, тож форма мусить бути одна.
+     *
+     * Досі кожен шлях зберігав по-своєму: з фото — малими літерами, а зі
+     * «Слів дня», зі спільного набору й із розбору розмови — так, як написала
+     * модель. Через це те саме слово лягало двома записами з розділеною
+     * статистикою, і перевірка «вже існує» його не бачила.
+     */
+    function wordDocId(word) {
+      return String(word == null ? '' : word).trim().toLowerCase();
+    }
+
     function pluralUa(n, one, few, many) {
       const mod10 = n % 10, mod100 = n % 100;
       if (mod10 === 1 && mod100 !== 11) return one;
@@ -9592,17 +9746,17 @@ function exitSpeedTraining() {
     const AUTH_ERRORS = {
       'auth/invalid-email': ['email', 'Схоже, в адресі помилка. Перевірте email.'],
       'auth/missing-email': ['email', 'Введіть email.'],
-      'auth/user-not-found': ['email', 'Акаунта з таким email немає. Перевірте адресу або зареєструйся.'],
-      'auth/email-already-in-use': ['email', 'Цей email вже зареєстрований — увійди замість реєстрації.'],
-      'auth/user-disabled': ['email', 'Цей акаунт заблоковано. Напиши в підтримку.'],
-      'auth/wrong-password': ['password', 'Невірний пароль. Спробуйте ще раз або натисни «Забули пароль?».'],
+      'auth/user-not-found': ['email', 'Акаунта з таким email немає. Перевірте адресу або зареєструйтеся.'],
+      'auth/email-already-in-use': ['email', 'Цей email вже зареєстрований — увійдіть замість реєстрації.'],
+      'auth/user-disabled': ['email', 'Цей акаунт заблоковано. Напишіть у підтримку.'],
+      'auth/wrong-password': ['password', 'Невірний пароль. Спробуйте ще раз або натисніть «Забули пароль?».'],
       'auth/invalid-credential': ['password', 'Невірний email або пароль.'],
       'auth/invalid-login-credentials': ['password', 'Невірний email або пароль.'],
       'auth/missing-password': ['password', 'Введіть пароль.'],
       'auth/weak-password': ['password', 'Пароль закороткий — потрібно щонайменше 6 символів.'],
-      'auth/too-many-requests': ['password', 'Забагато спроб поспіль. Зачекай кілька хвилин і спробуй знову.'],
-      'auth/network-request-failed': ['password', 'Немає зв\'язку із сервером. Перевірте інтернет і спробуй ще раз.'],
-      'auth/operation-not-allowed': ['password', 'Цей спосіб входу вимкнено. Напиши в підтримку.'],
+      'auth/too-many-requests': ['password', 'Забагато спроб поспіль. Зачекайте кілька хвилин і спробуйте знову.'],
+      'auth/network-request-failed': ['password', 'Немає зв\'язку із сервером. Перевірте інтернет і спробуйте ще раз.'],
+      'auth/operation-not-allowed': ['password', 'Цей спосіб входу вимкнено. Напишіть у підтримку.'],
       'auth/popup-closed-by-user': ['password', 'Вікно входу закрилося. Спробуйте ще раз.'],
       'auth/account-exists-with-different-credential': ['email', 'Цей email вже прив\'язаний до іншого способу входу. Увійдіть поштою й паролем.'],
     };
@@ -10065,9 +10219,22 @@ function exitSpeedTraining() {
      * тобто backToAccount() і одразу showDailyWords() — лишав шапку поверх
      * заголовка екрана. Тепер стан рахується з того, який екран відкритий.
      */
+    let accountScrollY = 0;
+
     function toggleMainTitle() {
       // Виклик стоїть ПЕРЕД перемиканням класів, тож синхронізуємо після нього
-      Promise.resolve().then(syncMainTitle);
+      const account = document.getElementById('account-screen');
+      if (account && !account.classList.contains('hidden')) accountScrollY = window.scrollY;
+      Promise.resolve().then(() => {
+        syncMainTitle();
+        // Сторінка одна на всі екрани, і прокрутка лишалася від попереднього:
+        // «Граматика», відкрита з нижньої плитки, з'являлася з середини.
+        // Новий екран починається згори, а головний — там, де його лишили.
+        const onAccount = account && !account.classList.contains('hidden');
+        // html { scroll-behavior: smooth } — при зміні екрана це виглядало б як
+        // самовільна прокрутка вже нової сторінки, тож тут стрибаємо одразу
+        window.scrollTo({ top: onAccount ? accountScrollY : 0, behavior: 'instant' });
+      });
     }
 
     function syncMainTitle() {
@@ -10288,11 +10455,11 @@ Return ONLY the JSON array, no other text.`;
         if (!alreadyAdded) allAdded = false;
         const li = document.createElement('li');
         li.style.cssText = 'background:rgba(255,255,255,0.05);padding:15px 22px;margin-bottom:10px;border-radius:8px;display:flex;align-items:center;border:1px solid rgba(255,255,255,0.06);position:relative;cursor:pointer;list-style:none;animation:dailyWordFadeIn 0.3s ease forwards;animation-delay:' + (Math.min(i, 8) * 0.03) + 's;opacity:0;';
-        const safeWord = w.word.replace(/'/g, "\\'");
+        const safeWord = jsArg(w.word);
         const iconHtml = alreadyAdded
           ? `<i class="fas fa-check" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);color:#34d399;padding:5px;"></i>`
           : `<i class="fas fa-plus" onclick="addDailyWord(${i}, this)" style="position:absolute;top:50%;right:10px;transform:translateY(-50%);color:#F0EDE8;cursor:pointer;padding:5px;"></i>`;
-        li.innerHTML = `<i class="fas fa-volume-up" style="color:rgba(240,237,232,0.5);cursor:pointer;margin-right:12px;" onclick="kokoroSpeak('${safeWord}', 'UK English Female')"></i><strong>${w.word}</strong>&nbsp;- ${w.translation}${iconHtml}`;
+        li.innerHTML = `<i class="fas fa-volume-up" style="color:rgba(240,237,232,0.5);cursor:pointer;margin-right:12px;" onclick="kokoroSpeak(${safeWord}, 'UK English Female')"></i><strong>${escapeHtml(w.word)}</strong>&nbsp;- ${escapeHtml(w.translation)}${iconHtml}`;
         list.appendChild(li);
       });
 
@@ -10313,7 +10480,7 @@ Return ONLY the JSON array, no other text.`;
     async function addDailyWord(index, btn) {
       const w = currentDailyWords[index];
       const userId = auth.currentUser.uid;
-      const ref = db.collection('users').doc(userId).collection('words').doc(w.word);
+      const ref = db.collection('users').doc(userId).collection('words').doc(wordDocId(w.word));
 
       try {
         const existing = await ref.get();
@@ -10354,7 +10521,7 @@ Return ONLY the JSON array, no other text.`;
         const batch = db.batch();
         let added = 0;
         for (const w of currentDailyWords) {
-          const ref = db.collection('users').doc(userId).collection('words').doc(w.word);
+          const ref = db.collection('users').doc(userId).collection('words').doc(wordDocId(w.word));
           const existing = await ref.get();
           if (!existing.exists) {
             batch.set(ref, {
@@ -10370,7 +10537,7 @@ Return ONLY the JSON array, no other text.`;
         }
         if (added > 0) {
           await batch.commit();
-          showNotification(`Додано ${added} нових слів!`);
+          showNotification(`Додано ${added} ${pluralUa(added, 'нове', 'нові', 'нових')} ${pluralUa(added, 'слово', 'слова', 'слів')}!`);
         } else {
           showNotification('Всі слова вже у словнику', 'warning');
         }
@@ -10606,18 +10773,21 @@ Return ONLY the JSON array, no other text.`;
         if (!alreadyAdded) allAdded = false;
         const li = document.createElement('li');
         li.style.cssText = 'background:rgba(255,255,255,0.05);padding:15px 22px;margin-bottom:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);position:relative;list-style:none;animation:dailyWordFadeIn 0.3s ease forwards;animation-delay:' + (Math.min(i, 8) * 0.03) + 's;opacity:0;';
-        const safePhrase = p.phrase.replace(/'/g, "\\'");
+        const safePhrase = jsArg(p.phrase);
         // Highlight the vocabulary word only when "use my words" is on
-        let phraseHtml = p.phrase;
+        let phraseHtml = escapeHtml(p.phrase);
         const useMyWords = userLearningProfile.useMyWords !== false;
         if (p.word && useMyWords) {
-          const regex = new RegExp(`\\b(${p.word})\\b`, 'gi');
-          phraseHtml = p.phrase.replace(regex, '<span style="color:#E8A838;font-weight:700;">$1</span>');
+          // Слово приходить від моделі: дужка в ньому робила з регулярки
+          // синтаксичну помилку, і тоді не малювався весь список фраз
+          const safeHighlight = escapeHtml(p.word).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const regex = new RegExp(`\\b(${safeHighlight})\\b`, 'gi');
+          phraseHtml = phraseHtml.replace(regex, '<span style="color:#E8A838;font-weight:700;">$1</span>');
         }
         const iconHtml = alreadyAdded
           ? `<i class="fas fa-check" style="color:#34d399;padding:5px;flex-shrink:0;margin-left:8px;"></i>`
           : `<i class="fas fa-plus" onclick="addDailyPhrase(${i}, this)" style="color:#F0EDE8;cursor:pointer;padding:5px;flex-shrink:0;margin-left:8px;"></i>`;
-        li.innerHTML = `<div style="display:flex;align-items:center;"><i class="fas fa-volume-up" style="color:rgba(240,237,232,0.5);cursor:pointer;margin-right:12px;flex-shrink:0;" onclick="kokoroSpeak('${safePhrase}', 'UK English Female')"></i><div style="flex:1;">${phraseHtml}<div style="font-size:13px;color:rgba(240,237,232,0.55);margin-top:4px;">${p.translation}</div></div>${iconHtml}</div>`;
+        li.innerHTML = `<div style="display:flex;align-items:center;"><i class="fas fa-volume-up" style="color:rgba(240,237,232,0.5);cursor:pointer;margin-right:12px;flex-shrink:0;" onclick="kokoroSpeak(${safePhrase}, 'UK English Female')"></i><div style="flex:1;">${phraseHtml}<div style="font-size:13px;color:rgba(240,237,232,0.55);margin-top:4px;">${escapeHtml(p.translation)}</div></div>${iconHtml}</div>`;
         list.appendChild(li);
       });
 
@@ -10700,7 +10870,7 @@ Return ONLY the JSON array, no other text.`;
         }
         if (added > 0) {
           await batch.commit();
-          showNotification(`Додано ${added} нових фраз!`);
+          showNotification(`Додано ${added} ${pluralUa(added, 'нову', 'нові', 'нових')} ${pluralUa(added, 'фразу', 'фрази', 'фраз')}!`);
         } else {
           showNotification('Всі фрази вже у словнику', 'warning');
         }
@@ -10738,13 +10908,12 @@ Return ONLY the JSON array, no other text.`;
     function closeDailyWordsSettings() {
       const sheet = document.getElementById('dailyWordsSettingsSheet');
       sheet.style.transform = 'translateY(100%)';
-      setTimeout(() => {
-        document.getElementById('dailyWordsSettingsPopup').classList.add('hidden');
-      }, 300);
+      hideAfterAnimation(document.getElementById('dailyWordsSettingsPopup'), 300);
     }
 
     function openDailyWordsSettings() {
       const popup = document.getElementById('dailyWordsSettingsPopup');
+      cancelPendingHide(popup);
       popup.classList.remove('hidden');
       requestAnimationFrame(() => {
         document.getElementById('dailyWordsSettingsSheet').style.transform = 'translateY(0)';
@@ -10795,6 +10964,15 @@ Return ONLY the JSON array, no other text.`;
 
     // Змінні для зберігання слів та пагінації
     let allWords = [];
+    /**
+     * Слова для вправ — окремо від списку, який малює «Мій словник».
+     *
+     * Список має свою пагінацію й фільтр за папкою, і колись писав у ту саму
+     * змінну: досить було відкрити папку з трьома словами, щоб «На швидкість»
+     * заявила «у словнику: 3» людині з трьома сотнями слів. Пул наповнює лише
+     * loadWordsPool(), тож перегляд словника на вправи більше не впливає.
+     */
+    let wordPool = [];
     let displayedWords = [];
     let wordsPerPage = 75;
     let currentIndex = 0;
@@ -10890,11 +11068,9 @@ Return ONLY the JSON array, no other text.`;
       // у кожній вправі окремо
       hapticAnswer(amount >= 10);
 
-      // Show feedback immediately (before async Firebase calls)
-      updateGamificationUI();
-      showXPToast(amount);
-      incrementDailyGoal(amount);
-
+      // Стрик рахуємо ДО того, як його малювати. Раніше UI оновлювався вище,
+      // тож перша вправа дня показувала вчорашнє число, а вже обірваний стрик
+      // ще кілька відповідей вдавав живий.
       const today = new Date().toISOString().split('T')[0];
       let streakUpdate = {};
       if (userLastActiveDate !== today) {
@@ -10908,6 +11084,11 @@ Return ONLY the JSON array, no other text.`;
         streakUpdate = { streak: userStreak, lastActiveDate: today };
         streakUpdate.bestStreak = Math.max(userStreak, 0);
       }
+
+      // Show feedback immediately (before async Firebase calls)
+      updateGamificationUI();
+      showXPToast(amount);
+      incrementDailyGoal(amount);
 
       try {
         const userId = auth.currentUser.uid;
@@ -10989,41 +11170,51 @@ Return ONLY the JSON array, no other text.`;
         db.collection('users').doc(userId)
           .set({ wordCount: snapshot.size, phraseCount: phraseSnapshot.size || 0 }, { merge: true })
           .catch(() => {});
-        let mastered = 0, good = 0, learning = 0, newW = 0;
-
-        snapshot.docs.forEach(doc => {
-          const d = doc.data();
-          const inter = d.interactions || 0;
-          const acc = inter > 0 ? (d.correctAnswers || 0) / inter * 100 : 0;
-          if (inter < 3) newW++;
-          else if (acc > 90 && inter >= 10) mastered++;
-          else if (acc >= 60) good++;
-          else learning++;
-        });
-
         const el = document.getElementById('acc-mastery');
-        if (el) {
-          el.innerHTML = `
-            <div class="acc-mastery-item"><span class="acc-mastery-dot mastered"></span>${mastered} впевнено</div>
-            <div class="acc-mastery-item"><span class="acc-mastery-dot good"></span>${good} майже впевнено</div>
-            <div class="acc-mastery-item"><span class="acc-mastery-dot learning"></span>${learning} ще вчаться</div>
-            <div class="acc-mastery-item"><span class="acc-mastery-dot new-word"></span>${newW} нових</div>
-          `;
-        }
+        if (el) el.innerHTML = masteryChipsHtml(snapshot.docs.map(doc => doc.data()));
       } catch (error) {
         console.log('Помилка завантаження мастерства:', error);
       }
     }
 
     // Отримання кольору мастерства для слова
-    function getMasteryColor(word) {
-      const inter = word.interactions || 0;
-      const acc = inter > 0 ? (word.correctAnswers || 0) / inter * 100 : 0;
-      if (inter < 3) return 'rgba(255,255,255,0.2)';
-      if (acc > 90 && inter >= 10) return '#34d399';
-      if (acc >= 60) return '#E8A838';
-      return '#ef4444';
+    /**
+     * Одна шкала на всі екрани.
+     *
+     * Словник рахував «>90% і не менше 10 повторень» і звав це «впевнено»,
+     * а «Прогрес» — просто «>90%» і звав це «Майже впевнено». Через це те саме
+     * слово стояло в словнику під «майже впевнено», а в прогресі — під
+     * «Ще вчаться»: людина бачила ті самі числа під різними назвами і не
+     * розуміла, котрий екран бреше.
+     */
+    const MASTERY = {
+      good: { color: '#34d399', dot: 'mastered', label: 'майже впевнено' },
+      average: { color: '#E8A838', dot: 'good', label: 'ще вчаться' },
+      poor: { color: '#ef4444', dot: 'learning', label: 'потребують уваги' },
+      new: { color: 'rgba(255,255,255,0.2)', dot: 'new-word', label: 'нових' },
+    };
+
+    function masteryLevel(item) {
+      const inter = (item && item.interactions) || 0;
+      if (inter < 3) return 'new';
+      const acc = ((item && item.correctAnswers) || 0) / inter * 100;
+      if (acc > 90) return 'good';
+      if (acc >= 60) return 'average';
+      return 'poor';
     }
+
+    function masteryChipsHtml(items) {
+      const counts = { new: 0, good: 0, average: 0, poor: 0 };
+      items.forEach(item => { counts[masteryLevel(item)]++; });
+      return ['good', 'average', 'poor', 'new']
+        .map(level => `<div class="acc-mastery-item"><span class="acc-mastery-dot ${MASTERY[level].dot}"></span>${counts[level]} ${MASTERY[level].label}</div>`)
+        .join('');
+    }
+
+    function getMasteryColor(word) {
+      return MASTERY[masteryLevel(word)].color;
+    }
+
 
     // ========== DAILY GOAL (XP-based) ==========
     let dailyXP = 0;
@@ -11067,9 +11258,10 @@ Return ONLY the JSON array, no other text.`;
 
       updateDailyGoalUI();
 
+      // Бонус за виконану ціль. Свій showXPToast тут не потрібен: addXP
+      // показує його сам, і людина бачила «+50 XP» двома плашками одна на одній.
       if (wasBelowTarget && isNowComplete) {
         addXP(50);
-        showXPToast(50);
       }
 
       // Рекорд XP за день — тихо оновлюємо, нотифікація в кінці вправи
@@ -11429,7 +11621,7 @@ Return ONLY a JSON array of strings.`
         let added = 0;
         for (const idx of selectedPhotoWords) {
           const w = photoWordsData[idx];
-          const wordId = w.english.toLowerCase().trim();
+          const wordId = wordDocId(w.english);
           const existing = await db.collection('users').doc(userId).collection('words').doc(wordId).get();
           if (!existing.exists) {
             await db.collection('users').doc(userId).collection('words').doc(wordId).set({
@@ -11445,7 +11637,7 @@ Return ONLY a JSON array of strings.`
           }
         }
         playSound(true);
-        showNotification(`Додано ${added} слів!`);
+        showNotification(`Додано ${added} ${pluralUa(added, 'слово', 'слова', 'слів')}!`);
         document.getElementById('photo-words-preview').classList.add('hidden');
         selectedPhotoWords = new Set();
         photoWordsData = [];
@@ -11572,7 +11764,7 @@ Return ONLY a JSON array of strings.`
           }
         }
         playSound(true);
-        showNotification(`Додано ${added} фраз!`);
+        showNotification(`Додано ${added} ${pluralUa(added, 'фразу', 'фрази', 'фраз')}!`);
         document.getElementById('photo-phrases-preview').classList.add('hidden');
         selectedPhotoPhrases = new Set();
         photoPhrasesData = [];
@@ -13938,6 +14130,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
         document.getElementById('phrases').innerHTML = '';
         renderPhrases(phrases);
         document.getElementById('load-more-phrases').classList.add('hidden');
+        updatePhraseEmptyState();
         return;
       }
 
@@ -13963,7 +14156,12 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
         }));
         allPhrases = allPhrases.concat(newPhrases);
         renderPhrases(newPhrases);
+      } else if (allPhrases.length === 0) {
+        // Порожній список нічого не малював: людина відкривала «Фрази» і бачила
+        // самі нулі, без пояснення й без жодної кнопки
+        renderPhrases([]);
       }
+      updatePhraseEmptyState();
 
 
       const loadMoreBtn = document.getElementById('load-more-phrases');
@@ -13974,6 +14172,16 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
       }
     }
 
+    /**
+     * Порожній словник пропонує «Поповнити словник» — порожні фрази досі не
+     * пропонували нічого. У папці кнопки немає: фрази є, просто не тут.
+     */
+    function updatePhraseEmptyState() {
+      const btn = document.getElementById('add-phrase-from-my-vocabulary');
+      if (!btn) return;
+      btn.classList.toggle('hidden', allPhrases.length !== 0 || !!currentPhraseFolderId());
+    }
+
     async function loadMorePhrases() {
       showLoading();
       await loadNextPhrasePage();
@@ -13981,39 +14189,16 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
     }
 
     function getPhraseMasteryColor(phrase) {
-      const inter = phrase.interactions || 0;
-      const acc = inter > 0 ? (phrase.correctAnswers || 0) / inter * 100 : 0;
-      if (inter < 3) return 'rgba(255, 255, 255, 0.2)';
-      if (acc > 90 && inter >= 10) return '#34d399';
-      if (acc >= 60) return '#E8A838';
-      return '#ef4444';
+      // Та сама шкала, що й у плашках над списком і в «Прогресі»
+      return getMasteryColor(phrase);
     }
 
     async function loadPhraseMastery() {
       try {
         const userId = auth.currentUser.uid;
         const snapshot = await db.collection('users').doc(userId).collection('phrases').get();
-        let mastered = 0, good = 0, learning = 0, newP = 0;
-
-        snapshot.docs.forEach(doc => {
-          const d = doc.data();
-          const inter = d.interactions || 0;
-          const acc = inter > 0 ? (d.correctAnswers || 0) / inter * 100 : 0;
-          if (inter < 3) newP++;
-          else if (acc > 90 && inter >= 10) mastered++;
-          else if (acc >= 60) good++;
-          else learning++;
-        });
-
         const el = document.getElementById('phrase-mastery');
-        if (el) {
-          el.innerHTML = `
-            <div class="acc-mastery-item"><span class="acc-mastery-dot mastered"></span>${mastered} впевнено</div>
-            <div class="acc-mastery-item"><span class="acc-mastery-dot good"></span>${good} майже впевнено</div>
-            <div class="acc-mastery-item"><span class="acc-mastery-dot learning"></span>${learning} ще вчаться</div>
-            <div class="acc-mastery-item"><span class="acc-mastery-dot new-word"></span>${newP} нових</div>
-          `;
-        }
+        if (el) el.innerHTML = masteryChipsHtml(snapshot.docs.map(doc => doc.data()));
       } catch (e) { console.log('Phrase mastery error:', e); }
     }
 
@@ -14306,7 +14491,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
       container.innerHTML = prompt + `
         <div class="phrase-answer-area" id="phrase-answer-area"></div>
         <div class="phrase-constructor-blocks" id="phrase-blocks">
-          ${shuffled.map((w, i) => `<button class="phrase-block" data-idx="${i}" onclick="selectPhraseBlock(this, '${escapeHtml(w)}')">${escapeHtml(w)}</button>`).join('')}
+          ${shuffled.map((w, i) => `<button class="phrase-block" data-idx="${i}" onclick="selectPhraseBlock(this, ${jsArg(w)})">${escapeHtml(w)}</button>`).join('')}
         </div>
       ` + controls;
     }
@@ -14462,7 +14647,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
             priority: priority,
           });
         }
-      } catch (e) { console.log('Phrase stats error:', e); }
+      } catch (e) { console.log('Phrase stats error:', e); announceSaveProblem(); }
 
       addXP(xp);
 
@@ -14692,7 +14877,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     let folderPickerWord = null;
     let folderPickerType = 'word';
 
-    // Зручні псевдоніми — рештa коду читає саме їх
+    // Зручні псевдоніми — решта коду читає саме їх
     function wordFolders() { return folderState.words.list; }
     function currentWordFolderId() { return folderState.words.current; }
     function currentPhraseFolderId() { return folderState.phrases.current; }
@@ -14805,7 +14990,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       } else {
         list.innerHTML = shown.map(w => `
           <button class="folder-pick-item${addToFolderPicked.has(w.english) ? ' picked' : ''}"
-                  onclick="toggleAddToFolderPick('${w.english.replace(/'/g, "\\'")}')">
+                  onclick="toggleAddToFolderPick(${jsArg(w.english)})">
             <span class="tick"><i class="fas fa-check"></i></span>
             <span><strong>${escapeHtml(w.english)}</strong> <span class="uk">${escapeHtml(w.translation)}</span></span>
           </button>`).join('');
@@ -15185,7 +15370,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
         isFolder ? `Папка «${set.title}»` : `Конспект «${set.title}»`;
       const itemCount = (set.words || []).length + (set.phrases || []).length;
       document.getElementById('import-set-text').textContent = isFolder
-        ? `${itemCount} слів і фраз. Додати папку і весь її вміст у свій словник?`
+        ? `Слів і фраз: ${itemCount}. Додати папку і весь її вміст у свій словник?`
         : 'Додати цей урок з тестом до своєї граматики?';
 
       const preview = document.getElementById('import-set-preview');
@@ -15220,7 +15405,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
 
         let added = 0;
         for (const w of (set.words || [])) {
-          const wordId = (w.english || '').trim();
+          const wordId = wordDocId(w.english);
           if (!wordId) continue;
           const ref = db.collection('users').doc(userId).collection('words').doc(wordId);
           const existing = await ref.get();
@@ -15322,6 +15507,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
           .get();
 
         allWords = querySnapshot.docs.map(mapWordDoc);
+        wordPool = allWords.slice();
         updateSadCatVisibility();
       } catch (error) {
         console.error('Помилка завантаження пулу слів:', error);
@@ -15495,7 +15681,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       const popupContent = `
     <div class="popup-content">
       ${imageHtml}
-      <h3>Інформація про слово "${word.english}"</h3>
+      <h3>Інформація про слово "${escapeHtml(word.english)}"</h3>
       <p>Кількість взаємодій: ${interactions}</p>
       <p>Правильних відповідей: ${correctAnswers}</p>
       <p>Відсоток правильних відповідей: ${percentage}%</p>
@@ -15534,7 +15720,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       currentOptionType = type;
       currentOptionButton = button;
       const menu = document.getElementById('option-menu');
-      const title = document.getElementById('option-menu-title');
+      cancelPendingHide(menu);
       const list = document.getElementById('option-menu-list');
       list.innerHTML = '';
 
@@ -15581,9 +15767,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     function closeOptionMenu() {
       const menu = document.getElementById('option-menu');
       menu.classList.remove('show');
-      setTimeout(() => {
-        menu.classList.add('hidden');
-      }, 300);
+      hideAfterAnimation(menu, 300);
     }
 
     // Функція для декодування Base64 з підтримкою UTF-8
@@ -15751,6 +15935,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
             listItem.remove();
             // Оновлення лічильника слів
             allWords = allWords.filter(w => w.english !== word);
+            wordPool = wordPool.filter(w => w.english !== word);
             displayedWords = displayedWords.filter(w => w.english !== word);
             var wcEl = document.getElementById('vocab-words-count');
             if (wcEl) wcEl.textContent = parseInt(wcEl.textContent || '0') - 1;
@@ -15853,12 +16038,12 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       showLoading();
       try {
         const userId = auth.currentUser.uid;
-        const doc = await db.collection('users').doc(userId).collection('words').doc(englishWord).get();
+        const doc = await db.collection('users').doc(userId).collection('words').doc(wordDocId(englishWord)).get();
         if (doc.exists) {
           document.getElementById('english-word-error').textContent = 'Це слово вже існує.';
           showNotification(`Слово "${englishWord}" вже є у вашому словнику.`, 'warning');
         } else {
-          await db.collection('users').doc(userId).collection('words').doc(englishWord).set({
+          await db.collection('users').doc(userId).collection('words').doc(wordDocId(englishWord)).set({
             translation: translation,
             example: example || '',
             interactions: 0,
@@ -16243,7 +16428,7 @@ Where "correct" is the index (0-3) of the correct option. ${langInstruction}`;
     async function addWordFromShared(english, translation, addIcon) {
       try {
         const userId = auth.currentUser.uid;
-        const wordRef = db.collection('users').doc(userId).collection('words').doc(english);
+        const wordRef = db.collection('users').doc(userId).collection('words').doc(wordDocId(english));
         const doc = await wordRef.get();
         if (doc.exists) {
           // Show message in the popup
@@ -16293,7 +16478,7 @@ Where "correct" is the index (0-3) of the correct option. ${langInstruction}`;
 
       try {
         for (const wordObj of wordsToAdd) {
-          const wordRef = db.collection('users').doc(userId).collection('words').doc(wordObj.english);
+          const wordRef = db.collection('users').doc(userId).collection('words').doc(wordDocId(wordObj.english));
           const doc = await wordRef.get();
           if (!doc.exists) {
             await wordRef.set({
@@ -16315,7 +16500,7 @@ Where "correct" is the index (0-3) of the correct option. ${langInstruction}`;
         // Show summary message inside the popup
         let summaryMessage = '';
         if (wordsAdded > 0) {
-          summaryMessage += `Додано ${wordsAdded} нових слів до вашого словника. `;
+          summaryMessage += `Додано ${wordsAdded} ${pluralUa(wordsAdded, 'нове', 'нові', 'нових')} ${pluralUa(wordsAdded, 'слово', 'слова', 'слів')} до вашого словника. `;
         }
         if (wordsAlreadyExists > 0) {
           summaryMessage += `Слів, які вже є у словнику: ${wordsAlreadyExists}.`;
@@ -16554,7 +16739,7 @@ function copyStory() {
       const questionWord = quizWords[currentQuestion];
       const options = [questionWord.translation];
       // Додаємо випадкові переклади з пулу завантажених слів
-      const pool = quizOptionsPool.length > 0 ? quizOptionsPool : allWords;
+      const pool = quizOptionsPool.length > 0 ? quizOptionsPool : wordPool;
       while (options.length < 4 && pool.length > options.length) {
         const randomWord = pool[Math.floor(Math.random() * pool.length)];
         if (!options.includes(randomWord.translation)) {
@@ -16571,7 +16756,7 @@ function copyStory() {
       // Відображаємо питання
       document.getElementById('quiz-container').innerHTML = `
     <h3>${questionWord.english}</h3>
-    ${options.map(option => `<button class="check-word" onclick="checkAnswer('${option.replace(/'/g, "\\'")}')">${option}</button>`).join('')}
+    ${options.map(option => `<button class="check-word" onclick="checkAnswer(${jsArg(option)})">${escapeHtml(option)}</button>`).join('')}
   `;
     }
 
@@ -16637,6 +16822,22 @@ function copyStory() {
       const holder = document.createElement('div');
       holder.textContent = text == null ? '' : String(text);
       return holder.innerHTML;
+    }
+
+    /**
+     * Значення, що їде аргументом у вбудований onclick.
+     *
+     * `escapeHtml` лишає апостроф як є, і слово на кшталт `It's` усередині
+     * onclick="fn('It's')" ставало синтаксичною помилкою — блок у вправі
+     * «Фрази» просто не натискався, а скорочення є майже в кожній фразі.
+     * JSON.stringify робить рядок валідним для JS, а &quot; тримає його
+     * всередині подвійних лапок атрибута. Дужки навколо не потрібні:
+     * onclick="fn(${jsArg(word)})".
+     */
+    function jsArg(value) {
+      return JSON.stringify(value == null ? '' : String(value))
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;');
     }
 
     function renderMistakes(mistakes) {
@@ -16865,7 +17066,7 @@ function copyStory() {
 let storyIsEnglish = true; // Відстежуємо, чи зараз історія англійською
 
 function highlightUserWordsInTranslation(text, originalHtml) {
-  if (!allWords || allWords.length === 0) return text;
+  if (!wordPool || wordPool.length === 0) return text;
 
   // Знаходимо які англійські слова були виділені в оригіналі
   const tempDiv = document.createElement('div');
@@ -16876,7 +17077,7 @@ function highlightUserWordsInTranslation(text, originalHtml) {
   if (highlightedEnglish.length === 0) return text;
 
   // Знаходимо українські переклади тільки для виділених англійських слів
-  const translations = allWords
+  const translations = wordPool
     .filter(w => highlightedEnglish.includes(w.english.toLowerCase()))
     .map(w => w.translation)
     .filter(t => t && t.length >= 2)
@@ -17045,9 +17246,9 @@ async function translateStory() {
       }, 500);
       // Отображаем контент
       container.innerHTML = `
-    <button onclick="speakWord('${questionWord.english}', this)" class="listening-sound-icon"><i class="fas fa-volume-up"></i></button>
+    <button onclick="speakWord(${jsArg(questionWord.english)}, this)" class="listening-sound-icon"><i class="fas fa-volume-up"></i></button>
     <input type="text" id="listening-answer" placeholder="Введіть слово...">
-    <button class="check-button" onclick="checkListeningAnswer('${questionWord.english}')">Перевірити</button>
+    <button class="check-button" onclick="checkListeningAnswer(${jsArg(questionWord.english)})">Перевірити</button>
     <button class="skip-button" onclick="skipListeningQuestion()">Пропустити</button>
     <div id="listening-feedback" class="listening-feedback hidden"></div>
   `;
@@ -17199,7 +17400,7 @@ async function translateStory() {
         // Обновляем контент после анимации
         container.innerHTML = `
       <div class="sound-icon-container">
-        <button onclick="speakWord('${questionWord.english}', this)" class="listening-sound-icon">
+        <button onclick="speakWord(${jsArg(questionWord.english)}, this)" class="listening-sound-icon">
           <i class="fas fa-volume-up"></i>
         </button>
       </div>
@@ -17214,7 +17415,7 @@ async function translateStory() {
       <div class="constructor-letter-buttons" id="letter-buttons">
         ${generateLetterButtonsHTML(letters)}
       </div>
-      <button class="check-button" onclick="submitConstructorAnswer('${questionWord.english}')">Перевірити</button>
+      <button class="check-button" onclick="submitConstructorAnswer(${jsArg(questionWord.english)})">Перевірити</button>
       <button class="skip-button" onclick="skipConstructor()">Пропустити</button>`}
     `;
         renderConstructorKeyboard(questionWord, letters, progressPercent);
@@ -17268,7 +17469,7 @@ async function translateStory() {
       kb.innerHTML = `
         ${fullKeyboardRowsHTML()}
         <div class="cw-keyboard-actions">
-          <button class="check-button" onclick="submitConstructorAnswer('${questionWord.english}')">Перевірити</button>
+          <button class="check-button" onclick="submitConstructorAnswer(${jsArg(questionWord.english)})">Перевірити</button>
           <button class="skip-button" onclick="skipConstructor()">Пропустити</button>
           <span class="cw-kb-count">${currentConstructorQuestion + 1}/${constructorWords.length}</span>
         </div>
@@ -17317,6 +17518,9 @@ async function translateStory() {
 
     function addLetterToConstructor(letter) {
       const letterButton = document.querySelector(`button[data-letter='${letter}']`);
+      // Літери без клавіші просто немає що додавати — інакше тут падав
+      // TypeError і вправа зупинялася посеред слова
+      if (!letterButton) return;
       let remainingCount = parseInt(letterButton.getAttribute('data-count'));
 
       if (remainingCount === -1) {
@@ -17458,6 +17662,7 @@ async function translateStory() {
         addXP(correct ? 10 : 2);
       } catch (error) {
         console.error('Помилка оновлення статистики слова:', error);
+        announceSaveProblem();
       }
     }
 
@@ -17607,7 +17812,7 @@ async function translateStory() {
 
       // Генеруємо 4 варіанти відповіді (англійські слова)
       const options = [questionWord.english];
-      const pool = pictureOptionsPool.length > 0 ? pictureOptionsPool : allWords;
+      const pool = pictureOptionsPool.length > 0 ? pictureOptionsPool : wordPool;
       while (options.length < 4 && pool.length > options.length) {
         const randomWord = pool[Math.floor(Math.random() * pool.length)];
         if (!options.includes(randomWord.english)) {
@@ -17627,7 +17832,7 @@ async function translateStory() {
       // Відображаємо варіанти
       const optionsContainer = document.getElementById('picture-quiz-options');
       optionsContainer.innerHTML = options.map(option =>
-        `<button class="check-word" onclick="checkPictureAnswer('${option.replace(/'/g, "\\'")}')">${option}</button>`
+        `<button class="check-word" onclick="checkPictureAnswer(${jsArg(option)})">${escapeHtml(option)}</button>`
       ).join('');
     }
 
@@ -18524,7 +18729,7 @@ async function generateStory() {
     return;
   }
 
-  if (allWords.length === 0) {
+  if (wordPool.length === 0) {
     showNotification('У вашому словнику немає слів для генерації історії.', 'warning');
     return;
   }
@@ -18548,7 +18753,7 @@ async function generateStory() {
     return;
   }
 
-  const selectedWords = getEnglishWords(allWords, wordCount);
+  const selectedWords = getEnglishWords(wordPool, wordCount);
   if (selectedWords.length < wordCount) {
     showNotification('Не вдалося вибрати достатню кількість слів для генерації.', 'warning');
     return;
@@ -19329,17 +19534,15 @@ Return ONLY the JSON array, no other text.`;
 
         snapshot.forEach(doc => {
           const data = doc.data();
-          const iterations = data.interactions || 0;
-          const correctAnswers = data.correctAnswers || 0;
-          const accuracy = iterations > 0 ? (correctAnswers / iterations) * 100 : 0;
 
           if (data.dateAdded && (!dateAdded || data.dateAdded.toDate() < dateAdded)) {
             dateAdded = data.dateAdded.toDate();
           }
 
-          if (iterations < 3) newCount++;
-          else if (accuracy > 90) goodCount++;
-          else if (accuracy >= 60) avgCount++;
+          const level = masteryLevel(data);
+          if (level === 'new') newCount++;
+          else if (level === 'good') goodCount++;
+          else if (level === 'average') avgCount++;
           else poorCount++;
         });
 
@@ -19379,23 +19582,16 @@ Return ONLY the JSON array, no other text.`;
 
           snapshot.forEach(doc => {
             const word = doc.data();
-            const iterations = word.interactions || 0;
-            const correctAnswers = word.correctAnswers || 0;
-            const accuracy = iterations > 0 ? (correctAnswers / iterations) * 100 : 0;
 
             if (!dateAdded || word.dateAdded.toDate() < dateAdded) {
               dateAdded = word.dateAdded.toDate();
             }
 
-            if (iterations < 3) {
-              newWords++;
-            } else if (iterations >= 3 && accuracy > 90) {
-              goodKnowledge++;
-            } else if (iterations >= 3 && accuracy >= 60 && accuracy <= 90) {
-              averageKnowledge++;
-            } else if (iterations >= 3 && accuracy < 60) {
-              poorKnowledge++;
-            }
+            const level = masteryLevel(word);
+            if (level === 'new') newWords++;
+            else if (level === 'good') goodKnowledge++;
+            else if (level === 'average') averageKnowledge++;
+            else poorKnowledge++;
           });
 
           document.getElementById("newWords").innerText = newWords;
@@ -19705,7 +19901,7 @@ Write it in English, as short factual lines. No headings, no markdown, no commen
             '<div style="display:flex;justify-content:space-between;align-items:center;' + (hasDetails ? 'cursor:pointer;' : '') + '"' +
             (hasDetails ? ' onclick="this.parentElement.querySelector(\'.sc-hist-details\').classList.toggle(\'hidden\')"' : '') + '>' +
             '<div><strong style="font-size:14px;color:#F0EDE8;">' + scEscape(s.topic || '?') + '</strong>' +
-            '<div style="font-size:11px;color:rgba(240,237,232,0.4);margin-top:2px;">' + dateStr + ' • ' + (s.messages || 0) + ' повідомлень • ' + (s.level || '') + '</div></div>' +
+            '<div style="font-size:11px;color:rgba(240,237,232,0.4);margin-top:2px;">' + dateStr + ' • ' + (s.messages || 0) + ' ' + pluralUa(s.messages || 0, 'повідомлення', 'повідомлення', 'повідомлень') + ' • ' + (s.level || '') + '</div></div>' +
             '<div style="text-align:right;">' +
             '<span style="color:#E8A838;font-size:13px;font-weight:700;">+' + (s.xp || 0) + ' XP</span>' +
             (errCount > 0 ? '<div style="font-size:11px;color:#ef4444;">' + errCount + ' помил.</div>' : '<div style="font-size:11px;color:#34d399;">без помилок</div>') +
@@ -19760,10 +19956,12 @@ Write it in English, as short factual lines. No headings, no markdown, no commen
       scLoadHistory();
     }
 
-    function scBack() {
+    async function scBack() {
       if (!document.getElementById('sc-chat-screen').classList.contains('hidden')) {
-        // In chat - confirm exit
-        if (scChatHistory.length > 2 && !confirm('Завершити розмову?')) return;
+        // Питаємо своїм вікном (у Telegram — справжнім системним): браузерний
+        // confirm() показує домен і чужі кнопки посеред застосунку
+        if (scChatHistory.length > 2
+            && !(await appConfirm('Завершити розмову?', 'Прогрес розмови не збережеться.', 'Завершити'))) return;
         scStopTimer();
       }
       if (scIsRecording) scStopRecording();
@@ -19775,7 +19973,7 @@ Write it in English, as short factual lines. No headings, no markdown, no commen
       // Topics
       const topicsEl = document.getElementById('sc-topics');
       topicsEl.innerHTML = SC_TOPICS.map(t =>
-        `<div class="sc-chip${scConfig.topic===t?' active':''}" onclick="scSelectTopic(this,'${t.replace(/'/g,"\\'")}')">${t}</div>`
+        `<div class="sc-chip${scConfig.topic===t?' active':''}" onclick="scSelectTopic(this,${jsArg(t)})">${escapeHtml(t)}</div>`
       ).join('') + '<div class="sc-chip' + (scConfig.topic==='__custom__'?' active':'') + '" onclick="scSelectTopic(this,\'__custom__\')">✏️ Своя тема</div>';
       var customEl = document.getElementById('sc-custom-topic');
       if (scConfig.topic === '__custom__') {
@@ -20256,8 +20454,22 @@ Start the conversation with a greeting and an opening question about the topic.`
         }
         document.getElementById('sc-mic-icon').className = 'fas fa-stop';
       } catch(e) {
-        alert('Не вдалося отримати доступ до мікрофону');
+        // Раніше тут був браузерний alert із доменом у шапці. І він нічого
+        // не радив: людина лишалася в голосовому режимі без мікрофона.
+        showNotification('Немає доступу до мікрофона — дозвольте його в налаштуваннях або пишіть текстом', 'warning');
+        scOfferTextInstead();
       }
+    }
+
+    /**
+     * Голосовий формат без мікрофона — глухий кут: поля для тексту там немає.
+     * Показуємо його, щоб розмову можна було продовжити письмово.
+     */
+    function scOfferTextInstead() {
+      const textInput = document.getElementById('sc-text-input');
+      const sendBtn = document.getElementById('sc-send-btn');
+      if (textInput) textInput.classList.remove('hidden');
+      if (sendBtn) sendBtn.classList.remove('hidden');
     }
 
     function scStopRecording() {
@@ -20401,7 +20613,7 @@ Rules:
       document.getElementById('sc-analysis-screen').querySelector('h3').textContent = 'Розмова завершена!';
       document.getElementById('sc-analysis-screen').querySelector('.sc-start-btn').classList.remove('hidden');
       document.getElementById('sc-analysis-subtitle').textContent =
-        scMessageCount + ' повідомлень • +' + xpEarned + ' XP';
+        scMessageCount + ' ' + pluralUa(scMessageCount, 'повідомлення', 'повідомлення', 'повідомлень') + ' • +' + xpEarned + ' XP';
 
       // Load existing words and phrases to check duplicates
       var existingWords = new Set();
@@ -20450,8 +20662,49 @@ Rules:
     // (the post-session screen and any number of expanded history cards).
     // opts.bare renders sections without the boxed .sc-analysis-card wrapper — used
     // inside history cards so they don't look like boxes nested in a box.
+    /**
+     * Розбір розмови приходить від моделі й лягає в scHistory як є.
+     *
+     * Досить було одного разу отримати "words": ["harbour"] замість
+     * об'єктів — і весь екран історії падав із «Cannot read properties of
+     * undefined», назавжди: зіпсований запис лежить у базі й валить
+     * відмальовування щоразу. Тому будь-яку форму зводимо до своєї.
+     */
+    function scNormalizeAnalysis(analysis) {
+      var a = analysis || {};
+      var pick = function(item, keys) {
+        if (typeof item === 'string') return item.trim();
+        if (!item || typeof item !== 'object') return '';
+        for (var i = 0; i < keys.length; i++) {
+          if (typeof item[keys[i]] === 'string' && item[keys[i]].trim()) return item[keys[i]].trim();
+        }
+        return '';
+      };
+      var text = function(item, keys) { return typeof item === 'object' && item ? pick(item, keys) : pick(item, []); };
+      return {
+        summary: typeof a.summary === 'string' ? a.summary : '',
+        errors: (a.errors || []).map(function(e) {
+          return {
+            original: text(e, ['original', 'was', 'wrong']),
+            corrected: text(e, ['corrected', 'fix', 'correct']),
+            translation: text(e, ['translation']),
+            explanation: text(e, ['explanation', 'why', 'reason']),
+          };
+        }).filter(function(e) { return e.corrected || e.original; }),
+        words: (a.words || []).map(function(w) {
+          return { word: text(w, ['word', 'english', 'text']), translation: text(w, ['translation']) };
+        }).filter(function(w) { return w.word; }),
+        phrases: (a.phrases || []).map(function(p) {
+          return { phrase: text(p, ['phrase', 'english', 'text']), translation: text(p, ['translation']) };
+        }).filter(function(p) { return p.phrase; }),
+        grammar: (a.grammar || []).map(function(g) {
+          return { id: text(g, ['id', 'topic']), reason: text(g, ['reason', 'why']) };
+        }).filter(function(g) { return g.id; }),
+      };
+    }
+
     function scBuildAnalysisHTML(analysis, existingWords, existingPhrases, regKey, opts) {
-      analysis = analysis || {};
+      analysis = scNormalizeAnalysis(analysis);
       existingWords = existingWords || new Set();
       existingPhrases = existingPhrases || new Set();
       opts = opts || {};
@@ -20496,7 +20749,7 @@ Rules:
           sugg.push({ text: w.word, translation: w.translation, type: 'word' });
           html += '<div class="sc-word-chip">' +
             '<i class="fas fa-volume-up" style="color:rgba(240,237,232,0.4);cursor:pointer;margin-right:4px;font-size:12px;" onclick="scSpeak(\'' + scEscape(w.word).replace(/'/g,"&#39;") + '\')"></i>' +
-            '<strong>' + scEscape(w.word) + '</strong> - ' + scEscape(w.translation) +
+            '<strong>' + scEscape(w.word) + '</strong>' + (w.translation ? ' - ' + scEscape(w.translation) : '') +
             (alreadyAdded ? ' <i class="fas fa-check sc-added"></i>' : ' <i class="fas fa-plus sc-add-word" onclick="scAddItem(\'' + regKey + '\',' + idx + ',this)"></i>') + '</div>';
         });
         html += '</div></div>';
@@ -20521,7 +20774,7 @@ Rules:
           var alreadyAdded = existingPhrases.has(phraseId);
           html += '<div class="sc-word-chip">' +
             '<i class="fas fa-volume-up" style="color:rgba(240,237,232,0.4);cursor:pointer;margin-right:4px;font-size:12px;" onclick="scSpeak(\'' + scEscape(p.text).replace(/'/g,"&#39;") + '\')"></i>' +
-            '<strong>' + scEscape(p.text) + '</strong> - ' + scEscape(p.translation) +
+            '<strong>' + scEscape(p.text) + '</strong>' + (p.translation ? ' - ' + scEscape(p.translation) : '') +
             (alreadyAdded ? ' <i class="fas fa-check sc-added"></i>' : ' <i class="fas fa-plus sc-add-word" onclick="scAddItem(\'' + regKey + '\',' + p.idx + ',this)"></i>') + '</div>';
         });
         html += '</div></div>';
@@ -20534,7 +20787,10 @@ Rules:
           var topic = grammarTopics.find(function(t) { return t.id === g.id; });
           if (topic) {
             html += '<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;" onclick="scGoToGrammar(\'' + topic.id + '\')">' +
-              '<span style="font-size:20px;">' + topic.icon + '</span>' +
+              // topic.icon — це клас Font Awesome, а не символ: у списку тем його
+              // ставлять у <i class="fas ...">, тут же він друкувався текстом,
+              // і в розборі розмови людина бачила «fa-backward»
+              '<span style="font-size:18px;color:#E8A838;width:22px;text-align:center;"><i class="fas ' + topic.icon + '"></i></span>' +
               '<div style="flex:1;"><strong style="color:#F0EDE8;font-size:13px;">' + scEscape(topic.name) + '</strong>' +
               '<span style="font-size:11px;color:rgba(240,237,232,0.35);margin-left:6px;">' + topic.level + '</span>' +
               '<div style="font-size:12px;color:rgba(240,237,232,0.5);margin-top:2px;">' + scEscape(g.reason) + '</div></div>' +
@@ -20565,7 +20821,7 @@ Rules:
             });
           }
         } else {
-          const ref = db.collection('users').doc(userId).collection('words').doc(item.text);
+          const ref = db.collection('users').doc(userId).collection('words').doc(wordDocId(item.text));
           const existing = await ref.get();
           if (!existing.exists) {
             await ref.set({

@@ -45,8 +45,10 @@ firebase.firestore.Timestamp = {
 };
 firebase.firestore.FieldValue = {
   serverTimestamp: function() { return new Date(); },
-  increment: function(n) { return n; },
-  delete: function() { return undefined; }
+  increment: function(n) { return { __increment: n }; },
+  delete: function() { return undefined; },
+  arrayUnion: function() { return { __arrayUnion: Array.prototype.slice.call(arguments) }; },
+  arrayRemove: function() { return { __arrayRemove: Array.prototype.slice.call(arguments) }; }
 };
 `;
 
@@ -121,13 +123,20 @@ const FIREBASE_FIRESTORE_MOCK = `
     return { seconds: seconds, toDate: function() { return new Date(seconds * 1000); } };
   }
 
-  var mockWordsStore = {
+  // A seeded vocabulary replaces the default five, for the exercises that refuse
+  // to start below a word count (\`data-needs\` on the tiles).
+  var mockWordsStore = seed.words || {
     hello: { translation: 'привіт', folders: [], interactions: 0, correctAnswers: 0, dateAdded: stamp(5) },
     world: { translation: 'світ', folders: [], interactions: 0, correctAnswers: 0, dateAdded: stamp(4) },
     cat: { translation: 'кіт', folders: [], interactions: 0, correctAnswers: 0, dateAdded: stamp(3) },
     dog: { translation: 'собака', folders: [], interactions: 0, correctAnswers: 0, dateAdded: stamp(2) },
     book: { translation: 'книга', folders: [], interactions: 0, correctAnswers: 0, dateAdded: stamp(1) },
   };
+  Object.keys(mockWordsStore).forEach(function(id, i) {
+    var w = mockWordsStore[id];
+    if (!w.dateAdded) w.dateAdded = stamp(1000 - i);
+    else if (typeof w.dateAdded.toDate !== 'function') w.dateAdded = stamp(w.dateAdded.seconds || 1);
+  });
 
   function snapshotOf(docs) {
     return {
@@ -136,6 +145,23 @@ const FIREBASE_FIRESTORE_MOCK = `
       size: docs.length,
       empty: docs.length === 0,
     };
+  }
+
+  // arrayUnion/arrayRemove arrive as sentinels; every other value is written as-is.
+  function applyFieldOp(current, value) {
+    if (value && typeof value === 'object' && typeof value.__increment === 'number') {
+      return (typeof current === 'number' ? current : 0) + value.__increment;
+    }
+    if (value && typeof value === 'object' && value.__arrayUnion) {
+      var list = Array.isArray(current) ? current.slice() : [];
+      value.__arrayUnion.forEach(function(v) { if (list.indexOf(v) === -1) list.push(v); });
+      return list;
+    }
+    if (value && typeof value === 'object' && value.__arrayRemove) {
+      var kept = Array.isArray(current) ? current.slice() : [];
+      return kept.filter(function(v) { return value.__arrayRemove.indexOf(v) === -1; });
+    }
+    return value;
   }
 
   // Generic stateful collection over a plain object store, with just enough of the
@@ -161,33 +187,71 @@ const FIREBASE_FIRESTORE_MOCK = `
             ? { id: id, exists: true, data: function() { return store[id]; }, ref: docApi(id) }
             : { id: id, exists: false, data: function() { return undefined; } });
         },
-        set: function(data) { store[id] = data; return Promise.resolve(); },
-        update: function(data) { store[id] = Object.assign({}, store[id] || {}, data); return Promise.resolve(); },
+        set: function(data) {
+          if (window.__mockFailWrites) return Promise.reject(new Error('Failed to get document because the client is offline.'));
+          store[id] = data;
+          return Promise.resolve();
+        },
+        update: function(data) {
+          if (window.__mockFailWrites) return Promise.reject(new Error('Failed to get document because the client is offline.'));
+          var next = Object.assign({}, store[id] || {});
+          Object.keys(data).forEach(function(k) { next[k] = applyFieldOp(next[k], data[k]); });
+          store[id] = next;
+          return Promise.resolve();
+        },
         delete: function() { delete store[id]; return Promise.resolve(); },
       };
     }
-    function query(filter) {
+    // order/limit/startAfter are real, so a paged screen behaves like it does
+    // against Firestore: a first page, then more on demand.
+    function query(filter, order, take, after) {
+      function docs() {
+        var list = docsFrom(filter);
+        if (order) {
+          var field = order.field, dir = order.dir === 'desc' ? -1 : 1;
+          // A document missing the field is invisible to orderBy in Firestore
+          list = list.filter(function(d) { return d.data()[field] !== undefined; });
+          list = list.slice().sort(function(a, b) {
+            var x = sortable(a.data()[field]), y = sortable(b.data()[field]);
+            return x < y ? -dir : x > y ? dir : 0;
+          });
+        }
+        if (after) {
+          var at = list.findIndex(function(d) { return d.id === after.id; });
+          if (at !== -1) list = list.slice(at + 1);
+        }
+        if (take) list = list.slice(0, take);
+        return list;
+      }
       var api = {
         doc: docApi,
         add: function(data) {
+          if (window.__mockFailWrites) return Promise.reject(new Error('Failed to get document because the client is offline.'));
           var id = idFactory();
           store[id] = data;
           return Promise.resolve({ id: id });
         },
-        get: function() { return Promise.resolve(snapshotOf(docsFrom(filter))); },
+        get: function() { return Promise.resolve(snapshotOf(docs())); },
         where: function(field, op, value) {
           return query(function(d) {
             var v = d[field];
             if (op === 'array-contains') return Array.isArray(v) && v.indexOf(value) !== -1;
             if (op === '==') return v === value;
             return true;
-          });
+          }, order, take, after);
         },
-        orderBy: function() { return api; },
-        limit: function() { return api; },
-        startAfter: function() { return api; },
+        orderBy: function(field, dir) { return query(filter, { field: field, dir: dir }, take, after); },
+        limit: function(n) { return query(filter, order, n, after); },
+        startAfter: function(doc) { return query(filter, order, take, doc); },
       };
       return api;
+    }
+
+    // Timestamps compare by their seconds, everything else by itself
+    function sortable(value) {
+      if (value && typeof value === 'object' && typeof value.seconds === 'number') return value.seconds;
+      if (value instanceof Date) return value.getTime();
+      return value;
     }
     return query(null);
   }
@@ -195,6 +259,34 @@ const FIREBASE_FIRESTORE_MOCK = `
   // Writes to the user document are remembered, so a test can read back what the
   // app stored there (scHistory, scMemory, grammarProgress...).
   var mockUserWrites = {};
+
+  // Firestore takes 'xpHistory.2026-08-17' as a path into a nested map, and
+  // increments add to what is already there — a flat assign would lose both.
+  function writeUserFields(data) {
+    Object.keys(data).forEach(function(key) {
+      var value = data[key];
+      var path = key.split('.');
+      if (path.length === 1) {
+        mockUserWrites[key] = applyFieldOp(
+          mockUserWrites[key] !== undefined ? mockUserWrites[key] : (mockUserSeed || {})[key], value);
+        return;
+      }
+      var head = path[0];
+      var nest = Object.assign({}, (mockUserSeed || {})[head], mockUserWrites[head]);
+      var cursor = nest;
+      for (var i = 1; i < path.length - 1; i++) {
+        cursor[path[i]] = Object.assign({}, cursor[path[i]]);
+        cursor = cursor[path[i]];
+      }
+      var leaf = path[path.length - 1];
+      cursor[leaf] = applyFieldOp(cursor[leaf], value);
+      mockUserWrites[head] = nest;
+    });
+  }
+
+  // A test can start from an account that already has history, XP or a plan:
+  // loadApp(page, { seed: { user: { scHistory: [...] } } })
+  var mockUserSeed = seed.user || {};
 
   var mockUserDoc = {
     exists: true,
@@ -211,7 +303,7 @@ const FIREBASE_FIRESTORE_MOCK = `
         grammarProgress: {},
         registrationDate: { toDate: function() { return new Date('2025-01-01'); } },
         subscriptionExpiration: { toDate: function() { return new Date('2030-01-01'); } },
-      }, mockUserWrites);
+      }, mockUserSeed, mockUserWrites);
     },
   };
 
@@ -314,8 +406,14 @@ const FIREBASE_FIRESTORE_MOCK = `
             }
             return Promise.resolve(mockUserDoc);
           },
-          set: function(data) { Object.assign(mockUserWrites, data); return Promise.resolve(); },
-          update: function(data) { Object.assign(mockUserWrites, data); return Promise.resolve(); },
+          set: function(data) {
+            if (window.__mockFailWrites) return Promise.reject(new Error('Failed to get document because the client is offline.'));
+            writeUserFields(data); return Promise.resolve();
+          },
+          update: function(data) {
+            if (window.__mockFailWrites) return Promise.reject(new Error('Failed to get document because the client is offline.'));
+            writeUserFields(data); return Promise.resolve();
+          },
           delete: function() { return Promise.resolve(); },
           collection: function(subPath) { return mockCollection(path + '/' + id + '/' + subPath); },
         };
@@ -336,8 +434,20 @@ const FIREBASE_FIRESTORE_MOCK = `
     };
   }
 
+  // A write batch just remembers the calls and replays them onto the doc refs.
+  function mockBatch() {
+    var ops = [];
+    return {
+      set: function(ref, data) { ops.push(function() { return ref.set(data); }); },
+      update: function(ref, data) { ops.push(function() { return ref.update(data); }); },
+      delete: function(ref) { ops.push(function() { return ref.delete(); }); },
+      commit: function() { return Promise.all(ops.map(function(op) { return op(); })); },
+    };
+  }
+
   window.__firebaseFirestoreInstance = {
     collection: mockCollection,
+    batch: mockBatch,
   };
 })();
 `;

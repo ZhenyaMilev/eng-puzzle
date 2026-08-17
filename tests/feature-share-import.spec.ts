@@ -32,7 +32,7 @@ test.describe('Importing a shared link', () => {
 
     await expect(page.locator('#import-set-modal')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('#import-set-title')).toHaveText('Папка «Travel»');
-    await expect(page.locator('#import-set-text')).toContainText('3 слів');
+    await expect(page.locator('#import-set-text')).toContainText('Слів і фраз: 3');
     await expect(page.locator('#import-set-preview')).toContainText('airport');
     await expect(page.locator('#import-set-preview')).toContainText('аеропорт');
   });
