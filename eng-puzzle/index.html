@@ -14,6 +14,16 @@
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://telegram.org">
 
+  <!-- Теги цих скриптів стоять у кінці <body>, тобто за 900 КБ розмітки. Доти
+       браузер про них не знає і починає качати, аж коли дочитає туди, — а без
+       них не виконається жоден рядок коду застосунку. Preload запускає
+       завантаження з першого кілобайта; порядок виконання лишається той самий.
+       SDK Telegram — першим: із нього беремо підпис, з яким входимо. -->
+  <link rel="preload" as="script" href="https://telegram.org/js/telegram-web-app.js">
+  <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
+  <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js">
+  <link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js">
+
   <!-- Шрифти й іконки блокували рендер на ~270 мс. media="print" знімає їх із
        критичного шляху, onload повертає в гру, коли вони приїхали: текст
        з'являється системним шрифтом одразу, а не через чверть секунди. -->
@@ -847,6 +857,20 @@
 
     .google-btn i {
       font-size: 20px;
+    }
+
+    /* Два логотипи вбудовані як SVG. Заради них — і більше нічого — браузер
+       тягнув шрифт брендів FontAwesome на 118 КБ. */
+    .brand-icon {
+      width: 1.15em;
+      height: 1.15em;
+      vertical-align: -0.2em;
+      flex-shrink: 0;
+    }
+
+    .google-btn .brand-icon {
+      width: 20px;
+      height: 20px;
     }
 
     input[type="text"],
@@ -6520,7 +6544,7 @@
         <button class="auth-primary" onclick="login()">Увійти</button>
 
         <div class="auth-divider"><span>або</span></div>
-        <button class="google-btn auth-google" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Продовжити з Google</button>
+        <button class="google-btn auth-google" onclick="loginWithGoogle()"><svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.24 10.285V14.4h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.344-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0c-6.635 0-12 5.365-12 12s5.365 12 12 12c6.926 0 11.52-4.869 11.52-11.726 0-.788-.085-1.39-.189-1.989H12.24z"/></svg> Продовжити з Google</button>
         <div class="auth-inapp-note hidden" id="login-inapp-note"></div>
 
         <p class="auth-foot">Ще немає акаунта?
@@ -6541,7 +6565,7 @@
         <button class="auth-primary" onclick="register()">Зареєструватися</button>
 
         <div class="auth-divider"><span>або</span></div>
-        <button class="google-btn auth-google" onclick="loginWithGoogle()"><i class="fab fa-google"></i> Продовжити з Google</button>
+        <button class="google-btn auth-google" onclick="loginWithGoogle()"><svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.24 10.285V14.4h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.344-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0c-6.635 0-12 5.365-12 12s5.365 12 12 12c6.926 0 11.52-4.869 11.52-11.726 0-.788-.085-1.39-.189-1.989H12.24z"/></svg> Продовжити з Google</button>
         <div class="auth-inapp-note hidden" id="register-inapp-note"></div>
 
         <p class="auth-foot">Вже є акаунт?
@@ -6567,7 +6591,7 @@
           <span id="acc-telegram-sub">Підкажу, коли стрик під загрозою і коли закінчується підписка</span>
         </div>
         <button id="acc-telegram-btn" onclick="connectTelegram()">
-          <i class="fab fa-telegram"></i> Підключити
+          <svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16-1.86 8.772c-.14.622-.508.775-1.03.483l-2.84-2.093-1.37 1.32c-.152.152-.278.278-.57.278l.203-2.888 5.257-4.75c.229-.203-.05-.316-.354-.114l-6.497 4.09-2.798-.875c-.608-.19-.62-.608.127-.9l10.937-4.216c.507-.183.95.114.786.893z"/></svg> Підключити
         </button>
       </div>
 
@@ -7929,7 +7953,7 @@
         <p>Будь-хто за цим посиланням зможе додати це собі.</p>
         <code id="share-link-value" class="share-link-box"></code>
         <div class="app-modal-actions">
-          <button class="primary" id="share-send-btn" onclick="sendShareLink()"><i class="fab fa-telegram" style="margin-right:6px;"></i>Надіслати</button>
+          <button class="primary" id="share-send-btn" onclick="sendShareLink()"><svg class="brand-icon" style="margin-right:6px;" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16-1.86 8.772c-.14.622-.508.775-1.03.483l-2.84-2.093-1.37 1.32c-.152.152-.278.278-.57.278l.203-2.888 5.257-4.75c.229-.203-.05-.316-.354-.114l-6.497 4.09-2.798-.875c-.608-.19-.62-.608.127-.9l10.937-4.216c.507-.183.95.114.786.893z"/></svg>Надіслати</button>
           <button class="primary" onclick="copyShareLink()"><i class="fas fa-copy" style="margin-right:6px;"></i>Копіювати</button>
           <button class="secondary" onclick="closeShareLinkModal()">Закрити</button>
         </div>
@@ -7959,8 +7983,8 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <!-- Підключення бібліотеки для HTTP-запитів -->
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <!-- Тут був axios: 22 КБ і окремий домен із власними DNS + TLS, які стояли на
+       критичному шляху заради одного-єдиного GET. Його робить fetch. -->
   <script>
     // ===== TTS (native Web Speech API — best available voice) =====
     var _bestEnVoice = null;
@@ -9022,7 +9046,7 @@
       if (!linked) {
         title.textContent = 'Нагадування в Telegram';
         sub.textContent = 'Підкажу, коли стрик під загрозою і коли закінчується підписка';
-        btn.innerHTML = '<i class="fab fa-telegram"></i> Підключити';
+        btn.innerHTML = '<svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16-1.86 8.772c-.14.622-.508.775-1.03.483l-2.84-2.093-1.37 1.32c-.152.152-.278.278-.57.278l.203-2.888 5.257-4.75c.229-.203-.05-.316-.354-.114l-6.497 4.09-2.798-.875c-.608-.19-.62-.608.127-.9l10.937-4.216c.507-.183.95.114.786.893z"/></svg> Підключити';
         btn.onclick = connectTelegram;
         return;
       }
@@ -9032,7 +9056,7 @@
       sub.textContent = off
         ? 'Увімкнути назад — командою /start у боті'
         : 'Вимкнути можна командою /stop у боті';
-      btn.innerHTML = '<i class="fab fa-telegram"></i> Відкрити бот';
+      btn.innerHTML = '<svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16-1.86 8.772c-.14.622-.508.775-1.03.483l-2.84-2.093-1.37 1.32c-.152.152-.278.278-.57.278l.203-2.888 5.257-4.75c.229-.203-.05-.316-.354-.114l-6.497 4.09-2.798-.875c-.608-.19-.62-.608.127-.9l10.937-4.216c.507-.183.95.114.786.893z"/></svg> Відкрити бот';
       btn.onclick = openTelegramBot;
     }
 
@@ -11509,8 +11533,10 @@ Return ONLY a JSON array of strings.`
     async function memoryTranslateVariants(text, target) {
       const pair = target === 'uk' ? 'en|uk' : 'uk|en';
       const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${pair}`;
-      const response = await axios.get(url);
-      const direct = response.data && response.data.responseData && response.data.responseData.translatedText;
+      const response = await fetch(url);
+      if (!response.ok) return [];
+      const data = await response.json();
+      const direct = data && data.responseData && data.responseData.translatedText;
       return direct ? [direct] : [];
     }
 
