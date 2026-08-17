@@ -344,7 +344,11 @@
 
 
     .option-menu {
-      position: absolute;
+      /* Було absolute всередині секції — і секція мусила його обрізати. Та сама
+         обрізка вимикала липку шапку: предок з overfler'ом не дає sticky
+         працювати взагалі, тож на довгій історії назва екрана їхала геть.
+         Меню й так на весь екран, тож fixed нічого не змінює на вигляд. */
+      position: fixed;
       top: 0;
       right: -100%;
       width: 100%;
@@ -4096,7 +4100,10 @@
      */
     .title-and-btn {
       position: sticky;
-      top: 0;
+      /* Липне до краю вікна, а не до відступу body — усередині Telegram це
+         означало «під власною панеллю Telegram», і назва екрана з кнопкою
+         «Назад» ховалися там щоразу, щойно список прокручували. */
+      top: var(--safe-top, 0px);
       z-index: 60;
       display: flex;
       justify-content: space-between;
@@ -4333,7 +4340,6 @@
       background: #161822;
       padding: 20px;
       border-radius: 16px;
-      overflow: hidden;
       position: relative;
     }
 
@@ -5100,7 +5106,10 @@
   justify-content: center;
   align-items: center;
   position: sticky;
-  top: 0;
+  /* Банк слів теж липкий — але нижче шапки екрана, інакше вони злипаються
+     в одній точці, і слово, яке треба тицьнути, опиняється під шапкою:
+     клік потрапляє в неї, а не в слово. */
+  top: calc(var(--safe-top, 0px) + var(--screen-header-h, 72px));
   z-index: 10;
 }
 
@@ -6986,7 +6995,8 @@
         <div style="position:relative;margin:5px 0 15px 0;">
           <input type="text" id="english-word" placeholder="Англійське слово" style="margin:0;height:52px;box-sizing:border-box;padding-right:48px;"
             autocapitalize="none" autocorrect="off" spellcheck="false"
-            oninput="clearFieldError('english-word-error');getTranslationSuggestions(this.value)">
+            oninput="clearFieldError('english-word-error');getTranslationSuggestions(this.value)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addWord()}">
           <button onclick="startVoiceInput('en')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;font-size:18px;color:#E8A838;cursor:pointer;box-shadow:none;opacity:0.7;" title="Голосом (EN)">
             <i class="fas fa-microphone"></i>
           </button>
@@ -6995,7 +7005,8 @@
         <div id="translation-suggestions" class="suggestion-list"></div>
         <div style="position:relative;margin:5px 0 15px 0;">
           <input type="text" id="translation" placeholder="Переклад" style="margin:0;height:52px;box-sizing:border-box;padding-right:48px;"
-            oninput="clearFieldError('translation-error');getReverseTranslation(this.value)">
+            oninput="clearFieldError('translation-error');getReverseTranslation(this.value)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addWord()}">
           <button onclick="startVoiceInput('uk')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;font-size:18px;color:#60a5fa;cursor:pointer;box-shadow:none;opacity:0.7;" title="Голосом (УК)">
             <i class="fas fa-microphone"></i>
           </button>
@@ -7039,11 +7050,13 @@
       <div id="add-phrase-form" class="hidden">
         <input type="text" id="phrase-english-inline" placeholder="Фраза англійською"
           autocapitalize="none" autocorrect="off" spellcheck="false"
-          oninput="clearFieldError('phrase-english-inline-error');getPhraseTranslationSuggestionsInline(this.value)">
+          oninput="clearFieldError('phrase-english-inline-error');getPhraseTranslationSuggestionsInline(this.value)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();addPhraseInline()}">
         <div id="phrase-english-inline-error" class="error-message"></div>
         <div id="phrase-translation-suggestions-inline" class="suggestion-list"></div>
         <input type="text" id="phrase-translation-inline" placeholder="Переклад українською"
-          oninput="clearFieldError('phrase-translation-inline-error')">
+          oninput="clearFieldError('phrase-translation-inline-error')"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();addPhraseInline()}">
         <div id="phrase-translation-inline-error" class="error-message"></div>
         <button onclick="addPhraseInline()">Додати</button>
         <!-- Photo / Camera -->
@@ -9171,7 +9184,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-17.1';
+    const APP_VERSION = '2026-08-17.2';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -10768,7 +10781,7 @@ Return ONLY the JSON array, no other text.`;
 
       let allAdded = true;
       currentDailyPhrases.forEach((p, i) => {
-        const phraseId = p.phrase.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+        const phraseId = phraseDocId(p.phrase);
         const alreadyAdded = existingSet.has(phraseId);
         if (!alreadyAdded) allAdded = false;
         const li = document.createElement('li');
@@ -10807,7 +10820,7 @@ Return ONLY the JSON array, no other text.`;
     async function addDailyPhrase(index, btn) {
       const p = currentDailyPhrases[index];
       const userId = auth.currentUser.uid;
-      const phraseId = p.phrase.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+      const phraseId = phraseDocId(p.phrase);
       const ref = db.collection('users').doc(userId).collection('phrases').doc(phraseId);
 
       try {
@@ -10851,7 +10864,7 @@ Return ONLY the JSON array, no other text.`;
         const batch = db.batch();
         let added = 0;
         for (const p of currentDailyPhrases) {
-          const phraseId = p.phrase.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+          const phraseId = phraseDocId(p.phrase);
           const ref = db.collection('users').doc(userId).collection('phrases').doc(phraseId);
           const existing = await ref.get();
           if (!existing.exists) {
@@ -11700,8 +11713,24 @@ Return ONLY a JSON array of strings.`
       }
     }
 
+    /**
+     * Ключ фрази — одна функція на всі шляхи, як і в слів.
+     *
+     * Було три схеми: тут підкреслення, у «Фразах дня» і в розборі розмови —
+     * дефіси зі зрізаною пунктуацією, а у формі — свій рядок-двійник. Через це
+     * «Take a seat» із клубу і та сама фраза, набрана руками, лягали двома
+     * записами, а перевірка «вже існує» мовчала. Скісна риска до того ж ділить
+     * шлях у Firestore, тож фраза з нею взагалі не збереглася б.
+     */
     function phraseDocId(english) {
-      return english.trim().toLowerCase().replace(/\s+/g, '_');
+      return String(english == null ? '' : english)
+        .trim()
+        .toLowerCase()
+        // Пунктуація стає пробілом, а не зникає: інакше «and/or» злипалося
+        // в «andor», а «well-known» — у «wellknown»
+        .replace(/[^\p{L}\p{N}\s]+/gu, ' ')
+        .trim()
+        .replace(/\s+/g, '_');
     }
 
     function renderPhotoPhrases() {
@@ -14301,7 +14330,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
       showLoading();
       try {
         const userId = auth.currentUser.uid;
-        const phraseId = english.toLowerCase().replace(/\s+/g, '_');
+        const phraseId = phraseDocId(english);
         const existing = await db.collection('users').doc(userId).collection('phrases').doc(phraseId).get();
         if (existing.exists) {
           document.getElementById('phrase-english-error').textContent = 'Ця фраза вже існує.';
@@ -15988,7 +16017,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       showLoading();
       try {
         const userId = auth.currentUser.uid;
-        const phraseId = english.toLowerCase().replace(/\s+/g, '_');
+        const phraseId = phraseDocId(english);
         const existing = await db.collection('users').doc(userId).collection('phrases').doc(phraseId).get();
         if (existing.exists) {
           document.getElementById('phrase-english-inline-error').textContent = 'Ця фраза вже існує.';
@@ -17247,7 +17276,8 @@ async function translateStory() {
       // Отображаем контент
       container.innerHTML = `
     <button onclick="speakWord(${jsArg(questionWord.english)}, this)" class="listening-sound-icon"><i class="fas fa-volume-up"></i></button>
-    <input type="text" id="listening-answer" placeholder="Введіть слово...">
+    <input type="text" id="listening-answer" placeholder="Введіть слово..."
+      onkeydown="if(event.key==='Enter'){event.preventDefault();checkListeningAnswer(${jsArg(questionWord.english)})}">
     <button class="check-button" onclick="checkListeningAnswer(${jsArg(questionWord.english)})">Перевірити</button>
     <button class="skip-button" onclick="skipListeningQuestion()">Пропустити</button>
     <div id="listening-feedback" class="listening-feedback hidden"></div>
@@ -17255,6 +17285,7 @@ async function translateStory() {
     }
     // Перевірка відповіді в тренуванні на слух
     function checkListeningAnswer(correctWord) {
+      if (!lockAnswer('#listening-quiz-container')) return;
       const userAnswer = document.getElementById('listening-answer').value.trim().toLowerCase();
       const feedback = document.getElementById('listening-feedback');
       const isCorrect = userAnswer === correctWord.toLowerCase();
@@ -17274,6 +17305,7 @@ async function translateStory() {
 
       // Переходим к следующему вопросу через 1.5 секунды
       setTimeout(() => {
+        unlockAnswer();
         currentListeningQuestion++;
         showListeningQuestion();
       }, 1500);
@@ -17298,7 +17330,36 @@ async function translateStory() {
       document.querySelector('.overlay').classList.add('hidden');
     }
 
+    /**
+     * Нетерплячий подвійний тап по «Перевірити» рахувався двічі й з'їдав
+     * питання: обидва виклики встигали до setTimeout, який гортає далі.
+     * Тест і «Картинки» ховаються за disabled на кнопках — тут замок спільний,
+     * бо кнопок дві (перевірити і пропустити) і в двох вправах.
+     */
+    let answerLocked = false;
+
+    function lockAnswer(container) {
+      if (answerLocked) return false;
+      answerLocked = true;
+      setAnswerButtons(container, true);
+      return true;
+    }
+
+    // Наступне питання малюється заново — там кнопки й так свіжі. Контейнер
+    // потрібен лише там, де людина лишається на тому самому слові.
+    function unlockAnswer(container) {
+      answerLocked = false;
+      if (container) setAnswerButtons(container, false);
+    }
+
+    function setAnswerButtons(container, disabled) {
+      document.querySelectorAll(container + ' .check-button, ' + container + ' .skip-button')
+        .forEach(btn => { btn.disabled = disabled; });
+    }
+
     function skipListeningQuestion() {
+      if (!lockAnswer('#listening-quiz-container')) return;
+      unlockAnswer();
       currentListeningQuestion++;
       showListeningQuestion();
     }
@@ -17548,6 +17609,7 @@ async function translateStory() {
     }
 
     function submitConstructorAnswer(correctWord) {
+      if (!lockAnswer('#word-constructor-training-section')) return;
       const userAnswer = document.getElementById('constructor-answer').value.trim().toLowerCase();
       const feedback = document.getElementById('constructor-feedback');
       if (userAnswer === correctWord.toLowerCase()) {
@@ -17559,6 +17621,7 @@ async function translateStory() {
         feedback.classList.remove('hidden');
         // Переход к следующему слову через 1.5 секунды
         setTimeout(() => {
+          unlockAnswer();
           currentConstructorQuestion++;
           showConstructorQuestion();
         }, 1500);
@@ -17572,6 +17635,8 @@ async function translateStory() {
         constructedWord = '';
         document.getElementById('constructor-answer').value = constructedWord;
         resetLetterButtons();
+        // Слово лишається те саме — повертаємо кнопки, щоб можна було спробувати ще
+        unlockAnswer('#word-constructor-training-section');
       }
     }
 
@@ -17588,6 +17653,8 @@ async function translateStory() {
     }
 
     function skipConstructor() {
+      if (!lockAnswer('#word-constructor-training-section')) return;
+      unlockAnswer();
       currentConstructorQuestion++;
       showConstructorQuestion();
     }
@@ -20770,7 +20837,7 @@ Rules:
       if (allPhrases.length > 0) {
         html += openTag + '<h4>💬 Фрази для вивчення</h4><div style="display:flex;flex-wrap:wrap;">';
         allPhrases.forEach(function(p) {
-          var phraseId = p.text.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+          var phraseId = phraseDocId(p.text);
           var alreadyAdded = existingPhrases.has(phraseId);
           html += '<div class="sc-word-chip">' +
             '<i class="fas fa-volume-up" style="color:rgba(240,237,232,0.4);cursor:pointer;margin-right:4px;font-size:12px;" onclick="scSpeak(\'' + scEscape(p.text).replace(/'/g,"&#39;") + '\')"></i>' +
@@ -20810,7 +20877,7 @@ Rules:
       try {
         const userId = auth.currentUser.uid;
         if (item.type === 'phrase') {
-          const phraseId = item.text.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-');
+          const phraseId = phraseDocId(item.text);
           const ref = db.collection('users').doc(userId).collection('phrases').doc(phraseId);
           const existing = await ref.get();
           if (!existing.exists) {

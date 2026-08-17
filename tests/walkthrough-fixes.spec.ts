@@ -41,6 +41,19 @@ function translations(n: number, translate: (i: number) => string = (i) => `пе
   return map;
 }
 
+/** Enough rows to scroll through. */
+function bigVocabulary(n: number) {
+  const words: Record<string, any> = {};
+  for (let i = 0; i < n; i++) {
+    words[`word${i}`] = {
+      translation: `переклад ${i}`, example: '', folders: [],
+      interactions: i % 5, correctAnswers: Math.min(i % 4, i % 5), priority: i % 7,
+      dateAdded: { seconds: 100000 - i },
+    };
+  }
+  return words;
+}
+
 const PHRASES_WITH_CONTRACTIONS = {
   p1: { english: "I don't know", translation: 'Я не знаю', folders: [], interactions: 0, priority: 1, dateAdded: { seconds: 100 } },
   p2: { english: "It's up to you", translation: 'Тобі вирішувати', folders: [], interactions: 0, priority: 2, dateAdded: { seconds: 99 } },
@@ -727,5 +740,391 @@ test.describe('An exercise left half-done', () => {
     await page.evaluate(() => (window as any).backToAccount());
     await page.click('.acc-tile:has-text("Конструктор")');
     await expect(page.locator('#constructor-mode-select')).toBeVisible();
+  });
+});
+
+test.describe('An impatient double tap', () => {
+  // Two taps landed before the 1.5s timeout that moves on, so the answer was
+  // counted twice and one word was skipped without ever being shown.
+  test('the listening answer counts once and moves on once', async ({ page }) => {
+    await loadApp(page, { seed: { words: vocabulary(40) } });
+    await page.click('.acc-tile:has-text("На слух")');
+    await expect(page.locator('#listening-answer')).toBeVisible({ timeout: 15000 });
+
+    const word = await page.evaluate(() => (window as any).eval('listeningWords[currentListeningQuestion].english'));
+    await page.fill('#listening-answer', word);
+    await page.evaluate(() => {
+      const btn = document.querySelector('#listening-quiz-container .check-button') as HTMLElement;
+      btn.click(); btn.click();
+    });
+    await page.waitForTimeout(2500);
+
+    const state = await page.evaluate(() => (window as any).eval('({ correct: listeningCorrectAnswers, at: currentListeningQuestion })'));
+    expect(state).toEqual({ correct: 1, at: 1 });
+  });
+
+  test('the constructor answer counts once and moves on once', async ({ page }) => {
+    await loadApp(page, { seed: { words: vocabulary(40) } });
+    await page.click('.acc-tile:has-text("Конструктор")');
+    await page.click('#constructor-mode-select button:has-text("Почати")');
+    await expect(page.locator('#constructor-answer')).toBeVisible({ timeout: 15000 });
+
+    const word: string = await page.evaluate(() => (window as any).eval('constructorWords[currentConstructorQuestion].english'));
+    for (const ch of word) await page.evaluate((c) => (window as any).addLetterToConstructor(c), ch);
+    await page.evaluate(() => {
+      const btn = document.querySelector('#word-constructor-training-section .check-button') as HTMLElement;
+      btn.click(); btn.click();
+    });
+    await page.waitForTimeout(2500);
+
+    const state = await page.evaluate(() => (window as any).eval('({ correct: constructorCorrectAnswers, at: currentConstructorQuestion })'));
+    expect(state).toEqual({ correct: 1, at: 1 });
+  });
+
+  test('a wrong constructor answer can still be tried again', async ({ page }) => {
+    await loadApp(page, { seed: { words: vocabulary(40) } });
+    await page.click('.acc-tile:has-text("Конструктор")');
+    await page.click('#constructor-mode-select button:has-text("Почати")');
+    await expect(page.locator('#constructor-answer')).toBeVisible({ timeout: 15000 });
+
+    // one letter only — certainly not the whole word
+    await page.evaluate(() => {
+      const key = document.querySelector('#letter-buttons button, .cw-key') as HTMLElement;
+      key.click();
+    });
+    await page.locator('#word-constructor-training-section .check-button').first().click();
+    await expect(page.locator('#constructor-feedback')).toContainText('Неправильно');
+
+    // the exercise must not be a dead end: check is usable again
+    await expect(page.locator('#word-constructor-training-section .check-button').first()).toBeEnabled();
+    const word: string = await page.evaluate(() => (window as any).eval('constructorWords[currentConstructorQuestion].english'));
+    for (const ch of word) await page.evaluate((c) => (window as any).addLetterToConstructor(c), ch);
+    await page.locator('#word-constructor-training-section .check-button').first().click();
+    await expect(page.locator('#constructor-feedback')).toContainText('Правильно');
+  });
+
+  test('the listening exercise still runs round after round', async ({ page }) => {
+    await loadApp(page, { seed: { words: vocabulary(40) } });
+    await page.click('.acc-tile:has-text("На слух")');
+    await expect(page.locator('#listening-answer')).toBeVisible({ timeout: 15000 });
+    for (let i = 0; i < 3; i++) {
+      await page.fill('#listening-answer', 'nope');
+      await page.locator('#listening-quiz-container .check-button').click();
+      await page.waitForTimeout(1800);
+    }
+    const at = await page.evaluate(() => (window as any).eval('currentListeningQuestion'));
+    expect(at).toBe(3);
+  });
+});
+
+test.describe('One phrase, one entry', () => {
+  // Three different ways of turning a phrase into a document id: underscores in
+  // the form, dashes with the punctuation stripped in the daily list and in the
+  // conversation analysis. The same phrase ended up saved twice.
+  async function typePhrase(page: Page, english: string, translation: string) {
+    await page.evaluate(() => (window as any).backToAccount());
+    await page.click('.acc-action-btn:has-text("Додати")');
+    await page.click('#add-tab-phrase');
+    await page.fill('#phrase-english-inline', english);
+    await page.fill('#phrase-translation-inline', translation);
+    await page.click('#add-phrase-form button:has-text("Додати")');
+    await page.waitForTimeout(900);
+  }
+
+  test('a phrase kept from a conversation is recognised when typed by hand', async ({ page }) => {
+    await page.route('**/.netlify/functions/ai', (route) => {
+      const sent = route.request().postDataJSON() || {};
+      const prompt = ((sent.body || {}).messages || [])
+        .map((m: any) => (typeof m.content === 'string' ? m.content : '')).join('\n');
+      const analysis = {
+        errors: [], summary: 'Добре!', words: [],
+        phrases: [{ phrase: 'Take a seat', translation: 'Сідайте' }], grammar: [],
+      };
+      const content = /Respond ONLY with JSON/.test(prompt) ? JSON.stringify(analysis) : 'Hey!';
+      return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ choices: [{ message: { content } }] }) });
+    });
+    await loadApp(page, { seed: { words: vocabulary(10), phrases: {} } });
+
+    await page.click('.acc-tile:has-text("Speaking Club")');
+    await page.click('.sc-chip:has-text("Подорожі")');
+    await page.click('#sc-start-btn');
+    await expect(page.locator('#sc-messages')).toContainText('Hey!', { timeout: 10000 });
+    await page.locator('#sc-text-input').fill('Please sit down');
+    await page.evaluate(() => (window as any).scSendMessage());
+    await page.waitForTimeout(1200);
+    await page.evaluate(() => (window as any).scEndChat());
+    await expect(page.locator('#sc-analysis-content .sc-add-word').first()).toBeVisible({ timeout: 15000 });
+    await page.locator('#sc-analysis-content .sc-add-word').first().click();
+    await page.waitForTimeout(900);
+
+    await typePhrase(page, 'Take a seat', 'Сідайте');
+    await expect(page.locator('#phrase-english-inline-error')).toContainText('вже існує');
+
+    await page.evaluate(() => (window as any).backToAccount());
+    await page.click('.acc-action-btn:has-text("Словник")');
+    await page.click('#vocab-tab-phrases');
+    await expect(page.locator('#phrases li')).toHaveCount(1);
+  });
+
+  test('a phrase with a slash gets an id Firestore can hold', async ({ page }) => {
+    await loadApp(page, { seed: { words: vocabulary(10), phrases: {} } });
+    await typePhrase(page, 'and/or something', 'та/або щось');
+
+    const id = await page.evaluate(() => (window as any).eval("phraseDocId('and/or something')"));
+    expect(id).not.toContain('/');
+    expect(id).toBe('and_or_something');
+
+    await page.evaluate(() => (window as any).backToAccount());
+    await page.click('.acc-action-btn:has-text("Словник")');
+    await page.click('#vocab-tab-phrases');
+    await expect(page.locator('#phrases')).toContainText('and/or something');
+  });
+});
+
+test.describe('Words that do not fit the mould', () => {
+  const awkward = () => {
+    const words: any = vocabulary(20);
+    words['antidisestablishmentarianism'] = {
+      translation: 'рух проти позбавлення англіканської церкви державного статусу',
+      example: '', folders: [], interactions: 0, correctAnswers: 0, priority: -3, dateAdded: { seconds: 99999 },
+    };
+    words['party'] = { translation: 'вечірка 🎉🎂🥳', example: '', folders: [], interactions: 0, correctAnswers: 0, priority: -1, dateAdded: { seconds: 99997 } };
+    return words;
+  };
+
+  test('a long word and an emoji do not push the page sideways', async ({ page }) => {
+    await loadApp(page, { seed: { words: awkward() } });
+    await page.click('.acc-action-btn:has-text("Словник")');
+    await expect(page.locator('#words li').first()).toBeVisible({ timeout: 15000 });
+
+    const wider = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    expect(wider).toBe(false);
+    const spilling = await page.locator('#words li').evaluateAll((els) =>
+      (els as HTMLElement[]).filter((el) => el.scrollWidth > el.clientWidth + 1).length);
+    expect(spilling).toBe(0);
+    await expect(page.locator('#words')).toContainText('вечірка 🎉🎂🥳');
+  });
+
+  test('the same word typed with a capital letter is refused', async ({ page }) => {
+    await loadApp(page, { seed: { words: {} } });
+    const add = async (english: string) => {
+      await page.evaluate(() => (window as any).backToAccount());
+      await page.click('.acc-action-btn:has-text("Додати")');
+      await page.fill('#english-word', english);
+      await page.fill('#translation', 'будинок');
+      await page.click('#add-word-form button:has-text("Додати")');
+      await page.waitForTimeout(900);
+    };
+    await add('house');
+    await add('House');
+    await expect(page.locator('#english-word-error')).toContainText('вже існує');
+
+    await page.evaluate(() => (window as any).backToAccount());
+    await page.click('.acc-action-btn:has-text("Словник")');
+    await expect(page.locator('#words li')).toHaveCount(1);
+  });
+
+  test('only one vocabulary tab stays lit however fast they are flipped', async ({ page }) => {
+    await loadApp(page, {
+      seed: {
+        words: vocabulary(20),
+        phrases: { p1: { english: 'Take a seat', translation: 'Сідайте', folders: [], dateAdded: { seconds: 100 } } },
+      },
+    });
+    await page.click('.acc-action-btn:has-text("Словник")');
+    for (let i = 0; i < 4; i++) {
+      await page.click('#vocab-tab-phrases');
+      await page.click('#vocab-tab-words');
+    }
+    await page.click('#vocab-tab-phrases');
+    await expect(page.locator('#phrases li').first()).toBeVisible({ timeout: 10000 });
+
+    await expect(page.locator('#vocab-tab-phrases')).toHaveClass(/active/);
+    await expect(page.locator('#vocab-tab-words')).not.toHaveClass(/active/);
+    await expect(page.locator('#vocab-words-content')).toBeHidden();
+  });
+});
+
+test.describe('The sticky screen header', () => {
+  // The header was made sticky so the name of the screen survives scrolling.
+  // Two things were caught underneath it.
+  test('leaves the word bank of "Вставте слово" reachable', async ({ page }) => {
+    // the sentences come from the model, so hand them over ready-made
+    await page.route('**/.netlify/functions/ai', (route) => {
+      const words = ['house', 'water', 'bread', 'friend', 'school', 'teacher', 'window', 'garden', 'river', 'mountain'];
+      const sentences = words.map((word) => ({ sentence: 'I saw the ___ yesterday.', word, translation: 'переклад' }));
+      return route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ choices: [{ message: { content: JSON.stringify(sentences) } }] }),
+      });
+    });
+    await loadApp(page, { seed: { words: vocabulary(40) } });
+    await page.click('.acc-tile:has-text("Вставте слово")');
+    await page.click('#fill-blanks-mode-selection button >> nth=1');
+    await expect(page.locator('#fill-blanks-training')).toBeVisible({ timeout: 20000 });
+
+    await page.evaluate(() => window.scrollTo(0, 600));
+    await page.waitForTimeout(400);
+
+    const overlap = await page.evaluate(() => {
+      const header = document.querySelector('#fill-blanks-section .title-and-btn')!.getBoundingClientRect();
+      const bank = document.getElementById('fill-blanks-word-bank')!.getBoundingClientRect();
+      return Math.min(header.bottom, bank.bottom) - Math.max(header.top, bank.top);
+    });
+    expect(overlap).toBeLessThanOrEqual(0);
+
+    // and a word answers where it is drawn, rather than the header taking the tap
+    const reachable = await page.evaluate(() => {
+      const el = document.querySelector('.fill-blanks-word') as HTMLElement;
+      const r = el.getBoundingClientRect();
+      const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return at === el || el.contains(at as Node);
+    });
+    expect(reachable).toBe(true);
+  });
+
+  test('stops below the Telegram bar instead of under it', async ({ page }) => {
+    await loadApp(page, { seed: { words: vocabulary(40) } });
+    await page.evaluate(() => {
+      document.body.classList.add('in-miniapp');
+      document.documentElement.style.setProperty('--safe-top', '46px');
+    });
+    await page.click('.acc-action-btn:has-text("Словник")');
+    await expect(page.locator('#words li').first()).toBeVisible({ timeout: 15000 });
+    await page.evaluate(() => window.scrollTo(0, 900));
+    await page.waitForTimeout(400);
+
+    const top = await page.evaluate(() =>
+      Math.round(document.querySelector('#my-words-section .title-and-btn')!.getBoundingClientRect().top));
+    expect(top).toBeGreaterThanOrEqual(46);
+  });
+
+  test('keeps the screen name on screen however far the list is scrolled', async ({ page }) => {
+    await loadApp(page, { seed: { words: bigVocabulary(200) } });
+    await page.click('.acc-action-btn:has-text("Словник")');
+    await expect(page.locator('#words li').first()).toBeVisible({ timeout: 15000 });
+    await page.evaluate(() => window.scrollTo(0, 1500));
+    await page.waitForTimeout(400);
+    await expect(page.locator('#my-words-section .title-and-btn')).toBeInViewport();
+    await expect(page.locator('#my-words-section .title-and-btn')).toContainText('Мій словник');
+  });
+});
+
+test.describe('The header above a long story', () => {
+  // #generative-text-section clipped its content so the option menu could slide
+  // in from off-screen. A clipping ancestor also switches sticky off, so on the
+  // one screen whose content is genuinely long the title scrolled away.
+  const longStoryAi = (page: Page) =>
+    page.route('**/.netlify/functions/ai', (route) => {
+      const sent = route.request().postDataJSON() || {};
+      const prompt = ((sent.body || {}).messages || [])
+        .map((m: any) => (typeof m.content === 'string' ? m.content : '')).join('\n');
+      if (/generative-text/.test(prompt)) {
+        const body = Array.from({ length: 40 }, (_, i) =>
+          `Sentence number ${i} about a <span class="highlight">house</span> and a long winding road.`).join(' ');
+        return route.fulfill({
+          contentType: 'application/json',
+          body: JSON.stringify({ choices: [{ message: { content: `<div class="generative-text"><h3>A very long tale</h3><p>${body}</p></div>` } }] }),
+        });
+      }
+      return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ choices: [{ message: { content: '{}' } }] }) });
+    });
+
+  async function configureAndGenerate(page: Page) {
+    await page.click('.acc-tile:has-text("Генеративний текст")');
+    for (const which of ['text-style', 'text-difficulty', 'text-length']) {
+      await page.evaluate((id) => (document.querySelector(`button[onclick*="${id}"]`) as HTMLElement)?.click(), which);
+      await page.locator('#option-menu li button').first().click();
+      await page.waitForTimeout(200);
+    }
+    await page.click('#generative-text-section button.generate');
+    await expect(page.locator('#generated-story')).toBeVisible({ timeout: 15000 });
+  }
+
+  test('stays put when the story is longer than the screen', async ({ page }) => {
+    await longStoryAi(page);
+    await loadApp(page, { seed: { words: vocabulary(40) } });
+    await configureAndGenerate(page);
+
+    await page.evaluate(() => window.scrollTo({ top: 1200, behavior: 'instant' as ScrollBehavior }));
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => Math.round(window.scrollY))).toBeGreaterThan(300);
+    const top = await page.evaluate(() =>
+      Math.round(document.querySelector('#generative-text-section .title-and-btn')!.getBoundingClientRect().top));
+    expect(top).toBeLessThanOrEqual(8);
+    expect(top).toBeGreaterThanOrEqual(0);
+  });
+
+  test('and the option menu still slides in and back out', async ({ page }) => {
+    await longStoryAi(page);
+    await loadApp(page, { seed: { words: vocabulary(40) } });
+    await page.click('.acc-tile:has-text("Генеративний текст")');
+
+    await page.evaluate(() => (document.querySelector('button[onclick*="text-style"]') as HTMLElement).click());
+    await expect(page.locator('#option-menu li button').first()).toBeVisible();
+    // it slides in over 300ms — wait for it to arrive rather than guess
+    await expect.poll(async () => page.evaluate(() =>
+      Math.round(document.getElementById('option-menu')!.getBoundingClientRect().left)),
+      { timeout: 5000 }).toBeLessThanOrEqual(8);
+
+    await page.locator('#option-menu li button').first().click();
+    await expect(page.locator('#option-menu')).toBeHidden();
+    // the choice landed on the button that opened it
+    await expect(page.locator('button[onclick*="text-style"]')).not.toContainText('Виберіть стиль');
+    // and nothing spills sideways while the menu waits off-screen
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
+  });
+});
+
+test.describe('The return key does what it looks like it does', () => {
+  // On a phone the on-screen keyboard takes half the screen and pushes the
+  // check button below the fold — measured at 315px in a 320px viewport. The
+  // keyboard's own return key did nothing at all, in every form.
+  test('Enter checks the listening answer', async ({ page }) => {
+    await loadApp(page, { seed: { words: vocabulary(40) } });
+    await page.click('.acc-tile:has-text("На слух")');
+    await expect(page.locator('#listening-answer')).toBeVisible({ timeout: 15000 });
+
+    const word = await page.evaluate(() => (window as any).eval('listeningWords[currentListeningQuestion].english'));
+    await page.fill('#listening-answer', word);
+    await page.locator('#listening-answer').press('Enter');
+
+    await expect.poll(() => page.evaluate(() => (window as any).eval('currentListeningQuestion')), { timeout: 8000 }).toBe(1);
+    expect(await page.evaluate(() => (window as any).eval('listeningCorrectAnswers'))).toBe(1);
+  });
+
+  test('Enter saves a word', async ({ page }) => {
+    await loadApp(page, { seed: { words: {} } });
+    await page.click('.acc-action-btn:has-text("Додати")');
+    await page.fill('#english-word', 'lantern');
+    await page.fill('#translation', 'ліхтар');
+    await page.locator('#translation').press('Enter');
+
+    await expect(page.locator('.notification, .toast').filter({ hasText: 'lantern' }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#english-word')).toHaveValue('');
+  });
+
+  test('Enter saves a phrase', async ({ page }) => {
+    await loadApp(page, { seed: { words: {}, phrases: {} } });
+    await page.click('.acc-action-btn:has-text("Додати")');
+    await page.click('#add-tab-phrase');
+    await page.fill('#phrase-english-inline', 'Take a seat');
+    await page.fill('#phrase-translation-inline', 'Сідайте');
+    await page.locator('#phrase-translation-inline').press('Enter');
+
+    await expect(page.locator('.notification, .toast').filter({ hasText: 'Take a seat' }).first()).toBeVisible({ timeout: 10000 });
+  });
+
+  // This one already worked — appPrompt binds Enter and Escape itself. Kept as
+  // cover so the two ways of handling the key do not drift apart.
+  test('Enter names a new folder', async ({ page }) => {
+    await loadApp(page, { seed: { words: vocabulary(20) } });
+    await page.click('.acc-action-btn:has-text("Словник")');
+    await page.locator('#folder-bar .folder-chip').last().click();
+    await expect(page.locator('#app-prompt-input')).toBeVisible();
+    await page.fill('#app-prompt-input', 'Подорожі');
+    await page.locator('#app-prompt-input').press('Enter');
+
+    await expect(page.locator('.folder-chip', { hasText: 'Подорожі' })).toBeVisible({ timeout: 10000 });
   });
 });
