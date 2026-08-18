@@ -497,7 +497,41 @@ export async function mockFirebase(page: Page) {
 /**
  * Navigate to the app and wait for it to load (preloader hidden).
  */
+/**
+ * A test run must never make a sound. Every exercise speaks its word as it shows
+ * it, and with no AI key that falls through to speechSynthesis — which on a Mac
+ * is the system voice, a process of its own that Chromium's --mute-audio does
+ * not reach. Across a full suite that is hundreds of words read out loud.
+ *
+ * The stub stays silent but still plays the events back: the app hands its
+ * utterance an onstart and an onend and waits for them, so swallowing the call
+ * outright would leave exercises hanging rather than quiet.
+ */
+export function silenceAudio(page: Page) {
+  return page.addInitScript(() => {
+    (window as any).__spoken = [];
+    const synth = window.speechSynthesis;
+    if (synth) {
+      synth.speak = (utterance: any) => {
+        (window as any).__spoken.push(utterance && utterance.text);
+        setTimeout(() => {
+          if (typeof utterance?.onstart === 'function') utterance.onstart(new Event('start'));
+          if (typeof utterance?.onend === 'function') utterance.onend(new Event('end'));
+        }, 0);
+      };
+    }
+    // Live-voice replies arrive as real audio elements; let them play, mutely
+    const play = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function (this: HTMLMediaElement) {
+      this.muted = true;
+      this.volume = 0;
+      return play.call(this);
+    };
+  });
+}
+
 export async function loadApp(page: Page, opts: { seed?: any; url?: string } = {}) {
+  await silenceAudio(page);
   await mockFirebase(page);
   if (opts.seed) {
     await page.addInitScript((seed) => {
@@ -522,6 +556,7 @@ export async function loadApp(page: Page, opts: { seed?: any; url?: string } = {
  * Waits for preloader to hide (Firebase will load but auth state will show login).
  */
 export async function loadAppNoAuth(page: Page) {
+  await silenceAudio(page);
   // Block Firebase auth so it doesn't auto-login, but provide mock so no errors
   await page.route('**/firebasejs/**/firebase-app.js', async (route) => {
     await route.fulfill({
