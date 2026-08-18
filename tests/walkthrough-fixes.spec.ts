@@ -308,7 +308,10 @@ test.describe('Counts read like Ukrainian', () => {
     await photoAi(page, count);
     await loadApp(page, { seed: { words: {} } });
     await page.click('.acc-action-btn:has-text("Додати")');
-    await page.setInputFiles('#photo-gallery-label input[type="file"]', {
+    // The camera is a key in the keyboard now, and the keyboard follows the field
+    await page.click('#english-word');
+    await page.click('#input-keyboard button:has-text("Фото")');
+    await page.setInputFiles('#kb-photo-sheet label:has-text("З галереї") input[type="file"]', {
       name: 'page.png', mimeType: 'image/png', buffer: TINY_PNG,
     });
     await expect(page.locator('#photo-words-list button').first()).toBeVisible({ timeout: 15000 });

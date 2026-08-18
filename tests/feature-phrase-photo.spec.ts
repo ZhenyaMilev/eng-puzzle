@@ -29,13 +29,28 @@ async function openPhraseTab(page: Page) {
   await page.click('#add-tab-phrase');
 }
 
+/**
+ * The camera is a key in the keyboard now, and the keyboard follows the focused
+ * field — so a photo is reached the same way on the phrase tab as on the word one.
+ */
+async function phrasePhotoSource(page: Page, which: 'Сфотографувати' | 'З галереї') {
+  const open = page.locator('#kb-photo-sheet button:has-text("Скасувати")');
+  if (await open.count()) await open.click();
+  await page.click('#phrase-english-inline');
+  await expect(page.locator('#input-keyboard')).toBeVisible();
+  await page.click('#input-keyboard button:has-text("Фото")');
+  await expect(page.locator('#kb-photo-sheet')).toBeVisible();
+  return page.locator(`#kb-photo-sheet label:has-text("${which}") input[type="file"]`);
+}
+
 test.describe('Add phrase from photo', () => {
-  test('the phrase tab has its own photo entry point', async ({ page }) => {
+  test('the phrase tab reaches a photo through its keyboard', async ({ page }) => {
     await loadApp(page);
     await openPhraseTab(page);
+    await page.click('#phrase-english-inline');
 
-    await expect(page.locator('#phrase-photo-upload-label')).toBeVisible();
-    await expect(page.locator('#phrase-photo-gallery-label')).toBeVisible();
+    await expect(page.locator('#input-keyboard button:has-text("Фото")')).toBeVisible();
+    await expect(page.locator('#phrase-photo-upload-row')).toHaveCount(0);
   });
 
   // Both sources are offered here too: shoot now, or pick a shot already taken.
@@ -43,11 +58,11 @@ test.describe('Add phrase from photo', () => {
     await loadApp(page);
     await openPhraseTab(page);
 
-    const camera = page.locator('#phrase-photo-upload-label input[type="file"]');
+    const camera = await phrasePhotoSource(page, 'Сфотографувати');
     await expect(camera).toHaveAttribute('accept', 'image/*');
     await expect(camera).toHaveAttribute('capture', 'environment');
 
-    const gallery = page.locator('#phrase-photo-gallery-label input[type="file"]');
+    const gallery = await phrasePhotoSource(page, 'З галереї');
     await expect(gallery).toHaveAttribute('accept', 'image/*');
     expect(await gallery.getAttribute('capture')).toBeNull();
   });
@@ -63,7 +78,7 @@ test.describe('Add phrase from photo', () => {
     const calls = mockPhraseExtraction(page);
     await openPhraseTab(page);
 
-    await page.setInputFiles('#phrase-photo-upload-label input[type="file"]', {
+    await (await phrasePhotoSource(page, 'Сфотографувати')).setInputFiles({
       name: 'sign.png', mimeType: 'image/png', buffer: TINY_PNG,
     });
 
@@ -83,7 +98,7 @@ test.describe('Add phrase from photo', () => {
     mockPhraseExtraction(page);
     await openPhraseTab(page);
 
-    await page.setInputFiles('#phrase-photo-upload-label input[type="file"]', {
+    await (await phrasePhotoSource(page, 'Сфотографувати')).setInputFiles({
       name: 'sign.png', mimeType: 'image/png', buffer: TINY_PNG,
     });
     await expect(page.locator('#photo-phrases-list button')).toHaveCount(2, { timeout: 10000 });
@@ -108,7 +123,7 @@ test.describe('Add phrase from photo', () => {
     mockPhraseExtraction(page);
     await openPhraseTab(page);
 
-    await page.setInputFiles('#phrase-photo-upload-label input[type="file"]', {
+    await (await phrasePhotoSource(page, 'Сфотографувати')).setInputFiles({
       name: 'sign.png', mimeType: 'image/png', buffer: TINY_PNG,
     });
     await expect(page.locator('#photo-phrases-list button')).toHaveCount(2, { timeout: 10000 });
@@ -124,13 +139,12 @@ test.describe('Add phrase from photo', () => {
     mockPhraseExtraction(page);
     await openPhraseTab(page);
 
-    await page.setInputFiles('#phrase-photo-gallery-label input[type="file"]', {
+    await (await phrasePhotoSource(page, 'З галереї')).setInputFiles({
       name: 'from-gallery.png', mimeType: 'image/png', buffer: TINY_PNG,
     });
 
     await expect(page.locator('#photo-phrases-list button')).toHaveCount(2, { timeout: 10000 });
-    // Both choices come back once the analysis is done
-    await expect(page.locator('#phrase-photo-upload-row')).toBeVisible();
+    // The spinner stands down once the analysis is done
     await expect(page.locator('#phrase-photo-upload-loading')).toBeHidden();
   });
 

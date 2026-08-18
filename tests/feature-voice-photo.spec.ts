@@ -1,12 +1,32 @@
 import { test, expect, Page } from '@playwright/test';
 import { loadApp } from './helpers';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+
+/**
+ * The microphone used to hang on the fields themselves and the camera sat in a
+ * row of its own under the form — three mechanisms for one screen. Both live in
+ * the keyboard now, which comes up when a field is focused.
+ */
+async function openAddWord(page: Page) {
+  await page.click('.acc-action-btn:has-text("Додати")');
+  await page.click('#english-word');
+  await expect(page.locator('#input-keyboard')).toBeVisible();
+}
+
+async function galleryInput(page: Page) {
+  await page.click('#input-keyboard button:has-text("Фото")');
+  await expect(page.locator('#kb-photo-sheet')).toBeVisible();
+  return page.locator('#kb-photo-sheet label:has-text("З галереї") input[type="file"]');
+}
 
 test.describe('Voice Input', () => {
-  test('voice input button exists in add word section', async ({ page }) => {
+  test('the microphone is in the keyboard, not on the field', async ({ page }) => {
     await loadApp(page);
-    await page.click('.acc-action-btn:has-text("Додати")');
-    // It is an icon button now, so the microphone is what identifies it
-    await expect(page.locator('#add-word-section button[onclick^="startVoiceInput"]').first()).toBeVisible();
+    await openAddWord(page);
+    await expect(page.locator('#input-keyboard #text-kb-mic')).toBeVisible();
+    await expect(page.locator('#add-word-form button[onclick^="startVoiceInput"]')).toHaveCount(0);
   });
 
   test('voice status indicator is hidden by default', async ({ page }) => {
@@ -24,27 +44,27 @@ test.describe('Voice Input', () => {
 
 test.describe('Photo Input', () => {
   // Scoped to the word form: the phrase tab now has a photo label of its own.
-  test('photo input button exists in add word section', async ({ page }) => {
+  test('the camera is one key in the keyboard, not a row under the form', async ({ page }) => {
     await loadApp(page);
-    await page.click('.acc-action-btn:has-text("Додати")');
-    await expect(page.locator('#photo-upload-label')).toBeVisible();
+    await openAddWord(page);
+    await expect(page.locator('#input-keyboard button:has-text("Фото")')).toBeVisible();
+    await expect(page.locator('#photo-upload-row')).toHaveCount(0);
   });
 
   // Both sources are offered: shoot now, or pick a shot already taken.
-  test('photo can be taken with the camera or picked from the gallery', async ({ page }) => {
+  test('the key asks which one — shoot now, or pick a shot already taken', async ({ page }) => {
     await loadApp(page);
-    await page.click('.acc-action-btn:has-text("Додати")');
+    await openAddWord(page);
+    await page.click('#input-keyboard button:has-text("Фото")');
 
-    const camera = page.locator('#photo-upload-label input[type="file"]');
+    const camera = page.locator('#kb-photo-sheet label:has-text("Сфотографувати") input[type="file"]');
     await expect(camera).toHaveAttribute('accept', 'image/*');
     await expect(camera).toHaveAttribute('capture', 'environment');
 
-    const gallery = page.locator('#photo-gallery-label input[type="file"]');
+    const gallery = page.locator('#kb-photo-sheet label:has-text("З галереї") input[type="file"]');
     await expect(gallery).toHaveAttribute('accept', 'image/*');
     // No capture attribute — otherwise the phone jumps straight into the camera
     expect(await gallery.getAttribute('capture')).toBeNull();
-
-    await expect(page.locator('#photo-gallery-label')).toBeVisible();
   });
 
   test('a gallery pick runs the same extraction as a fresh shot', async ({ page }) => {
@@ -57,8 +77,8 @@ test.describe('Photo Input', () => {
         }),
       });
     });
-    await page.click('.acc-action-btn:has-text("Додати")');
-    await page.setInputFiles('#photo-gallery-label input[type="file"]', {
+    await openAddWord(page);
+    await (await galleryInput(page)).setInputFiles({
       name: 'from-gallery.png',
       mimeType: 'image/png',
       buffer: Buffer.from(
@@ -69,7 +89,6 @@ test.describe('Photo Input', () => {
 
     await expect(page.locator('#photo-words-preview')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#photo-words-list')).toContainText('shade');
-    await expect(page.locator('#photo-upload-row')).toBeVisible();
     await expect(page.locator('#photo-upload-loading')).toBeHidden();
   });
 
@@ -93,8 +112,8 @@ test.describe('Photo Input', () => {
         contentType: 'application/json',
         body: JSON.stringify({ choices: [{ message: { content: JSON.stringify(words) } }] }),
       }));
-    await page.click('.acc-action-btn:has-text("Додати")');
-    await page.setInputFiles('#photo-gallery-label input[type="file"]', {
+    await openAddWord(page);
+    await (await galleryInput(page)).setInputFiles({
       name: 'photo.png',
       mimeType: 'image/png',
       buffer: Buffer.from(
@@ -125,5 +144,104 @@ test.describe('Photo Input', () => {
     const html = await page.locator('#photo-words-list').innerHTML();
     expect(html).not.toContain('<img src=x');
     expect(html).toContain('&lt;img');
+  });
+});
+
+/**
+ * Speech recognition used to be two different things. Speaking Club recorded
+ * with MediaRecorder and sent the clip to Whisper; the microphone in the word
+ * form, the grammar question and "Сказати переклад" all called
+ * webkitSpeechRecognition, which inside the Telegram webview either does not
+ * exist or is refused the microphone — it started and fell straight into
+ * onerror, and all anyone saw was "Помилка розпізнавання". Voice worked
+ * nowhere except Speaking Club. One path now, the one that works.
+ */
+function fakeMicrophone(page: Page, opts: { allow?: boolean } = {}) {
+  return page.addInitScript((allow) => {
+    (window as any).__recordings = 0;
+    const media = { getUserMedia: async () => {
+      if (!allow) throw new Error('NotAllowedError');
+      return { getTracks: () => [{ stop() {} }] };
+    } };
+    Object.defineProperty(navigator, 'mediaDevices', { value: media, configurable: true });
+
+    class FakeRecorder {
+      state = 'inactive';
+      ondataavailable: any = null;
+      onstop: any = null;
+      start() { this.state = 'recording'; (window as any).__recordings++; }
+      stop() {
+        this.state = 'inactive';
+        if (this.ondataavailable) this.ondataavailable({ data: new Blob(['clip'], { type: 'audio/webm' }) });
+        if (this.onstop) this.onstop();
+      }
+    }
+    (window as any).MediaRecorder = FakeRecorder;
+  }, opts.allow !== false);
+}
+
+function mockTranscript(page: Page, text: string) {
+  return page.route('**/.netlify/functions/ai', async (route) => {
+    const body = route.request().postDataJSON() || {};
+    if (body.route !== 'transcription') return route.fallback();
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ text }) });
+  });
+}
+
+test.describe('Dictating instead of typing', () => {
+  test('the word field takes what was said', async ({ page }) => {
+    await fakeMicrophone(page);
+    await loadApp(page);
+    await mockTranscript(page, 'Adventure');
+    await openAddWord(page);
+
+    await page.click('#text-kb-mic');
+    await expect(page.locator('#text-kb-mic')).toContainText('Слухаю');
+
+    await page.click('#text-kb-mic');
+    await expect(page.locator('#english-word')).toHaveValue('adventure');
+    await expect(page.locator('#text-kb-mic')).toContainText('Голосом');
+    expect(await page.evaluate(() => (window as any).__recordings)).toBe(1);
+  });
+
+  test('the translation field asks Whisper for Ukrainian', async ({ page }) => {
+    await fakeMicrophone(page);
+    await loadApp(page);
+    const asked: string[] = [];
+    await page.route('**/.netlify/functions/ai', async (route) => {
+      const body = route.request().postDataJSON() || {};
+      if (body.route !== 'transcription') return route.fallback();
+      asked.push(body.body.language);
+      await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ text: 'пригода' }) });
+    });
+    await page.click('.acc-action-btn:has-text("Додати")');
+    await page.click('#translation');          // the Ukrainian field picks the layout
+    await expect(page.locator('#input-keyboard')).toBeVisible();
+
+    await page.click('#text-kb-mic');
+    await page.click('#text-kb-mic');
+    await expect(page.locator('#translation')).toHaveValue('пригода');
+    expect(asked).toEqual(['uk']);
+  });
+
+  test('a refused microphone is explained, not swallowed', async ({ page }) => {
+    await fakeMicrophone(page, { allow: false });
+    await loadApp(page);
+    await openAddWord(page);
+
+    await page.click('#text-kb-mic');
+    await expect(page.locator('.notification, .toast').filter({ hasText: 'мікрофона' }).first())
+      .toBeVisible({ timeout: 8000 });
+    await expect(page.locator('#text-kb-mic')).toContainText('Голосом');
+  });
+
+  test('nothing anywhere still calls the browser recogniser', () => {
+    const html = readFileSync(join(__dirname, '..', 'eng-puzzle', 'index.html'), 'utf-8');
+    const calls = html.split('\n').filter((line) => {
+      const code = line.trim();
+      if (code.startsWith('*') || code.startsWith('//')) return false;   // the comment explains why
+      return /webkitSpeechRecognition/.test(code);
+    });
+    expect(calls).toEqual([]);
   });
 });

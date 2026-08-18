@@ -4110,6 +4110,91 @@
       .cw-keyboard-row { gap: 4px; }
     }
 
+    /* Клавіатура для полів вводу: літери, диктування і фото в одному шарі */
+    .cw-keyboard-text .cw-key {
+      font-size: 18px;
+    }
+
+    /* Дванадцять клавіш українського ряду замість десяти — літери вужчі */
+    .cw-keyboard-text .cw-keyboard-row.cw-row-uk .cw-key {
+      font-size: 16px;
+    }
+
+    .cw-kb-tools {
+      display: flex;
+      gap: 5px;
+      margin-top: 6px;
+    }
+
+    /* .cw-key жене все в нижній регістр — це правильно для літери і
+       безглуздо для підпису на клавіші */
+    .cw-kb-tools .cw-key,
+    .cw-kb-layout {
+      height: 42px;
+      font-size: 15px;
+      text-transform: none;
+    }
+
+    .cw-kb-layout {
+      font-weight: 600;
+    }
+
+    .cw-kb-tool-wide {
+      flex: 3 1 0;
+    }
+
+    .cw-kb-tool-accent {
+      color: #E8A838;
+    }
+
+    .cw-kb-tool-accent.recording {
+      background: rgba(239, 68, 68, 0.25);
+      color: #fca5a5;
+    }
+
+    /* Поки шар відкритий, під ним має лишатися видимим саме поле */
+    body.text-keyboard-open #add-word-section,
+    body.text-keyboard-open #add-phrase-section {
+      padding-bottom: 330px;
+    }
+
+    body.text-keyboard-open #app-update-banner {
+      bottom: calc(315px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Вибір джерела фото — маленька шторка над клавіатурою */
+    .cw-kb-photo-sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1150;
+      background: #171a22;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 14px 12px calc(14px + max(env(safe-area-inset-bottom, 0px), var(--safe-bottom, 0px)));
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cw-kb-photo-sheet label,
+    .cw-kb-photo-sheet button {
+      width: 100%;
+      margin: 0;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #F0EDE8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
     /* Центрирование иконки звука */
     .sound-icon-container {
       display: flex;
@@ -7105,50 +7190,31 @@
           <i class="fas fa-circle" style="animation:blink 1s infinite;color:#ef4444;margin-right:6px;font-size:10px;"></i>Слухаю...
         </div>
         <div style="position:relative;margin:5px 0 15px 0;">
-          <input type="text" id="english-word" placeholder="Англійське слово" style="margin:0;height:52px;box-sizing:border-box;padding-right:48px;"
+          <input type="text" id="english-word" data-kbd="en" data-kbd-photo="handlePhotoInput" placeholder="Англійське слово" style="margin:0;height:52px;box-sizing:border-box;padding-right:48px;"
             autocapitalize="none" autocorrect="off" spellcheck="false"
             oninput="clearFieldError('english-word-error');getTranslationSuggestions(this.value)"
             onkeydown="if(event.key==='Enter'){event.preventDefault();addWord()}">
-          <button onclick="startVoiceInput('en')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;font-size:18px;color:#E8A838;cursor:pointer;box-shadow:none;opacity:0.7;" title="Голосом (EN)">
-            <i class="fas fa-microphone"></i>
-          </button>
         </div>
         <div id="english-word-error" class="error-message"></div>
         <div id="translation-suggestions" class="suggestion-list"></div>
         <div style="position:relative;margin:5px 0 15px 0;">
-          <input type="text" id="translation" placeholder="Переклад" style="margin:0;height:52px;box-sizing:border-box;padding-right:48px;"
+          <input type="text" id="translation" data-kbd="uk" data-kbd-photo="handlePhotoInput" placeholder="Переклад" style="margin:0;height:52px;box-sizing:border-box;padding-right:48px;"
             oninput="clearFieldError('translation-error');getReverseTranslation(this.value)"
             onkeydown="if(event.key==='Enter'){event.preventDefault();addWord()}">
-          <button onclick="startVoiceInput('uk')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;padding:0;margin:0;border-radius:8px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;font-size:18px;color:#60a5fa;cursor:pointer;box-shadow:none;opacity:0.7;" title="Голосом (УК)">
-            <i class="fas fa-microphone"></i>
-          </button>
         </div>
         <div id="translation-error" class="error-message"></div>
         <div id="reverse-translation-suggestions" class="suggestion-list"></div>
         <div id="example-toggle-wrap" style="margin-bottom:12px;">
           <a href="#" onclick="event.preventDefault();document.getElementById('example-expand').classList.toggle('hidden');this.classList.add('hidden');" style="font-size:13px;color:rgba(240,237,232,0.4);text-decoration:none;">+ Додати приклад</a>
           <div id="example-expand" class="hidden">
-            <input type="text" id="example" placeholder="Приклад використання" style="margin-top:8px;">
+            <input type="text" id="example" data-kbd="en" data-kbd-photo="handlePhotoInput" placeholder="Приклад використання" style="margin-top:8px;">
             <div id="example-error" class="error-message"></div>
           </div>
         </div>
         <button onclick="addWord()">Додати</button>
         <!-- Photo / Camera -->
-        <div style="margin-top:14px;">
-          <p style="font-size:12px;color:rgba(240,237,232,0.3);text-align:center;margin:0 0 8px;">або додай з фото</p>
-          <div id="photo-upload-row" class="photo-pick-row">
-            <label id="photo-upload-label" class="photo-pick-btn">
-              <i class="fas fa-camera" style="font-size:14px;"></i> Сфотографувати
-              <input type="file" accept="image/*" capture="environment" onchange="handlePhotoInput(event)" style="display:none;">
-            </label>
-            <label id="photo-gallery-label" class="photo-pick-btn">
-              <i class="fas fa-images" style="font-size:14px;"></i> З галереї
-              <input type="file" accept="image/*" onchange="handlePhotoInput(event)" style="display:none;">
-            </label>
-          </div>
-          <div id="photo-upload-loading" class="photo-pick-loading hidden">
-            <i class="fas fa-spinner fa-spin" style="font-size:14px;"></i> Аналізую фото...
-          </div>
+        <div id="photo-upload-loading" class="photo-pick-loading hidden">
+          <i class="fas fa-spinner fa-spin" style="font-size:14px;"></i> Аналізую фото...
         </div>
         <div id="photo-words-preview" class="hidden" style="margin-top:12px;padding:14px;background:rgba(255,255,255,0.04);border-radius:12px;">
           <p style="font-size:13px;color:rgba(240,237,232,0.5);margin-bottom:8px;">Слова з фото (обери для додавання):</p>
@@ -7160,33 +7226,20 @@
       </div>
       <!-- Phrase form -->
       <div id="add-phrase-form" class="hidden">
-        <input type="text" id="phrase-english-inline" placeholder="Фраза англійською"
+        <input type="text" id="phrase-english-inline" data-kbd="en" data-kbd-photo="handlePhrasePhotoInput" placeholder="Фраза англійською"
           autocapitalize="none" autocorrect="off" spellcheck="false"
           oninput="clearFieldError('phrase-english-inline-error');getPhraseTranslationSuggestionsInline(this.value)"
           onkeydown="if(event.key==='Enter'){event.preventDefault();addPhraseInline()}">
         <div id="phrase-english-inline-error" class="error-message"></div>
         <div id="phrase-translation-suggestions-inline" class="suggestion-list"></div>
-        <input type="text" id="phrase-translation-inline" placeholder="Переклад українською"
+        <input type="text" id="phrase-translation-inline" data-kbd="uk" data-kbd-photo="handlePhrasePhotoInput" placeholder="Переклад українською"
           oninput="clearFieldError('phrase-translation-inline-error')"
           onkeydown="if(event.key==='Enter'){event.preventDefault();addPhraseInline()}">
         <div id="phrase-translation-inline-error" class="error-message"></div>
         <button onclick="addPhraseInline()">Додати</button>
         <!-- Photo / Camera -->
-        <div style="margin-top:14px;">
-          <p style="font-size:12px;color:rgba(240,237,232,0.3);text-align:center;margin:0 0 8px;">або додай з фото</p>
-          <div id="phrase-photo-upload-row" class="photo-pick-row">
-            <label id="phrase-photo-upload-label" class="photo-pick-btn">
-              <i class="fas fa-camera" style="font-size:14px;"></i> Сфотографувати
-              <input type="file" accept="image/*" capture="environment" onchange="handlePhrasePhotoInput(event)" style="display:none;">
-            </label>
-            <label id="phrase-photo-gallery-label" class="photo-pick-btn">
-              <i class="fas fa-images" style="font-size:14px;"></i> З галереї
-              <input type="file" accept="image/*" onchange="handlePhrasePhotoInput(event)" style="display:none;">
-            </label>
-          </div>
-          <div id="phrase-photo-upload-loading" class="photo-pick-loading hidden">
-            <i class="fas fa-spinner fa-spin" style="font-size:14px;"></i> Аналізую фото...
-          </div>
+        <div id="phrase-photo-upload-loading" class="photo-pick-loading hidden">
+          <i class="fas fa-spinner fa-spin" style="font-size:14px;"></i> Аналізую фото...
         </div>
         <div id="photo-phrases-preview" class="hidden" style="margin-top:12px;padding:14px;background:rgba(255,255,255,0.04);border-radius:12px;">
           <p style="font-size:13px;color:rgba(240,237,232,0.5);margin-bottom:8px;">Фрази з фото (обери для додавання):</p>
@@ -7206,12 +7259,12 @@
         </button>
         <h2>Додати фразу</h2>
       </div>
-      <input type="text" id="phrase-english" placeholder="Фраза англійською"
+      <input type="text" id="phrase-english" data-kbd="en" placeholder="Фраза англійською"
         autocapitalize="none" autocorrect="off" spellcheck="false"
         oninput="clearFieldError('phrase-english-error');getPhraseTranslationSuggestions(this.value)">
       <div id="phrase-english-error" class="error-message"></div>
       <div id="phrase-translation-suggestions" class="suggestion-list"></div>
-      <input type="text" id="phrase-translation" placeholder="Переклад українською"
+      <input type="text" id="phrase-translation" data-kbd="uk" placeholder="Переклад українською"
         oninput="clearFieldError('phrase-translation-error')">
       <div id="phrase-translation-error" class="error-message"></div>
       <button onclick="addPhrase()">Додати</button>
@@ -7932,6 +7985,10 @@
 
     <!-- Клавіатура конструктора: поза секцією, бо її анімація ламає position:fixed -->
     <div id="constructor-keyboard" class="cw-keyboard hidden"></div>
+
+    <!-- Клавіатура для полів вводу слів і фраз: літери, мікрофон, камера -->
+    <div id="input-keyboard" class="cw-keyboard cw-keyboard-text hidden"
+         onmousedown="event.preventDefault()"></div>
 
     <!-- Клавіатура кросворда: ті самі клавіші плюс напрямок, підказка і дії.
          mousedown гасимо на всьому шарі: інакше кожен тап по клавіші забирав
@@ -9306,7 +9363,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-18.2';
+    const APP_VERSION = '2026-08-18.3';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -9689,6 +9746,7 @@ function hideAllAppSections() {
   // інакше вона лишалася поверх словника після виходу з вправи
   hideConstructorKeyboard();
   hideCrosswordKeyboard();
+  hideTextKeyboard();
   clearNotEnoughPanels();
   [
     'my-words-section', 'daily-words-section', 'add-word-section', 'quiz-section',
@@ -11453,50 +11511,137 @@ Return ONLY the JSON array, no other text.`;
     }
 
     // ========== VOICE & PHOTO INPUT ==========
-    let speechRecognition = null;
 
-    function startVoiceInput(lang) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        showNotification('Браузер не підтримує розпізнавання мови', 'warning');
+    /**
+     * Розпізнавання мови в застосунку було двох сортів. Speaking Club пише
+     * MediaRecorder'ом і віддає запис Whisper на сервер. Решта — і мікрофон у
+     * формі слова, і питання в граматиці, і «Сказати переклад» — кликали
+     * webkitSpeechRecognition. У webview Telegram його або немає зовсім, або
+     * йому не дають мікрофон: розпізнавання стартувало і одразу падало в
+     * onerror, а людина бачила жовте «Помилка розпізнавання» і більше нічого.
+     * Тобто голос не працював ніде, крім Speaking Club.
+     *
+     * Тепер шлях один — той, що працює. Тап починає запис, другий тап зупиняє
+     * і віддає розшифровку; на відміну від старого способу вона приходить не
+     * миттєво, тому в кожного місця є стан «розпізнаю».
+     */
+    let voiceCapture = null;
+
+    function voiceCaptureBusy() {
+      return !!voiceCapture;
+    }
+
+    async function startVoiceCapture() {
+      if (voiceCapture) return;
+      if (!window.MediaRecorder || !navigator.mediaDevices) {
+        throw voiceError('Тут не можна записати голос — введи текстом');
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const chunks = [];
+      const recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+      const done = new Promise((resolve) => {
+        recorder.onstop = () => {
+          stream.getTracks().forEach((t) => t.stop());
+          resolve(new Blob(chunks, { type: 'audio/webm' }));
+        };
+      });
+      voiceCapture = { recorder, done };
+      recorder.start();
+    }
+
+    async function finishVoiceCapture(language) {
+      if (!voiceCapture) return '';
+      const capture = voiceCapture;
+      voiceCapture = null;
+      if (capture.recorder.state === 'recording') capture.recorder.stop();
+      const blob = await capture.done;
+      if (!blob.size) return '';
+      const response = await aiTranscribe(blob, { language: language || 'en' });
+      // aiErrorMessage уже говорить людською мовою — про ліміт і про підписку
+      // різними словами, тож несемо його текст далі, а не ковтаємо
+      if (!response.ok) throw voiceError(aiErrorMessage(response));
+      const data = await response.json();
+      return (data.text || '').trim();
+    }
+
+    /**
+     * Один обробник на всі кнопки-мікрофони: перший тап пише, другий розшифровує.
+     * Місце виклику лише малює свої стани і вирішує, що робити з текстом.
+     */
+    async function dictate(options) {
+      const opts = options || {};
+      const idle = () => { if (opts.onIdle) opts.onIdle(); };
+
+      if (voiceCaptureBusy()) {
+        if (opts.onTranscribing) opts.onTranscribing();
+        try {
+          const text = await finishVoiceCapture(opts.language);
+          if (text) {
+            if (opts.onText) opts.onText(text);
+          } else {
+            showNotification('Нічого не почув — спробуй ще раз', 'warning');
+          }
+        } catch (e) {
+          showNotification(voiceProblem(e, 'Не вдалося розпізнати — спробуй ще раз'), 'warning');
+        } finally {
+          idle();
+        }
         return;
       }
 
-      if (speechRecognition) { speechRecognition.stop(); return; }
+      try {
+        await startVoiceCapture();
+        if (opts.onRecording) opts.onRecording();
+      } catch (e) {
+        showNotification(
+          voiceProblem(e, 'Немає доступу до мікрофона — дозволь його в налаштуваннях'), 'warning');
+        idle();
+      }
+    }
 
-      speechRecognition = new SpeechRecognition();
-      speechRecognition.lang = lang === 'uk' ? 'uk-UA' : 'en-US';
-      speechRecognition.interimResults = false;
-      speechRecognition.maxAlternatives = 1;
+    /**
+     * Показуємо лише те, що написали самі. getUserMedia кидає DOMException із
+     * текстом на кшталт NotAllowedError — його людині показувати нема сенсу,
+     * а от «ліміт вичерпано» чи «потрібна підписка» від aiErrorMessage треба.
+     */
+    function voiceError(message) {
+      const error = new Error(message);
+      error.forHumans = true;
+      return error;
+    }
 
-      document.getElementById('voice-status').classList.remove('hidden');
+    function voiceProblem(error, fallback) {
+      return error && error.forHumans ? error.message : fallback;
+    }
 
-      speechRecognition.onresult = (event) => {
-        const text = event.results[0][0].transcript.trim().toLowerCase();
-        if (lang === 'uk') {
-          document.getElementById('translation').value = text;
-          getReverseTranslation(text);
-        } else {
-          document.getElementById('english-word').value = text;
-          getTranslationSuggestions(text);
-        }
-        document.getElementById('voice-status').classList.add('hidden');
-        speechRecognition = null;
-      };
+    function setVoiceStatus(state) {
+      const status = document.getElementById('voice-status');
+      if (!status) return;
+      if (!state) { status.classList.add('hidden'); return; }
+      status.innerHTML = state === 'recording'
+        ? '<i class="fas fa-circle" style="animation:blink 1s infinite;color:#ef4444;margin-right:6px;font-size:10px;"></i>Слухаю... (натисни ще раз)'
+        : '<i class="fas fa-spinner fa-spin" style="margin-right:6px;font-size:12px;"></i>Розпізнаю...';
+      status.classList.remove('hidden');
+    }
 
-      speechRecognition.onerror = (event) => {
-        console.log('Speech error:', event.error);
-        document.getElementById('voice-status').classList.add('hidden');
-        if (event.error !== 'no-speech') showNotification('Помилка розпізнавання', 'warning');
-        speechRecognition = null;
-      };
-
-      speechRecognition.onend = () => {
-        document.getElementById('voice-status').classList.add('hidden');
-        speechRecognition = null;
-      };
-
-      speechRecognition.start();
+    function startVoiceInput(lang) {
+      dictate({
+        language: lang === 'uk' ? 'uk' : 'en',
+        onRecording: () => setVoiceStatus('recording'),
+        onTranscribing: () => setVoiceStatus('transcribing'),
+        onIdle: () => setVoiceStatus(null),
+        onText: (text) => {
+          const value = text.toLowerCase();
+          if (lang === 'uk') {
+            document.getElementById('translation').value = value;
+            getReverseTranslation(value);
+          } else {
+            document.getElementById('english-word').value = value;
+            getTranslationSuggestions(value);
+          }
+        },
+      });
     }
 
     // ========== ПЕРЕКЛАД: підказки ==========
@@ -11669,7 +11814,6 @@ Return ONLY a JSON array of strings.`
       if (!file) return;
 
       showLoading();
-      document.getElementById('photo-upload-row').classList.add('hidden');
       document.getElementById('photo-upload-loading').classList.remove('hidden');
       try {
         // Знімок із телефона — це 3-5 МБ. Розпізнаванню тексту вистачає
@@ -11708,8 +11852,7 @@ Return ONLY a JSON array of strings.`
         showNotification('Помилка обробки фото', 'warning');
       } finally {
         hideLoading();
-        document.getElementById('photo-upload-row').classList.remove('hidden');
-        document.getElementById('photo-upload-loading').classList.add('hidden');
+          document.getElementById('photo-upload-loading').classList.add('hidden');
         event.target.value = '';
       }
     }
@@ -11794,7 +11937,6 @@ Return ONLY a JSON array of strings.`
       if (!file) return;
 
       showLoading();
-      document.getElementById('phrase-photo-upload-row').classList.add('hidden');
       document.getElementById('phrase-photo-upload-loading').classList.remove('hidden');
       try {
         // Знімок із телефона — це 3-5 МБ. Розпізнаванню тексту вистачає
@@ -11832,8 +11974,7 @@ Return ONLY a JSON array of strings.`
         showNotification('Помилка обробки фото', 'warning');
       } finally {
         hideLoading();
-        document.getElementById('phrase-photo-upload-row').classList.remove('hidden');
-        document.getElementById('phrase-photo-upload-loading').classList.add('hidden');
+          document.getElementById('phrase-photo-upload-loading').classList.add('hidden');
         event.target.value = '';
       }
     }
@@ -13920,33 +14061,24 @@ ${source}
     }
 
     function startGrammarVoiceQuestion() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) { showNotification('Браузер не підтримує голосовий ввід', 'error'); return; }
-
       const btn = document.getElementById('grammar-voice-btn');
-      if (btn.classList.contains('recording')) {
-        if (window.grammarSpeechRec) window.grammarSpeechRec.stop();
-        return;
-      }
-
-      btn.classList.add('recording');
-      btn.style.background = 'rgba(239,68,68,0.2)';
-      btn.style.borderColor = 'rgba(239,68,68,0.5)';
-      btn.innerHTML = '<i class="fas fa-circle" style="animation:blink 1s infinite;color:#ef4444;font-size:14px;"></i>';
-
-      window.grammarSpeechRec = new SpeechRecognition();
-      window.grammarSpeechRec.lang = 'uk-UA';
-      window.grammarSpeechRec.interimResults = false;
-      window.grammarSpeechRec.maxAlternatives = 1;
-
-      window.grammarSpeechRec.onresult = (event) => {
-        const text = event.results[0][0].transcript.trim();
-        document.getElementById('grammar-question-input').value = text;
-        resetGrammarVoiceBtn();
-      };
-      window.grammarSpeechRec.onerror = () => resetGrammarVoiceBtn();
-      window.grammarSpeechRec.onend = () => resetGrammarVoiceBtn();
-      window.grammarSpeechRec.start();
+      if (!btn) return;
+      dictate({
+        language: 'uk',
+        onRecording: () => {
+          btn.classList.add('recording');
+          btn.style.background = 'rgba(239,68,68,0.2)';
+          btn.style.borderColor = 'rgba(239,68,68,0.5)';
+          btn.innerHTML = '<i class="fas fa-circle" style="animation:blink 1s infinite;color:#ef4444;font-size:14px;"></i>';
+        },
+        onTranscribing: () => {
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:14px;"></i>';
+        },
+        onIdle: resetGrammarVoiceBtn,
+        onText: (text) => {
+          document.getElementById('grammar-question-input').value = text;
+        },
+      });
     }
 
     function resetGrammarVoiceBtn() {
@@ -14652,44 +14784,31 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
 
     // ----- голосовий режим -----
     let phraseVoiceTranscript = '';
-    let phraseSpeechRec = null;
 
     function togglePhraseVoice() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        showNotification('Браузер не підтримує розпізнавання мови', 'warning');
-        return;
-      }
-      if (phraseSpeechRec) { phraseSpeechRec.stop(); return; }
-
       const btn = document.getElementById('phrase-voice-btn');
       const box = document.getElementById('phrase-voice-answer');
+      if (!btn || !box) return;
 
-      phraseSpeechRec = new SpeechRecognition();
-      phraseSpeechRec.lang = phraseAnswerLang() === 'uk' ? 'uk-UA' : 'en-US';
-      phraseSpeechRec.interimResults = false;
-      phraseSpeechRec.maxAlternatives = 1;
-
-      const reset = () => {
-        btn.classList.remove('recording');
-        btn.innerHTML = '<i class="fas fa-microphone"></i><span>Сказати переклад</span>';
-        phraseSpeechRec = null;
-      };
-
-      phraseSpeechRec.onresult = (event) => {
-        phraseVoiceTranscript = event.results[0][0].transcript.trim();
-        box.textContent = phraseVoiceTranscript;
-        box.classList.remove('empty');
-      };
-      phraseSpeechRec.onerror = (event) => {
-        if (event.error !== 'no-speech') showNotification('Помилка розпізнавання', 'warning');
-        reset();
-      };
-      phraseSpeechRec.onend = reset;
-
-      btn.classList.add('recording');
-      btn.innerHTML = '<i class="fas fa-circle" style="animation:blink 1s infinite;"></i><span>Слухаю… (натисни, щоб зупинити)</span>';
-      phraseSpeechRec.start();
+      dictate({
+        language: phraseAnswerLang() === 'uk' ? 'uk' : 'en',
+        onRecording: () => {
+          btn.classList.add('recording');
+          btn.innerHTML = '<i class="fas fa-circle" style="animation:blink 1s infinite;"></i><span>Слухаю… (натисни, щоб зупинити)</span>';
+        },
+        onTranscribing: () => {
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Розпізнаю…</span>';
+        },
+        onIdle: () => {
+          btn.classList.remove('recording');
+          btn.innerHTML = '<i class="fas fa-microphone"></i><span>Сказати переклад</span>';
+        },
+        onText: (text) => {
+          phraseVoiceTranscript = text;
+          box.textContent = text;
+          box.classList.remove('empty');
+        },
+      });
     }
 
     function normalizePhrase(text) {
@@ -14881,6 +15000,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
     document.addEventListener('DOMContentLoaded', () => {
       const phraseSearch = document.getElementById('phrase-search-input');
       if (phraseSearch) phraseSearch.addEventListener('input', () => loadPhrases());
+      bindTextKeyboard();
     });
 
     // ========== LEADERBOARD ==========
@@ -18509,6 +18629,195 @@ async function translateStory() {
       kb.classList.remove('hidden');
       document.body.classList.add('cw-crossword-keyboard-open');
       document.documentElement.classList.add('cw-instant-scroll');
+    }
+
+    // ===== Клавіатура для полів вводу слів і фраз =====
+    /**
+     * Мікрофон висів на самих полях, камера стояла окремим рядком під формою —
+     * три різні механізми на один екран. Тепер усе, чим наповнюють поле, лежить
+     * в одному шарі: літери, диктування і фото.
+     *
+     * Розкладок дві, бо слово набирають латиницею, а переклад — кирилицею;
+     * вона йде за полем, а клавіша «АБВ/ABC» лишає останнє слово за людиною.
+     * І окрема клавіша повертає поле системній клавіатурі: у неї є свої мови,
+     * виправлення і свайп, і відбирати це назовсім було б гірше, ніж лишити.
+     */
+    const TEXT_KEYBOARD_ROWS = {
+      en: ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'],
+      uk: ['йцукенгшщзхї', 'фівапролджє', 'ячсмитьбю'],
+    };
+
+    let textKeyboardInput = null;
+    let textKeyboardLayout = 'en';
+
+    function textKeyboardFields() {
+      return document.querySelectorAll('input[data-kbd]');
+    }
+
+    /**
+     * Поля мовчать при дотику: замість системної клавіатури піднімаємо свою.
+     *
+     * Тільки inputmode, без readonly. Readonly теж ховає системну клавіатуру,
+     * але заразом робить поле нередагованим узагалі — а воно має лишатися
+     * звичайним: у нього пишуть і фізична клавіатура, і диктування, і вставка.
+     */
+    function bindTextKeyboard() {
+      textKeyboardFields().forEach(input => {
+        input.setAttribute('inputmode', 'none');
+        input.addEventListener('focus', () => showTextKeyboard(input));
+      });
+    }
+
+    function showTextKeyboard(input) {
+      if (input.dataset.kbdSystem === 'on') return;  // людина попросила системну
+      textKeyboardInput = input;
+      textKeyboardLayout = input.dataset.kbd === 'uk' ? 'uk' : 'en';
+      renderTextKeyboard();
+    }
+
+    function hideTextKeyboard() {
+      const kb = document.getElementById('input-keyboard');
+      if (kb) { kb.classList.add('hidden'); kb.innerHTML = ''; }
+      closeKeyboardPhotoSheet();
+      textKeyboardInput = null;
+      document.body.classList.remove('text-keyboard-open');
+    }
+
+    function textKeyboardRowsHTML() {
+      return TEXT_KEYBOARD_ROWS[textKeyboardLayout].map((row, index) => {
+        const keys = row.split('').map(letter =>
+          `<button class="cw-key" data-letter="${letter}" onclick="textKeyboardType('${letter}')">${letter}</button>`
+        ).join('');
+        const backspace = index === 2
+          ? '<button class="cw-key cw-key-wide" onclick="textKeyboardBackspace()" aria-label="Стерти"><i class="fas fa-delete-left"></i></button>'
+          : '';
+        const cls = ['cw-keyboard-row'];
+        if (index === 1 && textKeyboardLayout === 'en') cls.push('cw-row-indent');
+        if (textKeyboardLayout === 'uk') cls.push('cw-row-uk');
+        return `<div class="${cls.join(' ')}">${keys}${backspace}</div>`;
+      }).join('');
+    }
+
+    function renderTextKeyboard() {
+      const kb = document.getElementById('input-keyboard');
+      if (!kb || !textKeyboardInput) return;
+      const other = textKeyboardLayout === 'en' ? 'АБВ' : 'ABC';
+      const recording = voiceCaptureBusy() ? ' recording' : '';
+      kb.innerHTML = `
+        ${textKeyboardRowsHTML()}
+        <div class="cw-keyboard-row">
+          <button class="cw-key cw-kb-layout" onclick="toggleTextKeyboardLayout()" aria-label="Розкладка">${other}</button>
+          <button class="cw-key" data-letter="'" onclick="textKeyboardType(&quot;'&quot;)">'</button>
+          <button class="cw-key cw-key-space" data-letter=" " onclick="textKeyboardType(' ')">пробіл</button>
+        </div>
+        <div class="cw-kb-tools">
+          <button class="cw-key cw-kb-tool-wide cw-kb-tool-accent${recording}" id="text-kb-mic"
+                  onclick="textKeyboardDictate()">
+            <i class="fas fa-microphone"></i> Голосом
+          </button>
+          <button class="cw-key cw-kb-tool-wide" onclick="openKeyboardPhotoSheet()">
+            <i class="fas fa-camera"></i> Фото
+          </button>
+          <button class="cw-key" onclick="useSystemKeyboard()" aria-label="Системна клавіатура">
+            <i class="fas fa-keyboard"></i>
+          </button>
+        </div>`;
+      kb.classList.remove('hidden');
+      document.body.classList.add('text-keyboard-open');
+    }
+
+    function toggleTextKeyboardLayout() {
+      textKeyboardLayout = textKeyboardLayout === 'en' ? 'uk' : 'en';
+      renderTextKeyboard();
+    }
+
+    /** Пишемо в позицію курсора і самі повідомляємо поле — підказки слухають input */
+    function textKeyboardType(character) {
+      const input = textKeyboardInput;
+      if (!input) return;
+      const start = input.selectionStart == null ? input.value.length : input.selectionStart;
+      const end = input.selectionEnd == null ? start : input.selectionEnd;
+      input.value = input.value.slice(0, start) + character + input.value.slice(end);
+      const caret = start + character.length;
+      try { input.setSelectionRange(caret, caret); } catch (e) { /* не всі типи вміють */ }
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function textKeyboardBackspace() {
+      const input = textKeyboardInput;
+      if (!input) return;
+      const start = input.selectionStart == null ? input.value.length : input.selectionStart;
+      const end = input.selectionEnd == null ? start : input.selectionEnd;
+      if (start === end && start === 0) return;
+      const from = start === end ? start - 1 : start;
+      input.value = input.value.slice(0, from) + input.value.slice(end);
+      try { input.setSelectionRange(from, from); } catch (e) { /* те саме */ }
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function textKeyboardDictate() {
+      const input = textKeyboardInput;
+      if (!input) return;
+      const mic = () => document.getElementById('text-kb-mic');
+      dictate({
+        language: textKeyboardLayout,
+        onRecording: () => {
+          const btn = mic();
+          if (btn) { btn.classList.add('recording'); btn.innerHTML = '<i class="fas fa-circle"></i> Слухаю…'; }
+        },
+        onTranscribing: () => {
+          const btn = mic();
+          if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Розпізнаю…';
+        },
+        onIdle: () => {
+          const btn = mic();
+          if (btn) { btn.classList.remove('recording'); btn.innerHTML = '<i class="fas fa-microphone"></i> Голосом'; }
+        },
+        onText: (text) => {
+          input.value = textKeyboardLayout === 'uk' ? text : text.toLowerCase();
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        },
+      });
+    }
+
+    /**
+     * Камера і галерея — це два різні <input type="file">, і зібрати їх в одну
+     * клавішу можна лише спитавши, який саме відкрити.
+     */
+    function openKeyboardPhotoSheet() {
+      const input = textKeyboardInput;
+      if (!input) return;
+      closeKeyboardPhotoSheet();
+      const handler = input.dataset.kbdPhoto;
+      if (!handler) return;
+      const sheet = document.createElement('div');
+      sheet.className = 'cw-kb-photo-sheet';
+      sheet.id = 'kb-photo-sheet';
+      sheet.innerHTML = `
+        <label><i class="fas fa-camera"></i> Сфотографувати
+          <input type="file" accept="image/*" capture="environment"
+                 onchange="closeKeyboardPhotoSheet();${handler}(event)" style="display:none;"></label>
+        <label><i class="fas fa-images"></i> З галереї
+          <input type="file" accept="image/*"
+                 onchange="closeKeyboardPhotoSheet();${handler}(event)" style="display:none;"></label>
+        <button onclick="closeKeyboardPhotoSheet()">Скасувати</button>`;
+      document.body.appendChild(sheet);
+    }
+
+    function closeKeyboardPhotoSheet() {
+      const sheet = document.getElementById('kb-photo-sheet');
+      if (sheet) sheet.remove();
+    }
+
+    /** Віддаємо поле системній клавіатурі — до наступного заходу на екран */
+    function useSystemKeyboard() {
+      const input = textKeyboardInput;
+      hideTextKeyboard();
+      if (!input) return;
+      input.dataset.kbdSystem = 'on';
+      input.removeAttribute('inputmode');
+      input.blur();
+      input.focus();
     }
 
     function hideCrosswordKeyboard() {

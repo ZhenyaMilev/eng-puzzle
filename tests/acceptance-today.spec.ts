@@ -261,6 +261,22 @@ test.describe('2. Translation suggestions', () => {
 
 // ─────────────────────────────  add word / phrase  ─────────────────────────────
 
+
+/**
+ * The camera moved into the keyboard, which comes up when a field is focused —
+ * so both photo sources are now reached through it rather than from a row of
+ * their own under the form.
+ */
+async function photoSource(page: Page, field: string, which: 'Сфотографувати' | 'З галереї') {
+  const open = page.locator('#kb-photo-sheet button:has-text("Скасувати")');
+  if (await open.count()) await open.click();
+  await page.click(field);
+  await expect(page.locator('#input-keyboard')).toBeVisible();
+  await page.click('#input-keyboard button:has-text("Фото")');
+  await expect(page.locator('#kb-photo-sheet')).toBeVisible();
+  return page.locator(`#kb-photo-sheet label:has-text("${which}") input[type="file"]`);
+}
+
 test.describe('3. Adding words and phrases', () => {
   test('3.1 a Cyrillic word gets a specific hint', async ({ page }) => {
     await loadApp(page);
@@ -291,8 +307,9 @@ test.describe('3. Adding words and phrases', () => {
   test('3.4 the word tab offers camera and gallery separately', async ({ page }) => {
     await loadApp(page);
     await openAdd(page);
-    await expect(page.locator('#photo-upload-label input[capture="environment"]')).toHaveCount(1);
-    const gallery = page.locator('#photo-gallery-label input[type="file"]');
+    expect(await (await photoSource(page, '#english-word', 'Сфотографувати'))
+      .getAttribute('capture')).toBe('environment');
+    const gallery = await photoSource(page, '#english-word', 'З галереї');
     await expect(gallery).toHaveAttribute('accept', 'image/*');
     expect(await gallery.getAttribute('capture')).toBeNull();
   });
@@ -301,8 +318,10 @@ test.describe('3. Adding words and phrases', () => {
     await loadApp(page);
     await openAdd(page);
     await page.click('#add-tab-phrase');
-    await expect(page.locator('#phrase-photo-upload-label input[capture="environment"]')).toHaveCount(1);
-    expect(await page.locator('#phrase-photo-gallery-label input[type="file"]').getAttribute('capture')).toBeNull();
+    expect(await (await photoSource(page, '#phrase-english-inline', 'Сфотографувати'))
+      .getAttribute('capture')).toBe('environment');
+    expect(await (await photoSource(page, '#phrase-english-inline', 'З галереї'))
+      .getAttribute('capture')).toBeNull();
   });
 
   test('3.6 a gallery pick runs the word extraction', async ({ page }) => {
@@ -310,10 +329,10 @@ test.describe('3. Adding words and phrases', () => {
     mockAi(page, [{ english: 'shade', translation: 'тінь' }]);
     await openAdd(page);
 
-    await page.setInputFiles('#photo-gallery-label input[type="file"]', { name: 'g.png', mimeType: 'image/png', buffer: TINY_PNG });
+    await (await photoSource(page, '#english-word', 'З галереї'))
+      .setInputFiles({ name: 'g.png', mimeType: 'image/png', buffer: TINY_PNG });
     await expect(page.locator('#photo-words-preview')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#photo-words-list')).toContainText('shade');
-    await expect(page.locator('#photo-upload-row')).toBeVisible();
   });
 
   test('3.7 a photo on the phrase tab yields phrases, not single words', async ({ page }) => {
@@ -322,7 +341,8 @@ test.describe('3. Adding words and phrases', () => {
     await openAdd(page);
     await page.click('#add-tab-phrase');
 
-    await page.setInputFiles('#phrase-photo-upload-label input[type="file"]', { name: 'p.png', mimeType: 'image/png', buffer: TINY_PNG });
+    await (await photoSource(page, '#phrase-english-inline', 'Сфотографувати'))
+      .setInputFiles({ name: 'p.png', mimeType: 'image/png', buffer: TINY_PNG });
     await expect(page.locator('#photo-phrases-list')).toContainText('Slow down', { timeout: 10000 });
     expect(calls[0].messages[0].content[0].text).toContain('phrases');
   });
@@ -332,7 +352,8 @@ test.describe('3. Adding words and phrases', () => {
     mockAi(page, [{ english: 'Slow down', translation: 'Пригальмуйте' }, { english: 'Take a seat', translation: 'Сідайте' }]);
     await openAdd(page);
     await page.click('#add-tab-phrase');
-    await page.setInputFiles('#phrase-photo-upload-label input[type="file"]', { name: 'p.png', mimeType: 'image/png', buffer: TINY_PNG });
+    await (await photoSource(page, '#phrase-english-inline', 'Сфотографувати'))
+      .setInputFiles({ name: 'p.png', mimeType: 'image/png', buffer: TINY_PNG });
     await expect(page.locator('#photo-phrases-list button')).toHaveCount(2, { timeout: 10000 });
 
     await expect(page.locator('#bulk-add-photo-phrases')).toBeHidden();
