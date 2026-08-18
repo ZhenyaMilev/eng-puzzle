@@ -15,10 +15,16 @@ async function openAddWord(page: Page) {
   await expect(page.locator('#input-keyboard')).toBeVisible();
 }
 
-async function galleryInput(page: Page) {
-  await page.click('#input-keyboard button:has-text("Фото")');
-  await expect(page.locator('#kb-photo-sheet')).toBeVisible();
-  return page.locator('#kb-photo-sheet label:has-text("З галереї") input[type="file"]');
+/**
+ * The key opens the device's own picker — the one that already offers a library,
+ * a fresh shot and a file. Our own sheet in front of it was a step for nothing.
+ */
+async function pickPhoto(page: Page, file: any) {
+  const [chooser] = await Promise.all([
+    page.waitForEvent('filechooser'),
+    page.click('#input-keyboard button:has-text("Фото")'),
+  ]);
+  await chooser.setFiles(file);
 }
 
 test.describe('Voice Input', () => {
@@ -52,19 +58,17 @@ test.describe('Photo Input', () => {
   });
 
   // Both sources are offered: shoot now, or pick a shot already taken.
-  test('the key asks which one — shoot now, or pick a shot already taken', async ({ page }) => {
+  test('the key hands straight over to the device picker', async ({ page }) => {
     await loadApp(page);
     await openAddWord(page);
-    await page.click('#input-keyboard button:has-text("Фото")');
 
-    const camera = page.locator('#kb-photo-sheet label:has-text("Сфотографувати") input[type="file"]');
-    await expect(camera).toHaveAttribute('accept', 'image/*');
-    await expect(camera).toHaveAttribute('capture', 'environment');
-
-    const gallery = page.locator('#kb-photo-sheet label:has-text("З галереї") input[type="file"]');
-    await expect(gallery).toHaveAttribute('accept', 'image/*');
-    // No capture attribute — otherwise the phone jumps straight into the camera
-    expect(await gallery.getAttribute('capture')).toBeNull();
+    const [chooser] = await Promise.all([
+      page.waitForEvent('filechooser'),
+      page.click('#input-keyboard button:has-text("Фото")'),
+    ]);
+    // Not pinned to the camera: that is what leaves the library out of the menu
+    expect(await chooser.element().getAttribute('capture')).toBeNull();
+    expect(await chooser.element().getAttribute('accept')).toBe('image/*');
   });
 
   test('a gallery pick runs the same extraction as a fresh shot', async ({ page }) => {
@@ -78,7 +82,7 @@ test.describe('Photo Input', () => {
       });
     });
     await openAddWord(page);
-    await (await galleryInput(page)).setInputFiles({
+    await pickPhoto(page, {
       name: 'from-gallery.png',
       mimeType: 'image/png',
       buffer: Buffer.from(
@@ -113,7 +117,7 @@ test.describe('Photo Input', () => {
         body: JSON.stringify({ choices: [{ message: { content: JSON.stringify(words) } }] }),
       }));
     await openAddWord(page);
-    await (await galleryInput(page)).setInputFiles({
+    await pickPhoto(page, {
       name: 'photo.png',
       mimeType: 'image/png',
       buffer: Buffer.from(

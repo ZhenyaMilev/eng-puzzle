@@ -30,17 +30,17 @@ async function openPhraseTab(page: Page) {
 }
 
 /**
- * The camera is a key in the keyboard now, and the keyboard follows the focused
- * field — so a photo is reached the same way on the phrase tab as on the word one.
+ * The camera is a key in the keyboard, and it hands straight over to the device
+ * picker — the one that already offers a library, a fresh shot and a file.
  */
-async function phrasePhotoSource(page: Page, which: 'Сфотографувати' | 'З галереї') {
-  const open = page.locator('#kb-photo-sheet button:has-text("Скасувати")');
-  if (await open.count()) await open.click();
+async function pickPhrasePhoto(page: Page, file: any) {
   await page.click('#phrase-english-inline');
   await expect(page.locator('#input-keyboard')).toBeVisible();
-  await page.click('#input-keyboard button:has-text("Фото")');
-  await expect(page.locator('#kb-photo-sheet')).toBeVisible();
-  return page.locator(`#kb-photo-sheet label:has-text("${which}") input[type="file"]`);
+  const [chooser] = await Promise.all([
+    page.waitForEvent('filechooser'),
+    page.click('#input-keyboard button:has-text("Фото")'),
+  ]);
+  await chooser.setFiles(file);
 }
 
 test.describe('Add phrase from photo', () => {
@@ -58,13 +58,14 @@ test.describe('Add phrase from photo', () => {
     await loadApp(page);
     await openPhraseTab(page);
 
-    const camera = await phrasePhotoSource(page, 'Сфотографувати');
-    await expect(camera).toHaveAttribute('accept', 'image/*');
-    await expect(camera).toHaveAttribute('capture', 'environment');
-
-    const gallery = await phrasePhotoSource(page, 'З галереї');
-    await expect(gallery).toHaveAttribute('accept', 'image/*');
-    expect(await gallery.getAttribute('capture')).toBeNull();
+    await page.click('#phrase-english-inline');
+    const [chooser] = await Promise.all([
+      page.waitForEvent('filechooser'),
+      page.click('#input-keyboard button:has-text("Фото")'),
+    ]);
+    expect(await chooser.element().getAttribute('accept')).toBe('image/*');
+    // Not pinned to the camera — that is what leaves the library out of the menu
+    expect(await chooser.element().getAttribute('capture')).toBeNull();
   });
 
   test('preview is hidden until a photo is analysed', async ({ page }) => {
@@ -78,7 +79,7 @@ test.describe('Add phrase from photo', () => {
     const calls = mockPhraseExtraction(page);
     await openPhraseTab(page);
 
-    await (await phrasePhotoSource(page, 'Сфотографувати')).setInputFiles({
+    await pickPhrasePhoto(page, {
       name: 'sign.png', mimeType: 'image/png', buffer: TINY_PNG,
     });
 
@@ -98,7 +99,7 @@ test.describe('Add phrase from photo', () => {
     mockPhraseExtraction(page);
     await openPhraseTab(page);
 
-    await (await phrasePhotoSource(page, 'Сфотографувати')).setInputFiles({
+    await pickPhrasePhoto(page, {
       name: 'sign.png', mimeType: 'image/png', buffer: TINY_PNG,
     });
     await expect(page.locator('#photo-phrases-list button')).toHaveCount(2, { timeout: 10000 });
@@ -123,7 +124,7 @@ test.describe('Add phrase from photo', () => {
     mockPhraseExtraction(page);
     await openPhraseTab(page);
 
-    await (await phrasePhotoSource(page, 'Сфотографувати')).setInputFiles({
+    await pickPhrasePhoto(page, {
       name: 'sign.png', mimeType: 'image/png', buffer: TINY_PNG,
     });
     await expect(page.locator('#photo-phrases-list button')).toHaveCount(2, { timeout: 10000 });
@@ -139,7 +140,7 @@ test.describe('Add phrase from photo', () => {
     mockPhraseExtraction(page);
     await openPhraseTab(page);
 
-    await (await phrasePhotoSource(page, 'З галереї')).setInputFiles({
+    await pickPhrasePhoto(page, {
       name: 'from-gallery.png', mimeType: 'image/png', buffer: TINY_PNG,
     });
 
