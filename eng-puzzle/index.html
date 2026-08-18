@@ -5691,6 +5691,33 @@
     }
     .sc-start-btn:disabled { opacity:0.4; cursor:default; }
 
+    /* Вводини читають кілька секунд перед стартом, тож рядки короткі й окремі */
+    .sc-brief-body { display:flex; flex-direction:column; gap:12px; }
+
+    .sc-brief-row {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .sc-brief-row .sc-brief-label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(240, 237, 232, 0.4);
+      margin-bottom: 3px;
+    }
+
+    .sc-brief-row .sc-brief-text {
+      font-size: 15px;
+      line-height: 1.35;
+      color: #F0EDE8;
+    }
+
+    .sc-brief-row.sc-brief-goal .sc-brief-text { color: #E8A838; font-weight: 600; }
+
     /* Chat UI */
     .sc-chat-container {
       display:flex; flex-direction:column; height:calc(var(--app-height) - 70px); position:relative;
@@ -7902,6 +7929,11 @@
         </div>
         <div class="sc-config">
           <div>
+            <div class="sc-config-label">Режим</div>
+            <div class="sc-chips" id="sc-modes"></div>
+            <p id="sc-mode-hint" style="font-size:12px;color:rgba(240,237,232,0.4);margin:6px 0 0;"></p>
+          </div>
+          <div>
             <div class="sc-config-label">Тема розмови</div>
             <div class="sc-chips" id="sc-topics"></div>
             <textarea id="sc-custom-topic" class="sc-custom-topic hidden" rows="2" placeholder="Опиши свою тему..."></textarea>
@@ -7935,6 +7967,18 @@
             Можеш говорити українською, якщо не знаєш слово — бот зрозуміє. Після розмови отримаєш аналіз помилок.
           </p>
           <button class="sc-start-btn" id="sc-start-btn" onclick="scStartChat()" disabled>Почати розмову</button>
+        </div>
+      </div>
+
+      <!-- Вводини перед ситуацією: хто ти, хто він, що відбувається -->
+      <div id="sc-brief" class="crossword-popup hidden">
+        <div class="crossword-popup-content" style="max-width:340px;text-align:left;">
+          <h3 id="sc-brief-title" style="text-align:center;margin-bottom:16px;">Ситуація</h3>
+          <div id="sc-brief-body" class="sc-brief-body"></div>
+          <div class="crossword-popup-buttons" style="margin-top:20px;">
+            <button class="popup-btn popup-btn-primary" onclick="scBeginScenario()">Почати</button>
+            <button class="popup-btn popup-btn-secondary" onclick="scCancelScenario()">Інша ситуація</button>
+          </div>
         </div>
       </div>
 
@@ -9330,7 +9374,7 @@
       const opts = options || {};
       // Функція теж це перевіряє, але тут ми ще можемо сказати це людині
       if (audioBlob.size > AI_MAX_AUDIO_BYTES) {
-        throw new Error('Запис задовгий — спробуй коротшу репліку.');
+        throw new Error('Запис задовгий — спробуйте коротшу репліку.');
       }
       const base64 = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -9363,7 +9407,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-18.3';
+    const APP_VERSION = '2026-08-18.4';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -11534,7 +11578,7 @@ Return ONLY the JSON array, no other text.`;
     async function startVoiceCapture() {
       if (voiceCapture) return;
       if (!window.MediaRecorder || !navigator.mediaDevices) {
-        throw voiceError('Тут не можна записати голос — введи текстом');
+        throw voiceError('Тут не можна записати голос — введіть текстом');
       }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const chunks = [];
@@ -11580,10 +11624,10 @@ Return ONLY the JSON array, no other text.`;
           if (text) {
             if (opts.onText) opts.onText(text);
           } else {
-            showNotification('Нічого не почув — спробуй ще раз', 'warning');
+            showNotification('Нічого не почув — спробуйте ще раз', 'warning');
           }
         } catch (e) {
-          showNotification(voiceProblem(e, 'Не вдалося розпізнати — спробуй ще раз'), 'warning');
+          showNotification(voiceProblem(e, 'Не вдалося розпізнати — спробуйте ще раз'), 'warning');
         } finally {
           idle();
         }
@@ -11595,7 +11639,7 @@ Return ONLY the JSON array, no other text.`;
         if (opts.onRecording) opts.onRecording();
       } catch (e) {
         showNotification(
-          voiceProblem(e, 'Немає доступу до мікрофона — дозволь його в налаштуваннях'), 'warning');
+          voiceProblem(e, 'Немає доступу до мікрофона — дозвольте його в налаштуваннях'), 'warning');
         idle();
       }
     }
@@ -20423,7 +20467,19 @@ Return ONLY the JSON array, no other text.`;
       { id:'onyx', label:'Onyx (низький)' },
     ];
 
-    let scConfig = { topic:'', customTopic:'', level:'Elementary', format:'text', style:'friendly', duration:2, voice:'nova', useMyWords:true };
+    /**
+     * Два режими розмови. У вільному Sam — приятель, який пам'ятає співрозмовника. У
+     * ситуативному він грає роль, і роль важливіша за пам'ять: якщо він
+     * «пригадає», що ти інженер, коли ти зараз пацієнт, сцена розсиплеться.
+     * Тому в ситуації пам'ять не читаємо і не пишемо.
+     */
+    const SC_MODES = [
+      { id:'free', label:'Вільна розмова', hint:'Sam пам\'ятає попередні розмови і говорить як приятель.' },
+      { id:'scenario', label:'Ситуація', hint:'Ролі й сцену вигадує сам — за темою і рівнем, які ви обрали. Щоразу нову.' },
+    ];
+
+    let scConfig = { mode:'free', topic:'', customTopic:'', level:'Elementary', format:'text', style:'friendly', duration:2, voice:'nova', useMyWords:true };
+    let scScenario = null;   // { setting, youAre, partnerName, partnerIs, goal, twist }
     let scChatHistory = [];
     let scTimerInterval = null;
     let scTimeLeft = 0;
@@ -20459,7 +20515,8 @@ Return ONLY the JSON array, no other text.`;
     function scRenderMemoryBadge() {
       const el = document.getElementById('sc-memory-badge');
       if (!el) return;
-      if (!scMemory.conversations) {
+      // У ситуації пам'ять не працює — обіцяти її на цьому екрані було б брехнею
+      if (!scMemory.conversations || scConfig.mode === 'scenario') {
         el.classList.add('hidden');
         return;
       }
@@ -20482,6 +20539,9 @@ Return ONLY the JSON array, no other text.`;
     // Профіль перезбирається цілком, а не дописується, — інакше він
     // розповзається і повторюється від розмови до розмови
     async function scUpdateMemory(analysis) {
+      // Роль — не факт про людину. Записувати «працює лікарем» після сцени, де
+      // вона грала лікаря, означало б отруїти профіль вигадкою.
+      if (scConfig.mode === 'scenario') return;
       if (!aiAvailable()) return;
       const transcript = scChatHistory
         .filter(m => m.role !== 'system')
@@ -20666,6 +20726,12 @@ Write it in English, as short factual lines. No headings, no markdown, no commen
     }
 
     function scRenderConfig() {
+      // Modes
+      document.getElementById('sc-modes').innerHTML = SC_MODES.map(m =>
+        `<div class="sc-chip${scConfig.mode===m.id?' active':''}" onclick="scSelectMode(this,'${m.id}')">${m.label}</div>`
+      ).join('');
+      scRenderModeHint();
+
       // Topics
       const topicsEl = document.getElementById('sc-topics');
       topicsEl.innerHTML = SC_TOPICS.map(t =>
@@ -20703,6 +20769,24 @@ Write it in English, as short factual lines. No headings, no markdown, no commen
       var umwEl = document.getElementById('sc-use-my-words');
       if (umwEl) umwEl.checked = scConfig.useMyWords !== false;
 
+      scUpdateStartBtn();
+    }
+
+    function scRenderModeHint() {
+      const hint = document.getElementById('sc-mode-hint');
+      const mode = SC_MODES.find(m => m.id === scConfig.mode) || SC_MODES[0];
+      if (hint) hint.textContent = mode.hint;
+      // Пам'ять стосується лише вільної розмови, тож у ситуації її не обіцяємо
+      scRenderMemoryBadge();
+      const start = document.getElementById('sc-start-btn');
+      if (start) start.textContent = scConfig.mode === 'scenario' ? 'Створити ситуацію' : 'Почати розмову';
+    }
+
+    function scSelectMode(el, mode) {
+      el.parentElement.querySelectorAll('.sc-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      scConfig.mode = mode;
+      scRenderModeHint();
       scUpdateStartBtn();
     }
 
@@ -20746,9 +20830,100 @@ Write it in English, as short factual lines. No headings, no markdown, no commen
       }
     });
 
-    async function scStartChat() {
+    // ===== Ситуативний режим =====
+    /**
+     * Ролі не зашиті списком: сцену вигадує сам співрозмовник за темою і рівнем,
+     * які людина вже обрала на цьому ж екрані, тож щоразу вона інша. Спершу —
+     * вводини на кілька секунд: хто ти, хто він, що взагалі відбувається. Без
+     * них перша репліка в ролі читається як помилка.
+     */
+    async function scPrepareScenario(topic) {
+      const response = await aiChat({
+        model: 'gpt-4o-mini',
+        temperature: 1,
+        max_tokens: 400,
+        messages: [{
+          role: 'user',
+          content: `Invent a short role-play for an English learner to practise speaking.
+
+Topic: "${topic}"
+Their English level: ${scConfig.level}
+
+Return ONLY valid JSON, no markdown:
+{
+  "setting": "where and when this happens, one sentence",
+  "youAre": "the role the LEARNER plays, second person, one short sentence",
+  "partnerName": "a first name for the character the assistant plays",
+  "partnerIs": "who that character is and what they want, one short sentence",
+  "goal": "what the learner is trying to achieve in this scene, one short sentence",
+  "twist": "a complication the character introduces once the scene is going, one short sentence"
+}
+
+Rules:
+- The scene must fit the topic and be solvable by talking.
+- Keep the learner's role ordinary — someone with a reason to speak, not an expert.
+- Match the vocabulary to their level.
+- Write every field in Ukrainian, addressing the learner formally as "ви", never "ти".
+- Never mention that this is an exercise.`
+        }],
+      });
+      if (!response.ok) throw new Error(aiErrorMessage(response));
+      const data = await response.json();
+      const raw = ((data.choices && data.choices[0] && data.choices[0].message.content) || '')
+        .replace(/```json/gi, '').replace(/```/g, '').trim();
+      const scenario = JSON.parse(raw);
+      if (!scenario || !scenario.youAre || !scenario.partnerIs) throw new Error('bad scenario');
+      return scenario;
+    }
+
+    function scShowBrief(scenario) {
+      const rows = [
+        ['Де ви', scenario.setting, ''],
+        ['Ви', scenario.youAre, ''],
+        [scenario.partnerName || 'Співрозмовник', scenario.partnerIs, ''],
+        ['Ваша мета', scenario.goal, ' sc-brief-goal'],
+      ];
+      document.getElementById('sc-brief-body').innerHTML = rows
+        .filter(([, text]) => text)
+        .map(([label, text, extra]) => `<div class="sc-brief-row${extra}">
+            <span class="sc-brief-label">${escapeHtml(label)}</span>
+            <span class="sc-brief-text">${escapeHtml(text)}</span>
+          </div>`).join('');
+      document.getElementById('sc-brief').classList.remove('hidden');
+    }
+
+    function scCancelScenario() {
+      document.getElementById('sc-brief').classList.add('hidden');
+      scScenario = null;
+    }
+
+    function scBeginScenario() {
+      document.getElementById('sc-brief').classList.add('hidden');
+      scStartChat({ skipScenarioPrompt: true });
+    }
+
+    async function scStartChat(options) {
 
       const topic = scConfig.topic === '__custom__' ? scConfig.customTopic : scConfig.topic;
+
+      // Спершу сцена і вводини, і лише потім розмова
+      if (scConfig.mode === 'scenario' && !(options && options.skipScenarioPrompt)) {
+        const startBtn = document.getElementById('sc-start-btn');
+        const wasLabel = startBtn.textContent;
+        startBtn.disabled = true;
+        startBtn.textContent = 'Вигадую ситуацію…';
+        try {
+          scScenario = await scPrepareScenario(topic);
+          scShowBrief(scScenario);
+        } catch (e) {
+          showNotification(e && e.message && e.message !== 'bad scenario'
+            ? e.message : 'Не вдалося вигадати ситуацію — спробуйте ще раз', 'warning');
+        } finally {
+          startBtn.disabled = false;
+          startBtn.textContent = wasLabel;
+        }
+        return;
+      }
 
       // Save config
       try {
@@ -20835,9 +21010,29 @@ Write it in English, as short factual lines. No headings, no markdown, no commen
         }
       }
 
-      const memoryBlock = scMemory.profile
+      // У ролі пам'ять шкодить: «ти ж казав, що інженер» посеред сцени, де ти
+      // пацієнт, ламає її. Роль важливіша, тож у ситуації профіль не читаємо.
+      const memoryBlock = (scConfig.mode !== 'scenario' && scMemory.profile)
         ? `\nWHAT YOU ALREADY KNOW ABOUT THIS PERSON — you have chatted ${scMemory.conversations} time(s) before and you remember them:\n${scMemory.profile}\n- Greet them as someone you already know; do NOT introduce yourself again and do NOT ask things you already know.\n- Bring up what you remember naturally, the way a friend would. Never say you have "notes", "a profile" or "memory", and never recite the list.\n- Prefer topics you have NOT covered yet.\n`
         : '';
+
+      const scenarioBlock = (scConfig.mode === 'scenario' && scScenario) ? `
+YOU ARE NOT SAM IN THIS CONVERSATION. You are playing a character.
+
+THE SCENE: ${scScenario.setting}
+YOU PLAY: ${scScenario.partnerName || 'the other person'} — ${scScenario.partnerIs}
+THEY PLAY: ${scScenario.youAre}
+WHAT THEY WANT: ${scScenario.goal}
+
+HOW TO PLAY IT:
+- Stay in character the whole time. Never break it, never mention roles, scenes or practice.
+- Drive the scene. Do not wait to be asked things — ask for what your character needs,
+  react, object, offer, decide. A silent partner leaves them with nothing to answer.
+- Once the conversation is going, bring in this complication: ${scScenario.twist || 'something that makes the request harder than expected'}.
+  Introduce it naturally, in one turn, not as an announcement.
+- Keep them talking: every turn should give them something to respond to.
+- Open the scene yourself, in character, with the first thing your character would say.
+` : '';
 
       const systemPrompt = `You are a native English speaker named Sam chatting casually. You have real hobbies, preferences, and stories. Talk like a real friend — share your opinion, tell anecdotes, react with emotion. Use contractions, colloquial phrases, slang. Do NOT interview the user — have a real back-and-forth conversation.
 
@@ -20853,8 +21048,10 @@ ${levelRules[scConfig.level] || levelRules['Intermediate']}
 - Do NOT explain grammar unless asked
 - Do NOT use markdown formatting
 - Be natural and conversational — like a real person, not an interviewer
-${vocabPromptBlock}${memoryBlock}
-Start the conversation with a greeting and an opening question about the topic.`;
+${vocabPromptBlock}${memoryBlock}${scenarioBlock}
+${scConfig.mode === 'scenario' && scScenario
+  ? 'Open the scene in character — the rules above about the scene override the friendly-chat ones where they disagree.'
+  : 'Start the conversation with a greeting and an opening question about the topic.'}`;
 
       scChatHistory = [{ role:'system', content: systemPrompt }];
       scEnded = false;
