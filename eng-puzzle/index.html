@@ -3983,7 +3983,7 @@
     /* Повна розкладка — окремий шар знизу, як системна клавіатура, але більший */
     /* Панель перекриває низ сторінки, тож лишаємо під неї місце */
     body.cw-keyboard-open #word-constructor-training-section {
-      padding-bottom: 400px;
+      padding-bottom: 430px;
     }
 
     .cw-keyboard {
@@ -3998,12 +3998,14 @@
       box-shadow: 0 -12px 28px rgba(0, 0, 0, 0.5);
     }
 
-    /* Дії і прогрес — під клавішами: так вони ближче до великого пальця */
+    /* Дії і прогрес — під клавішами: так вони ближче до великого пальця.
+       Раніше клавіші, кнопки, лічильник і смужка стояли впритул одне до одного
+       і читалися як один злиплий блок; місця внизу вистачає, тож розводимо. */
     .cw-keyboard-actions {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-top: 8px;
+      gap: 10px;
+      margin-top: 16px;
       padding: 0 2px;
     }
 
@@ -4011,7 +4013,7 @@
     .cw-keyboard-actions .skip-button {
       flex: 1;
       margin: 0;
-      padding: 13px 8px;
+      padding: 15px 8px;
       font-size: 15px;
       font-weight: 700;
       border-radius: 12px;
@@ -4040,8 +4042,8 @@
     }
 
     .cw-kb-progress {
-      height: 3px;
-      margin-top: 8px;
+      height: 4px;
+      margin: 14px 2px 4px;
       background: rgba(255, 255, 255, 0.08);
       border-radius: 2px;
       overflow: hidden;
@@ -4135,7 +4137,9 @@
       text-transform: none;
     }
 
+    /* «ABC» не влазило у клавішу завширшки з літеру — остання буква вилазила */
     .cw-kb-layout {
+      flex: 1.6 1 0;
       font-weight: 600;
     }
 
@@ -4162,23 +4166,39 @@
       bottom: calc(315px + env(safe-area-inset-bottom, 0px));
     }
 
-    /* Вибір джерела фото — маленька шторка над клавіатурою */
-    .cw-kb-photo-sheet {
+    /* Вибір джерела фото. Шторка сідала посеред клавіатури, і з-під неї стирчали
+       обрізані ряди клавіш — виглядало як збій рендера. Тепер це вікно: тло
+       гасить усе позаду, а сама шторка стоїть на місці клавіатури і закриває її. */
+    .cw-kb-photo-backdrop {
       position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 1150;
-      background: #171a22;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 14px 12px calc(14px + max(env(safe-area-inset-bottom, 0px), var(--safe-bottom, 0px)));
+      inset: 0;
+      z-index: 1200;
+      background: rgba(0, 0, 0, 0.55);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .cw-kb-photo-sheet {
+      background: #171a22;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px 18px 0 0;
+      padding: 18px 12px calc(18px + max(env(safe-area-inset-bottom, 0px), var(--safe-bottom, 0px)));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .cw-kb-photo-sheet .cw-kb-photo-title {
+      text-align: center;
+      font-size: 13px;
+      color: rgba(240, 237, 232, 0.45);
+      margin: 0 0 2px;
     }
 
     .cw-kb-photo-sheet label,
     .cw-kb-photo-sheet button {
+      box-sizing: border-box;
       width: 100%;
       margin: 0;
       padding: 14px;
@@ -4193,6 +4213,17 @@
       justify-content: center;
       gap: 8px;
       cursor: pointer;
+    }
+
+    /* Що саме перекладаємо. Досі вправа була диктантом — слово лише звучало,
+       і напрямок ніде не було видно. */
+    .constructor-asking {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 600;
+      color: #F0EDE8;
+      margin: 14px 0 0;
+      overflow-wrap: anywhere;
     }
 
     /* Центрирование иконки звука */
@@ -6357,7 +6388,7 @@
 
     /* Клавіатура конструктора стоїть внизу — банер піднімається над нею */
     body.cw-keyboard-open #app-update-banner {
-      bottom: calc(285px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(320px + env(safe-area-inset-bottom, 0px));
     }
 
     body.cw-crossword-keyboard-open #app-update-banner {
@@ -7579,7 +7610,16 @@
         </button>
       </div>
       <div id="constructor-mode-select">
-        <p class="mode-group-label">Які букви показувати:</p>
+        <p class="mode-group-label">Що з чого збирати:</p>
+        <div class="mode-options">
+          <button class="mode-option active" id="constructor-dir-uk-en" onclick="setConstructorDirection('uk-en')">
+            <i class="fas fa-arrow-right-long"></i>З української на англійську
+          </button>
+          <button class="mode-option" id="constructor-dir-en-uk" onclick="setConstructorDirection('en-uk')">
+            <i class="fas fa-arrow-left-long"></i>З англійської на українську
+          </button>
+        </div>
+        <p class="mode-group-label" style="margin-top:14px;">Які букви показувати:</p>
         <div class="mode-options">
           <button class="mode-option active" id="constructor-mode-word" onclick="setConstructorMode('word')">
             <i class="fas fa-puzzle-piece"></i>Тільки букви цього слова
@@ -9407,7 +9447,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-18.4';
+    const APP_VERSION = '2026-08-18.5';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -17655,6 +17695,24 @@ async function translateStory() {
     // Показати тренування конструктор слова
     // 'word' — лише букви слова, вони закінчуються; 'full' — уся розкладка, букви не зникають
     let constructorMode = 'word';
+    /**
+     * Напрямок вирішує і що показати, і якими літерами відповідати. Досі вправа
+     * була одна: чуєш англійське слово — збираєш його ж, тобто це був диктант.
+     * Тепер це переклад в обидва боки, і розкладка йде за мовою відповіді.
+     */
+    let constructorDirection = 'uk-en';
+
+    function constructorAsking(word) {
+      return constructorDirection === 'en-uk' ? word.english : word.translation;
+    }
+
+    function constructorExpected(word) {
+      return constructorDirection === 'en-uk' ? word.translation : word.english;
+    }
+
+    function constructorAnswerLang() {
+      return constructorDirection === 'en-uk' ? 'uk' : 'en';
+    }
 
     function startWordConstructorTraining() {
       toggleMainTitle();
@@ -17672,6 +17730,13 @@ async function translateStory() {
       updateConstructorModeHint();
     }
 
+    function setConstructorDirection(direction) {
+      constructorDirection = direction;
+      document.getElementById('constructor-dir-uk-en').classList.toggle('active', direction === 'uk-en');
+      document.getElementById('constructor-dir-en-uk').classList.toggle('active', direction === 'en-uk');
+      updateConstructorModeHint();
+    }
+
     function setConstructorMode(mode) {
       constructorMode = mode;
       document.getElementById('constructor-mode-word').classList.toggle('active', mode === 'word');
@@ -17680,9 +17745,13 @@ async function translateStory() {
     }
 
     function updateConstructorModeHint() {
+      const answering = constructorDirection === 'en-uk' ? 'українською' : 'англійською';
+      const full = constructorDirection === 'en-uk'
+        ? 'Уся українська розкладка, жодна літера не зникає'
+        : 'Усі 26 літер, жодна не зникає';
       document.getElementById('constructor-mode-hint').textContent = constructorMode === 'full'
-        ? 'Усі 26 літер, жодна не зникає — доведеться згадати слово самостійно.'
-        : 'Тільки літери цього слова, використана літера зникає — легше вгадати.';
+        ? `${full} — доведеться згадати слово ${answering} самостійно.`
+        : `Тільки літери відповіді ${answering}, використана літера зникає — легше вгадати.`;
     }
 
     function startConstructorPractice() {
@@ -17733,9 +17802,10 @@ async function translateStory() {
         return;
       }
       const questionWord = constructorWords[currentConstructorQuestion];
+      const expected = constructorExpected(questionWord);
       const letters = constructorMode === 'full'
         ? getFullKeyboardLetters()
-        : getUniqueLetters(questionWord.english);
+        : getUniqueLetters(expected);
       // Сброс переменных
       constructedWord = '';
       usedLetters = {};
@@ -17754,8 +17824,9 @@ async function translateStory() {
           <i class="fas fa-volume-up"></i>
         </button>
       </div>
+      <p class="constructor-asking">${escapeHtml(constructorAsking(questionWord))}</p>
       <div class="input-block-custom" style="display: flex; justify-content: center; margin-top: 10px;">
-        <input type="text" id="constructor-answer" placeholder="Збери слово..." readonly inputmode="none" onfocus="this.blur()">
+        <input type="text" id="constructor-answer" placeholder="${constructorDirection === 'en-uk' ? 'Збери переклад...' : 'Збери слово...'}" readonly inputmode="none" onfocus="this.blur()">
         <button class="delete-constructor-button" onclick="deleteLastLetter()">
           <i class="fas fa-backspace"></i>
         </button>
@@ -17780,7 +17851,10 @@ async function translateStory() {
 
     // Порядок як на звичайній клавіатурі, а data-count -1 означає «не закінчується»
     function getFullKeyboardLetters() {
-      return 'qwertyuiopasdfghjklzxcvbnm'.split('').map(letter => ({ letter: letter, count: -1 }));
+      const alphabet = constructorAnswerLang() === 'uk'
+        ? TEXT_KEYBOARD_ROWS.uk.join('')
+        : 'qwertyuiopasdfghjklzxcvbnm';
+      return alphabet.split('').map(letter => ({ letter: letter, count: -1 }));
     }
 
     /**
@@ -17795,7 +17869,8 @@ async function translateStory() {
 
     // Розкладка одна на конструктор і кросворд — різняться лише обробники
     function fullKeyboardRowsHTML(onLetter = 'addLetterToConstructor', onBackspace = 'deleteLastLetter', opts = {}) {
-      const rows = KEYBOARD_ROWS.map((row, index) => {
+      const layout = opts.layout === 'uk' ? TEXT_KEYBOARD_ROWS.uk : KEYBOARD_ROWS;
+      const rows = layout.map((row, index) => {
         // data-count="-1" — «літера не закінчується»: конструктор тоді лише
         // дописує її і клавіші не чіпає. Інакше він переписує напис самою
         // літерою — і «пробіл» після першого ж натиску став би порожнім.
@@ -17807,7 +17882,9 @@ async function translateStory() {
         const backspace = index === 2
           ? `<button class="cw-key cw-key-wide" onclick="${onBackspace}()" aria-label="Стерти"><i class="fas fa-delete-left"></i></button>`
           : '';
-        return `<div class="cw-keyboard-row${index === 1 ? ' cw-row-indent' : ''}">${keys}${backspace}</div>`;
+        const indent = index === 1 && opts.layout !== 'uk' ? ' cw-row-indent' : '';
+        const dense = opts.layout === 'uk' ? ' cw-row-uk' : '';
+        return `<div class="cw-keyboard-row${indent}${dense}">${keys}${backspace}</div>`;
       });
 
       // У словнику є і «don't», і «ice cream» — без цих двох клавіш таке слово
@@ -17831,7 +17908,8 @@ async function translateStory() {
         return;
       }
       kb.innerHTML = `
-        ${fullKeyboardRowsHTML('addLetterToConstructor', 'deleteLastLetter', { punctuation: true })}
+        ${fullKeyboardRowsHTML('addLetterToConstructor', 'deleteLastLetter',
+            { punctuation: true, layout: constructorAnswerLang() })}
         <div class="cw-keyboard-actions">
           <button class="check-button" onclick="submitConstructorAnswer(${jsArg(questionWord.english)})">Перевірити</button>
           <button class="skip-button" onclick="skipConstructor()">Пропустити</button>
@@ -17923,7 +18001,10 @@ async function translateStory() {
       if (!lockAnswer('#word-constructor-training-section')) return;
       const userAnswer = document.getElementById('constructor-answer').value.trim().toLowerCase();
       const feedback = document.getElementById('constructor-feedback');
-      if (userAnswer === correctWord.toLowerCase()) {
+      // Звіряємо з відповіддю обраного напрямку, а статистику однаково пишемо
+      // на англійське слово — воно ключ у словнику, переклад ключем не буває
+      const expected = constructorExpected(constructorWords[currentConstructorQuestion] || {});
+      if (userAnswer === String(expected || correctWord).toLowerCase()) {
         constructorCorrectAnswers++;
         updateWordStats(correctWord, true);
         feedback.classList.remove('not-correct-label');
@@ -18713,7 +18794,6 @@ async function translateStory() {
     }
 
     function showTextKeyboard(input) {
-      if (input.dataset.kbdSystem === 'on') return;  // людина попросила системну
       textKeyboardInput = input;
       textKeyboardLayout = input.dataset.kbd === 'uk' ? 'uk' : 'en';
       renderTextKeyboard();
@@ -18746,13 +18826,15 @@ async function translateStory() {
       const kb = document.getElementById('input-keyboard');
       if (!kb || !textKeyboardInput) return;
       const other = textKeyboardLayout === 'en' ? 'АБВ' : 'ABC';
+      // Підпис пробілу тією мовою, якою зараз набирають
+      const spaceLabel = textKeyboardLayout === 'en' ? 'space' : 'пробіл';
       const recording = voiceCaptureBusy() ? ' recording' : '';
       kb.innerHTML = `
         ${textKeyboardRowsHTML()}
         <div class="cw-keyboard-row">
           <button class="cw-key cw-kb-layout" onclick="toggleTextKeyboardLayout()" aria-label="Розкладка">${other}</button>
           <button class="cw-key" data-letter="'" onclick="textKeyboardType(&quot;'&quot;)">'</button>
-          <button class="cw-key cw-key-space" data-letter=" " onclick="textKeyboardType(' ')">пробіл</button>
+          <button class="cw-key cw-key-space" data-letter=" " onclick="textKeyboardType(' ')">${spaceLabel}</button>
         </div>
         <div class="cw-kb-tools">
           <button class="cw-key cw-kb-tool-wide cw-kb-tool-accent${recording}" id="text-kb-mic"
@@ -18761,9 +18843,6 @@ async function translateStory() {
           </button>
           <button class="cw-key cw-kb-tool-wide" onclick="openKeyboardPhotoSheet()">
             <i class="fas fa-camera"></i> Фото
-          </button>
-          <button class="cw-key" onclick="useSystemKeyboard()" aria-label="Системна клавіатура">
-            <i class="fas fa-keyboard"></i>
           </button>
         </div>`;
       kb.classList.remove('hidden');
@@ -18834,34 +18913,27 @@ async function translateStory() {
       closeKeyboardPhotoSheet();
       const handler = input.dataset.kbdPhoto;
       if (!handler) return;
-      const sheet = document.createElement('div');
-      sheet.className = 'cw-kb-photo-sheet';
-      sheet.id = 'kb-photo-sheet';
-      sheet.innerHTML = `
-        <label><i class="fas fa-camera"></i> Сфотографувати
-          <input type="file" accept="image/*" capture="environment"
-                 onchange="closeKeyboardPhotoSheet();${handler}(event)" style="display:none;"></label>
-        <label><i class="fas fa-images"></i> З галереї
-          <input type="file" accept="image/*"
-                 onchange="closeKeyboardPhotoSheet();${handler}(event)" style="display:none;"></label>
-        <button onclick="closeKeyboardPhotoSheet()">Скасувати</button>`;
-      document.body.appendChild(sheet);
+      const backdrop = document.createElement('div');
+      backdrop.className = 'cw-kb-photo-backdrop';
+      backdrop.id = 'kb-photo-sheet';
+      backdrop.onclick = (e) => { if (e.target === backdrop) closeKeyboardPhotoSheet(); };
+      backdrop.innerHTML = `
+        <div class="cw-kb-photo-sheet">
+          <p class="cw-kb-photo-title">Звідки взяти фото</p>
+          <label><i class="fas fa-camera"></i> Сфотографувати
+            <input type="file" accept="image/*" capture="environment"
+                   onchange="closeKeyboardPhotoSheet();${handler}(event)" style="display:none;"></label>
+          <label><i class="fas fa-images"></i> З галереї
+            <input type="file" accept="image/*"
+                   onchange="closeKeyboardPhotoSheet();${handler}(event)" style="display:none;"></label>
+          <button onclick="closeKeyboardPhotoSheet()">Скасувати</button>
+        </div>`;
+      document.body.appendChild(backdrop);
     }
 
     function closeKeyboardPhotoSheet() {
       const sheet = document.getElementById('kb-photo-sheet');
       if (sheet) sheet.remove();
-    }
-
-    /** Віддаємо поле системній клавіатурі — до наступного заходу на екран */
-    function useSystemKeyboard() {
-      const input = textKeyboardInput;
-      hideTextKeyboard();
-      if (!input) return;
-      input.dataset.kbdSystem = 'on';
-      input.removeAttribute('inputmode');
-      input.blur();
-      input.focus();
     }
 
     function hideCrosswordKeyboard() {
