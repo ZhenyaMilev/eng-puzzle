@@ -93,3 +93,57 @@ test.describe('Which way the constructor runs', () => {
     await expect(page.locator('#constructor-dir-uk-en')).toHaveClass(/active/);
   });
 });
+
+/**
+ * A Ukrainian word above a Ukrainian keyboard teaches nothing — it is copying,
+ * not translating. Which side is the English one is decided by the alphabet
+ * rather than by which field it was stored in, so a pair saved back to front
+ * still runs the right way round, and a pair that is the same language on both
+ * sides is left out of the exercise entirely.
+ */
+test.describe('The two sides always differ', () => {
+  /** Stored the wrong way round: Ukrainian sitting in the English field. */
+  const backwards = () => {
+    const words: Record<string, any> = {};
+    Object.entries(VOCAB).forEach(([english, translation], i) => {
+      words[translation] = {
+        translation: english, example: '', folders: [],
+        interactions: 0, correctAnswers: 0, priority: i, dateAdded: { seconds: 100 - i },
+      };
+    });
+    return { words };
+  };
+
+  test('a pair saved back to front still asks in one language and answers in the other',
+    async ({ page }) => {
+      await loadApp(page, { seed: backwards() });
+      await startConstructor(page, 'en-uk', 'full');
+
+      const asked = await page.locator('.constructor-asking').textContent();
+      expect(asked).toMatch(/^[A-Za-z' -]+$/);              // shown the English side
+      expect(await page.locator('#constructor-keyboard .cw-key').first().textContent()).toBe('й');
+    });
+
+  /**
+   * The keyboard is chosen from the answer itself, not from the name of the
+   * direction. Trust the label and one badly stored pair is enough to put up a
+   * keyboard the required word cannot be typed on.
+   */
+  test('the keyboard always carries the letters the answer needs', async ({ page }) => {
+    await loadApp(page, { seed: backwards() });
+    await startConstructor(page, 'uk-en', 'full');
+
+    const asked = await page.locator('.constructor-asking').textContent();
+    const keys = await page.locator('#constructor-keyboard .cw-key[data-letter]')
+      .evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.letter));
+    const answer = await page.evaluate(() => {
+      // @ts-ignore — the app's own state
+      return constructorExpected(constructorWords[currentConstructorQuestion]);
+    });
+
+    expect(asked).not.toBe(answer);                        // never a copying task
+    for (const letter of new Set(answer.toLowerCase().replace(/[\s']/g, ''))) {
+      expect(keys).toContain(letter);
+    }
+  });
+});

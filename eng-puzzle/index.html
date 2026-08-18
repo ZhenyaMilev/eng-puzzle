@@ -9410,7 +9410,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-18.6';
+    const APP_VERSION = '2026-08-18.7';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -17665,15 +17665,43 @@ async function translateStory() {
      */
     let constructorDirection = 'uk-en';
 
+    const LATIN_LETTER = /[A-Za-z]/;
+    const CYRILLIC_LETTER = /[\u0400-\u04FF]/;
+
+    /**
+     * Яка сторона слова англійська, вирішує абетка, а не назва поля. Пара може
+     * лежати переставленою — слово додали навпаки, диктування поклало переклад
+     * не в те поле, — і тоді вправа показувала українське слово й українську ж
+     * клавіатуру: перепиши те, що бачиш. Такого не навчишся.
+     */
+    function constructorSides(word) {
+      const english = (word && word.english) || '';
+      const translation = (word && word.translation) || '';
+      const swapped = CYRILLIC_LETTER.test(english) && LATIN_LETTER.test(translation);
+      return swapped ? { en: translation, uk: english } : { en: english, uk: translation };
+    }
+
     function constructorAsking(word) {
-      return constructorDirection === 'en-uk' ? word.english : word.translation;
+      const sides = constructorSides(word);
+      return constructorDirection === 'en-uk' ? sides.en : sides.uk;
     }
 
     function constructorExpected(word) {
-      return constructorDirection === 'en-uk' ? word.translation : word.english;
+      const sides = constructorSides(word);
+      return constructorDirection === 'en-uk' ? sides.uk : sides.en;
     }
 
-    function constructorAnswerLang() {
+    /**
+     * Розкладку задає сама відповідь, а не назва напрямку. Якщо орієнтуватися на
+     * напрямок, досить одній парі лежати не так — і на екрані з'являється
+     * клавіатура, якою потрібне слово просто не набрати.
+     */
+    function constructorAnswerLang(word) {
+      const target = word
+        ? constructorExpected(word)
+        : constructorExpected(constructorWords[currentConstructorQuestion] || {});
+      if (CYRILLIC_LETTER.test(target)) return 'uk';
+      if (LATIN_LETTER.test(target)) return 'en';
       return constructorDirection === 'en-uk' ? 'uk' : 'en';
     }
 
@@ -17767,7 +17795,7 @@ async function translateStory() {
       const questionWord = constructorWords[currentConstructorQuestion];
       const expected = constructorExpected(questionWord);
       const letters = constructorMode === 'full'
-        ? getFullKeyboardLetters()
+        ? getFullKeyboardLetters(questionWord)
         : getUniqueLetters(expected);
       // Сброс переменных
       constructedWord = '';
@@ -17813,8 +17841,8 @@ async function translateStory() {
     }
 
     // Порядок як на звичайній клавіатурі, а data-count -1 означає «не закінчується»
-    function getFullKeyboardLetters() {
-      const alphabet = constructorAnswerLang() === 'uk'
+    function getFullKeyboardLetters(word) {
+      const alphabet = constructorAnswerLang(word) === 'uk'
         ? TEXT_KEYBOARD_ROWS.uk.join('')
         : 'qwertyuiopasdfghjklzxcvbnm';
       return alphabet.split('').map(letter => ({ letter: letter, count: -1 }));
@@ -17872,7 +17900,7 @@ async function translateStory() {
       }
       kb.innerHTML = `
         ${fullKeyboardRowsHTML('addLetterToConstructor', 'deleteLastLetter',
-            { punctuation: true, layout: constructorAnswerLang() })}
+            { punctuation: true, layout: constructorAnswerLang(questionWord) })}
         <div class="cw-keyboard-actions">
           <button class="check-button" onclick="submitConstructorAnswer(${jsArg(questionWord.english)})">Перевірити</button>
           <button class="skip-button" onclick="skipConstructor()">Пропустити</button>

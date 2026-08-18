@@ -8,6 +8,10 @@ export default defineConfig({
     baseURL: 'http://localhost:3333',
     headless: true,
     screenshot: 'only-on-failure',
+    // Вправи промовляють слово, щойно його показали, а без AI-ключа озвучка
+    // йде через speechSynthesis — тобто через системний голос Mac. Headless не
+    // означає беззвучно: прогін вголос читав «hello» на весь кабінет.
+    launchOptions: { args: ['--mute-audio'] },
   },
   projects: [
     {
