@@ -9469,7 +9469,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-24.5';
+    const APP_VERSION = '2026-08-24.6';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -9576,23 +9576,34 @@
           const byDifficulty = freshSnap.docs.concat(hardSnap.docs);
           const byRecency = recentSnap.docs;
 
+          // Вправа просить більше, ніж покаже: квіз бере 50 і лишає перші 30,
+          // картинки з 50 лишають 10. Якби частки йшли блоками — спершу всі
+          // від складності, потім від давності, — обрізання зрізало б другий
+          // алгоритм повністю. Тому місця чергуються, і будь-який початок
+          // списку тримає ту саму пропорцію.
           const picked = [];
           const taken = new Set();
-          const draw = (list, quota) => {
-            for (const doc of list) {
-              if (picked.length >= limit || quota <= 0) return;
-              if (taken.has(doc.id)) continue;
-              taken.add(doc.id);
-              picked.push(doc);
-              quota--;
-            }
+          const next = (list, cursor) => {
+            while (cursor.i < list.length && taken.has(list[cursor.i].id)) cursor.i++;
+            return cursor.i < list.length ? list[cursor.i++] : null;
           };
+          const dCur = { i: 0 };
+          const rCur = { i: 0 };
 
-          draw(byDifficulty, limit - forRecency);
-          draw(byRecency, forRecency);
-          // Одному з них могло не вистачити слів — добираємо звідки є
-          draw(byDifficulty, limit);
-          draw(byRecency, limit);
+          for (let slot = 0; slot < limit; slot++) {
+            const wantRecency =
+              Math.floor((slot + 1) * RECENCY_SHARE) > Math.floor(slot * RECENCY_SHARE);
+            const first = wantRecency ? byRecency : byDifficulty;
+            const firstCur = wantRecency ? rCur : dCur;
+            const second = wantRecency ? byDifficulty : byRecency;
+            const secondCur = wantRecency ? dCur : rCur;
+
+            // Якщо своєму алгоритму нічого дати — місце віддається іншому
+            const doc = next(first, firstCur) || next(second, secondCur);
+            if (!doc) break;
+            taken.add(doc.id);
+            picked.push(doc);
+          }
 
           return snapshotOfDocs(picked);
         },

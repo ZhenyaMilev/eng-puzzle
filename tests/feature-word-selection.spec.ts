@@ -181,3 +181,35 @@ test.describe('Both algorithms run in every session, not by lottery', () => {
     expect(new Set(picked).size).toBe(picked.length);
   });
 });
+
+test.describe('An exercise that asks for more than it shows', () => {
+  test('the ratio holds in the first ten of fifty — the quiz keeps only thirty', async ({ page }) => {
+    await loadApp(page);
+    const words: Record<string, Word> = {};
+    for (let i = 0; i < 40; i++) words['new' + String(i).padStart(2, '0')] = { interactions: 0, correctAnswers: 0, priority: 0 };
+    for (let i = 0; i < 40; i++) words['old' + String(i).padStart(2, '0')] = { interactions: 9, correctAnswers: 9, priority: 1, last: i };
+    await seed(page, words);
+
+    const picked = await select(page, 50);
+    const share = (from: number, to: number) =>
+      picked.slice(from, to).filter((id) => id.startsWith('old')).length;
+
+    // раніше частки йшли блоками, і зріз до 30 лишав нуль слів другого алгоритму
+    expect(share(0, 10)).toBe(3);
+    expect(share(0, 30)).toBe(9);
+  });
+
+  test('every ten words carry three from the recency side', async ({ page }) => {
+    await loadApp(page);
+    const words: Record<string, Word> = {};
+    for (let i = 0; i < 30; i++) words['new' + String(i).padStart(2, '0')] = { interactions: 0, correctAnswers: 0, priority: 0 };
+    for (let i = 0; i < 30; i++) words['old' + String(i).padStart(2, '0')] = { interactions: 9, correctAnswers: 9, priority: 1, last: i };
+    await seed(page, words);
+
+    const picked = await select(page, 30);
+    for (let block = 0; block < 3; block++) {
+      const ten = picked.slice(block * 10, block * 10 + 10);
+      expect(ten.filter((id) => id.startsWith('old')).length).toBe(3);
+    }
+  });
+});
