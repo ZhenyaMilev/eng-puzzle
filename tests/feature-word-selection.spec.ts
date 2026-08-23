@@ -28,20 +28,13 @@ async function seed(page: Page, words: Record<string, Word>) {
   }, words);
 }
 
-/** Прогін відбору з примусово обраним алгоритмом. */
-function select(page: Page, limit: number, recency: boolean) {
-  return page.evaluate(async ([n, useRecency]) => {
-    const real = Math.random;
-    // 0.2 — межа між алгоритмами в getSmartWordQuery
-    Math.random = () => (useRecency ? 0.05 : 0.9);
-    try {
-      // @ts-ignore
-      const snap = await getSmartWordQuery('test-user-123', n).get();
-      return snap.docs.map((d: any) => d.id);
-    } finally {
-      Math.random = real;
-    }
-  }, [limit, recency] as [number, boolean]);
+/** Прогін відбору так, як його бачить вправа. */
+function select(page: Page, limit: number) {
+  return page.evaluate(async (n) => {
+    // @ts-ignore
+    const snap = await getSmartWordQuery('test-user-123', n).get();
+    return snap.docs.map((d: any) => d.id);
+  }, limit);
 }
 
 test.describe('A word guessed once is not a word learned', () => {
@@ -62,9 +55,9 @@ test.describe('A word guessed once is not a word learned', () => {
       stubborn: { interactions: 10, correctAnswers: 1, priority: 0.1, last: 100 },
     });
 
-    const picked = await select(page, 2, false);
-    expect(picked).toEqual(['lucky', 'twice']);
-    expect(picked).not.toContain('stubborn');
+    // Із трьох місць два належать першому алгоритму — і обидва йдуть новим
+    const picked = await select(page, 3);
+    expect(picked.slice(0, 2).sort()).toEqual(['lucky', 'twice']);
   });
 
   test('once there are no new words left, difficulty decides', async ({ page }) => {
@@ -75,8 +68,9 @@ test.describe('A word guessed once is not a word learned', () => {
       hard: { interactions: 8, correctAnswers: 1, priority: 0.125, last: 300 },
     });
 
-    const picked = await select(page, 2, false);
-    expect(picked).toEqual(['hard', 'medium']);
+    // Нових немає, тож частку першого алгоритму беруть найважчі
+    const picked = await select(page, 3);
+    expect(picked.slice(0, 2)).toEqual(['hard', 'medium']);
   });
 
   test('new words first, then the hardest to fill the session', async ({ page }) => {
@@ -87,7 +81,7 @@ test.describe('A word guessed once is not a word learned', () => {
       hard: { interactions: 9, correctAnswers: 1, priority: 0.11, last: 300 },
     });
 
-    const picked = await select(page, 3, false);
+    const picked = await select(page, 3);
     expect(picked[0]).toBe('brandnew');
     expect(picked).toContain('hard');
     expect(new Set(picked).size).toBe(3);
@@ -102,8 +96,9 @@ test.describe('The other algorithm looks at time, not difficulty', () => {
       recent: { interactions: 9, correctAnswers: 1, priority: 0.11, last: 900 },
     });
 
-    const picked = await select(page, 2, true);
-    expect(picked[0]).toBe('ancient');
+    // Місце другого алгоритму дістається найдавнішому, хай і легкому
+    const picked = await select(page, 2);
+    expect(picked).toContain('ancient');
   });
 
   test('a dictionary nobody has practised falls back instead of coming up empty', async ({ page }) => {
@@ -114,7 +109,7 @@ test.describe('The other algorithm looks at time, not difficulty', () => {
       two: { interactions: 0, correctAnswers: 0, priority: 0 },
     });
 
-    const picked = await select(page, 2, true);
+    const picked = await select(page, 2);
     expect(picked.sort()).toEqual(['one', 'two']);
   });
 });
@@ -130,8 +125,59 @@ test.describe('The whole dictionary stays reachable', () => {
     words.zulu = { interactions: 1, correctAnswers: 1, priority: 1, last: 999 };
     await seed(page, words);
 
-    const picked = await select(page, 5, false);
+    const picked = await select(page, 5);
     // zulu бачили лише раз — він новий, і йде першим попри кінець алфавіту
     expect(picked[0]).toBe('zulu');
+  });
+});
+
+test.describe('Both algorithms run in every session, not by lottery', () => {
+  test('a long-unrepeated word gets in even when new words could fill the lot', async ({ page }) => {
+    await loadApp(page);
+    const words: Record<string, Word> = { forgotten: { interactions: 9, correctAnswers: 9, priority: 1, last: 1 } };
+    // десять свіжих слів — раніше вони забрали б усі місця
+    for (let i = 0; i < 10; i++) {
+      words['fresh' + i] = { interactions: 1, correctAnswers: 1, priority: 1, last: 500 + i };
+    }
+    await seed(page, words);
+
+    const picked = await select(page, 10);
+    expect(picked).toContain('forgotten');
+  });
+
+  test('the shares are kept: most from difficulty, some from recency', async ({ page }) => {
+    await loadApp(page);
+    const words: Record<string, Word> = {};
+    for (let i = 0; i < 10; i++) words['new' + i] = { interactions: 0, correctAnswers: 0, priority: 0 };
+    for (let i = 0; i < 10; i++) words['old' + i] = { interactions: 9, correctAnswers: 9, priority: 1, last: i };
+    await seed(page, words);
+
+    const picked = await select(page, 10);
+    const fromRecency = picked.filter((id) => id.startsWith('old')).length;
+    expect(fromRecency).toBe(3);
+    expect(picked.filter((id) => id.startsWith('new')).length).toBe(7);
+  });
+
+  test('when one side runs dry the other fills the session', async ({ page }) => {
+    await loadApp(page);
+    // жодного слова з історією повторень — другому алгоритму нема що дати
+    await seed(page, {
+      a: { interactions: 0, correctAnswers: 0, priority: 0 },
+      b: { interactions: 0, correctAnswers: 0, priority: 0 },
+      c: { interactions: 0, correctAnswers: 0, priority: 0 },
+    });
+
+    const picked = await select(page, 3);
+    expect(picked.sort()).toEqual(['a', 'b', 'c']);
+  });
+
+  test('a word is never asked twice in one session', async ({ page }) => {
+    await loadApp(page);
+    const words: Record<string, Word> = {};
+    for (let i = 0; i < 6; i++) words['w' + i] = { interactions: 1, correctAnswers: 1, priority: 1, last: i };
+    await seed(page, words);
+
+    const picked = await select(page, 6);
+    expect(new Set(picked).size).toBe(picked.length);
   });
 });

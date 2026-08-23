@@ -9466,7 +9466,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-24.3';
+    const APP_VERSION = '2026-08-24.4';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -9518,7 +9518,20 @@
     checkForSharedWordsOnLoad();
 
     // Smart repetition: 20% chance to use spaced repetition algorithm (oldest interactions first)
-    // Falls back to priority mode if repetition returns too few words
+    /** Кілька вибірок як одна: далі за кодом чекають size, docs і forEach. */
+    function snapshotOfDocs(docs) {
+      return { docs: docs, size: docs.length, forEach: function(fn) { docs.forEach(fn); } };
+    }
+
+    /**
+     * Частка місць у тренуванні, яку віддано другому алгоритму.
+     *
+     * Раніше алгоритми чергувалися жеребом, і другий випадав раз на п'ять
+     * тренувань — а поки в словнику лежить півтори сотні нових слів, решта
+     * просто не мала шансу з'явитися. Тепер обидва працюють щоразу.
+     */
+    const RECENCY_SHARE = 0.3;
+
     /**
      * Слово вважається новим, поки його не показали тричі.
      *
@@ -9529,55 +9542,56 @@
      */
     const NEW_UNTIL_INTERACTIONS = 3;
 
-    /** Кілька вибірок як одна: далі за кодом чекають size, docs і forEach. */
-    function mergeWordSnapshots(parts, limit) {
-      const docs = [];
-      const taken = new Set();
-      for (const part of parts) {
-        for (const doc of part.docs) {
-          if (taken.has(doc.id) || docs.length >= limit) continue;
-          taken.add(doc.id);
-          docs.push(doc);
-        }
-      }
-      return { docs, size: docs.length, forEach: (fn) => docs.forEach(fn) };
-    }
-
     /**
-     * Два алгоритми, що чергуються.
+     * Два алгоритми в кожному тренуванні.
      *
      * За складністю: спершу нові слова, а коли нових немає — найважчі,
      * тобто ті, де частка правильних відповідей найменша. Сам по собі він
-     * здатен відсунути слово на невизначений час, і саме тому існує другий.
+     * здатен відсунути слово на невизначений час, і саме тому потрібен другий.
      *
      * За давністю: складність не враховується взагалі, попереду те, що
-     * не повторювали найдовше.
+     * не повторювали найдовше. Слова, яких ще не показували, сюди не
+     * потрапляють — у них немає lastInteractionDate, і orderBy їх не бачить.
+     *
+     * Кожен бере свою частку місць; якщо одному не вистачило слів,
+     * решту добирає інший.
      */
-    function getSmartWordQuery(userId, limit, minRequired) {
+    function getSmartWordQuery(userId, limit) {
       const wordsRef = db.collection('users').doc(userId).collection('words');
-      const min = minRequired || Math.min(10, limit);
-      const byRecency = Math.random() < 0.2;
+      const forRecency = Math.min(limit - 1, Math.max(1, Math.round(limit * RECENCY_SHARE)));
 
       return {
         get: async () => {
-          if (byRecency) {
-            const recent = await wordsRef.orderBy('lastInteractionDate', 'asc').limit(limit).get();
-            // orderBy мовчки викидає документи без поля — тобто всі ще не
-            // показані слова. Якщо таких більшість, іти цим шляхом нема сенсу.
-            if (recent.size >= min) return recent;
-          }
+          const [freshSnap, hardSnap, recentSnap] = await Promise.all([
+            wordsRef.where('interactions', '<', NEW_UNTIL_INTERACTIONS)
+              .orderBy('interactions', 'asc').limit(limit).get(),
+            wordsRef.orderBy('priority', 'asc').limit(limit).get(),
+            wordsRef.orderBy('lastInteractionDate', 'asc').limit(limit).get(),
+          ]);
 
-          // Найменш бачене першим: спершу ті, яких не показували жодного разу
-          const fresh = await wordsRef
-            .where('interactions', '<', NEW_UNTIL_INTERACTIONS)
-            .orderBy('interactions', 'asc')
-            .limit(limit)
-            .get();
-          if (fresh.size >= limit) return fresh;
+          // Перший алгоритм: нові, а за ними найважчі
+          const byDifficulty = freshSnap.docs.concat(hardSnap.docs);
+          const byRecency = recentSnap.docs;
 
-          // Нових не вистачило на все тренування — добираємо найважчими
-          const hard = await wordsRef.orderBy('priority', 'asc').limit(limit).get();
-          return mergeWordSnapshots([fresh, hard], limit);
+          const picked = [];
+          const taken = new Set();
+          const draw = (list, quota) => {
+            for (const doc of list) {
+              if (picked.length >= limit || quota <= 0) return;
+              if (taken.has(doc.id)) continue;
+              taken.add(doc.id);
+              picked.push(doc);
+              quota--;
+            }
+          };
+
+          draw(byDifficulty, limit - forRecency);
+          draw(byRecency, forRecency);
+          // Одному з них могло не вистачити слів — добираємо звідки є
+          draw(byDifficulty, limit);
+          draw(byRecency, limit);
+
+          return snapshotOfDocs(picked);
         },
       };
     }
