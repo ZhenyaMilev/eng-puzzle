@@ -312,6 +312,37 @@ test.describe('The main action sits where Telegram puts it', () => {
     await expect.poll(async () => (await tg(page)).mainVisible).toBe(true);
   });
 
+  test('and the page keeps no second copy of it', async ({ page }) => {
+    await asMiniApp(page);
+    await loadApp(page);
+    await page.evaluate(() => (window as any).startPhraseConstructor());
+    await expect.poll(async () => (await tg(page)).mainVisible).toBe(true);
+
+    // Дві однакові «Почати» — своя в контенті і Telegram-івська внизу
+    await expect(page.locator('#phrase-start-btn')).toBeHidden();
+  });
+
+  test('on the web that same button stays — there is no Telegram one', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => (window as any).startPhraseConstructor());
+
+    await expect(page.locator('#phrase-start-btn')).toBeVisible();
+  });
+
+  test('leaving the screen gives the page its button back', async ({ page }) => {
+    await asMiniApp(page);
+    await loadApp(page);
+    await page.evaluate(() => (window as any).startPhraseConstructor());
+    await expect(page.locator('#phrase-start-btn')).toBeHidden();
+
+    // Ховаємо на час екрана, а не назавжди — інакше кнопка зникла б і там,
+    // де Telegram-івської немає
+    await page.evaluate(() => (window as any).backToAccount());
+    await expect
+      .poll(async () => page.locator('#phrase-start-btn').evaluate((el) => el.classList.contains('hidden')))
+      .toBe(false);
+  });
+
   test('pressing it starts the practice', async ({ page }) => {
     await asMiniApp(page);
     await loadApp(page);

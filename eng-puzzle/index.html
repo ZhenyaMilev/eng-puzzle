@@ -7365,7 +7365,7 @@
           </button>
         </div>
         <p class="mode-hint" id="phrase-mode-hint"></p>
-        <button onclick="startPhrasePractice()" style="width:100%;margin-top:14px;">Почати</button>
+        <button id="phrase-start-btn" onclick="startPhrasePractice()" style="width:100%;margin-top:14px;">Почати</button>
       </div>
       <div id="phrase-constructor-progress" class="constructor-quiz-progress hidden">
         <div id="phrase-constructor-progress-bar" class="constructor-quiz-progress-bar" style="width:0%"></div>
@@ -8684,6 +8684,9 @@
         when: () => !document.getElementById('phrase-mode-select').classList.contains('hidden'),
         text: 'Почати',
         action: () => startPhrasePractice(),
+        // Своя «Почати» лишається на вебі, де MainButton немає, а в Telegram
+        // ховається: інакше на екрані дві однакові кнопки одна над одною
+        hides: 'phrase-start-btn',
       },
       {
         section: 'tariffs-section',
@@ -9466,7 +9469,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-24.4';
+    const APP_VERSION = '2026-08-24.5';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
