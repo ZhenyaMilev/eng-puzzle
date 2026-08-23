@@ -9451,7 +9451,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-23.3';
+    const APP_VERSION = '2026-08-24.1';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -17968,8 +17968,9 @@ async function translateStory() {
         // Добавляем класс для анимации появления
         container.classList.remove('fade-out');
         container.classList.add('fade-in');
-        // Автоматическое озвучивание слова
-        kokoroSpeak(questionWord.english, 'UK English Female');
+        // Автоозвучка теж читає показане слово, а не відповідь: кнопку
+        // виправили, а цей рядок лишився і підказував ще до першого дотику
+        speakConstructorPrompt(questionWord);
       }, 500); // Задержка должна совпадать с длительностью анимации в CSS
     }
 

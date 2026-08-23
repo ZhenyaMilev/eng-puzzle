@@ -167,6 +167,22 @@ test.describe('«Озвучка зачитывает англ слово и по
     expect(q.slice(0, 1600)).toContain('speakConstructorPrompt(');
   });
 
+  /** Озвучок дві: кнопка і автозапуск. Друга лишалася англійською. */
+  test('neither of the two playbacks says the English word by itself', () => {
+    const src = html();
+    const q = src.slice(src.indexOf('function showConstructorQuestion'),
+                        src.indexOf('function getFullKeyboardLetters'));
+    expect(q).not.toContain("kokoroSpeak(questionWord.english");
+    expect(q.match(/speakConstructorPrompt\(/g) || []).toHaveLength(2);
+  });
+
+  test('the automatic one fires through the same function as the button', () => {
+    const src = html();
+    const q = src.slice(src.indexOf('function showConstructorQuestion'),
+                        src.indexOf('function getFullKeyboardLetters'));
+    expect(q).toContain('speakConstructorPrompt(questionWord);');
+  });
+
   test('uk → en reads the Ukrainian side, with the Ukrainian voice', async ({ page }) => {
     await loadApp(page);
     const spoken = await page.evaluate(() => {
