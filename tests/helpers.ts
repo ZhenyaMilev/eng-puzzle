@@ -237,6 +237,16 @@ const FIREBASE_FIRESTORE_MOCK = `
             var v = d[field];
             if (op === 'array-contains') return Array.isArray(v) && v.indexOf(value) !== -1;
             if (op === '==') return v === value;
+            // Нерівність у Firestore теж не бачить документа без поля,
+            // і мовчазне «true» тут ховало б справжню поведінку відбору
+            if (op === '<' || op === '<=' || op === '>' || op === '>=') {
+              if (v === undefined) return false;
+              if (op === '<') return v < value;
+              if (op === '<=') return v <= value;
+              if (op === '>') return v > value;
+              return v >= value;
+            }
+            if (op === '!=') return v !== undefined && v !== value;
             return true;
           }, order, take, after);
         },
