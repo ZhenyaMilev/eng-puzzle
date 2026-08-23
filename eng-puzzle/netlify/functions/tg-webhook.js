@@ -14,7 +14,7 @@ const {
  */
 
 const HELP = [
-  '/status — скільки лишилось підписки та який зараз стрик',
+  '/status — скільки лишилось підписки та яка зараз серія',
   '/stop — вимкнути нагадування',
   '/start — знову увімкнути нагадування',
 ].join('\n');
@@ -71,7 +71,7 @@ async function handleStart(db, message, code) {
     if (result.ok) {
       return sendMessage(chatId,
         '<b>Готово — акаунт підключено.</b>\n\n'
-        + 'Тепер я нагадаю, коли стрик під загрозою і коли закінчується підписка. '
+        + 'Тепер я нагадаю, коли серія під загрозою і коли закінчується підписка. '
         + 'Вимкнути будь-коли: /stop',
         [openAppButton('Відкрити застосунок')]);
     }
@@ -137,7 +137,7 @@ async function handleStatus(db, message) {
     [
       `Акаунт: ${escapeHtml(user.email || 'без пошти')}`,
       subscription,
-      `Стрик: <b>${streak}</b> дн.`,
+      `Серія: <b>${streak}</b> дн. поспіль`,
       words ? `Слів у словнику: <b>${words}</b>` : null,
       '',
       HELP,

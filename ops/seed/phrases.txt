@@ -1,0 +1,238 @@
+How's it going?|Як справи?
+How are you doing?|Як ти?
+I'm not bad, how are you guys?|Норм, а ви?
+Can you hear me?|Мене чути?
+Can you see my screen?|Екран видно?
+Give me one second.|Секунду.
+Let me check something.|Дай перевірю.
+So, what's up? What happened?|Ну що, що сталося?
+Thanks for making the time.|Дякую, що знайшли час.
+Maybe you had a chance to look at this?|Встиг подивитися?
+Yeah, I did, I did.|Так, дивився.
+Someone's joining, let's wait a minute.|Ще підключаються, зачекаймо.
+I used to work in another agency.|Я раніше працював в іншій агенції.
+Let me give you a short intro.|Коротко введу в курс.
+Let's dive in.|Погнали.
+Let me share my screen.|Покажу екран.
+Do you see this?|Бачиш?
+It's blurred / low quality.|Розмито / погана якість.
+It's not letting me.|Не дає система.
+Hold on, my eyes are bad on the phone.|Зачекай, з телефона дрібно.
+I should have done this on the computer.|Треба було з комп'ютера.
+I'll hop on there real quick.|Зараз швидко зайду.
+I'm not seeing what you're showing me.|Не бачу, що ти показуєш.
+Can you scroll down?|Прокрути вниз.
+Scroll to the top of the page.|Вгору сторінки.
+Can we stop right there?|Можемо тут пригальмувати?
+One second, sorry.|Секунду, вибач.
+Let me turn off my video.|Вимкну відео.
+Okay, much better.|Так набагато краще.
+I'll send it to you in the chat.|Кину в чат.
+Do you know what I'm saying?|Розумієш, про що я?
+Do you understand what I mean?|Розумієш, що я маю на увазі?
+Do you understand where I'm coming from?|Розумієш мою позицію?
+Do you get what I'm trying to say?|Вловлюєш?
+Does that make sense?|Звучить логічно?
+Am I making sense?|Зрозуміло пояснюю?
+Let me rephrase that.|Скажу інакше.
+Let me put it this way.|Давай так скажу.
+Let me give you an example.|Наведу приклад.
+Just to make sure I've got it — you're asking…|Хочу переконатися: ти питаєш…
+So if I understand correctly…|Якщо правильно розумію…
+Can I play that back to you?|Можна повторю своїми словами?
+Sorry, could you say a bit more about that?|Можеш трохи детальніше?
+I'm not sure I follow.|Не вловлюю.
+You're missing my question.|Ти відповідаєш не на те.
+That's not what I'm asking.|Я не про це питаю.
+I don't know how else to explain this.|Не знаю, як ще пояснити.
+Got it. / I got you.|Зрозумів.
+Right, that's clear now.|Тепер зрозуміло.
+Bear with me for a second.|Секунду, потерпи.
+It's very busy.|Перевантажено.
+It gets very crowded.|Стає тісно.
+It's too much.|Це перебір.
+It's not needed.|Не потрібно.
+I want to remove that.|Хочу прибрати.
+I'm not trying to redesign, I'm trying to condense.|Не переробити, а ужати.
+I'm trying to cut it down.|Хочу скоротити.
+There's too much space.|Забагато повітря.
+You scroll for too long.|Задовго скролити.
+They should see it straight away.|Мають побачити одразу.
+It's going to have a high bounce rate.|Будуть іти геть.
+It doesn't look appealing.|Не чіпляє.
+It looks boring and generic.|Нудно і безлико.
+We could do better.|Можна краще.
+It's built really clean and simple.|Зроблено чисто і просто.
+It definitely converts.|Точно конвертить.
+We're repeating ourselves too many times.|Повторюємося надто часто.
+Before it even gets to the product.|Перш ніж дійде до товару.
+You want to get straight to the point.|Треба одразу до суті.
+I want it to be clean, I want it to convert.|Хочу чисто і щоб конвертило.
+It needs to be mobile-friendly.|Має працювати на мобільному.
+It should read luxury.|Має зчитуватися як люкс.
+It needs to be elevated and editorial.|Потрібно преміально і по-редакторськи.
+Did you see the reference I sent?|Бачив референс?
+That's the look I'm going for.|Ось до чого я прагну.
+I'm not going to lie.|Чесно скажу.
+To be fair…|Заради справедливості…
+To be honest with you…|Якщо чесно…
+I'm not mad at the way it's built.|До виконання претензій немає.
+The only issue I'm having is…|Єдине, що напружує…
+The only concern I have is…|Єдине побоювання…
+I'm still not happy.|Я все ще незадоволений.
+I'm fed up.|Дістало.
+I'm pissed off.|Я лютий.
+It's frustrating.|Це бісить.
+I'm getting tired of the same topic.|Втомився від однієї теми.
+It's been through so many hands.|Через це пройшло стільки людей.
+Everybody that touches it is charging me.|Кожен бере з мене гроші.
+Nobody's doing it for free.|Ніхто безкоштовно не робить.
+A lot got lost in translation.|Багато загубилося при передачі.
+I've been here before. It's déjà vu.|Я це вже проходив.
+I don't even know what to do.|Не знаю, що робити.
+You're not even listening to me.|Ти мене не слухаєш.
+That has nothing to do with what I asked.|Це взагалі не про те.
+I shouldn't have to explain this many times.|Не маю пояснювати по десять разів.
+And then you go and do the complete opposite.|А ви робите навпаки.
+My expectations have started to drop.|Очікування просіли.
+It's not personal.|Нічого особистого.
+I'm not speaking out of frustration — well, I am.|Не зі зла… хоча так, зі зла.
+Thanks for being straight with me.|Дякую, що прямо.
+It's a bit much for me.|Дорогувато.
+It's not cheap what you're asking.|Недешево просите.
+I can't afford those prices.|Не потягну.
+I never planned for this.|Я на це не закладався.
+I got hit with this.|Це на мене звалилося.
+It was never in the books.|Навіть не розглядалося.
+We need to negotiate somewhere.|Треба десь зійтися.
+What do you have in mind?|Що пропонуєш?
+Can we do 950?|Може, 950?
+Can I pay half now, half when it's done?|Половину зараз, половину по готовності?
+You want me to pay the entire amount up front.|Хочеш усю суму наперед.
+Can you give me the weekend to pay?|Даси вихідні заплатити?
+Let me make some money first.|Дай спершу заробити.
+It has to be economic for me.|Має бути по грошах.
+An extra $500 on top is unreasonable.|Ще $500 зверху — перебір.
+Our usual rate starts at $2,000.|Зазвичай у нас від $2 000.
+I've already brought it down for you.|Я вже знизив для тебе.
+I can meet you at $1,000.|Можу зійтися на $1 000.
+That's a fixed price, no additional payments.|Фікс, без доплат.
+Our minimum milestone is $1,000.|Мінімальний етап — $1 000.
+We can split it 50/50 in your case.|У твоєму випадку 50/50.
+That's the lowest I can go.|Нижче не можу.
+Somewhere in the range of 3 to 5K.|Приблизно 3–5 тисяч.
+I'd like a more refined budget.|Хочу точніший кошторис.
+Only the monthly subscription on top.|Зверху лише місячна підписка.
+What's the timeline?|Які терміни?
+How long would it take to build?|Скільки займе?
+We can rebuild it in two weeks.|Перезберемо за два тижні.
+Nine business days, including QA.|Дев'ять робочих днів із тестами.
+That includes development, testing and one round of fixes.|Розробка, тести, одне коло правок.
+We'll start this coming Monday.|Почнемо найближчого понеділка.
+When do we start?|Коли стартуємо?
+I want to get started ASAP.|Хочу почати якнайшвидше.
+I want to see some sort of progress.|Хочу бачити поступ.
+Will there be any progress by Friday?|До п'ятниці щось буде?
+Once I sign off, we can start.|Щойно затверджу — стартуємо.
+Send that our way.|Надішліть нам.
+Send it over whenever you can.|Надішли, коли зможеш.
+Let's touch base next week.|Спишемося наступного тижня.
+We'll figure out next steps from there.|Далі вирішимо, як рухатися.
+What's the next step on your side?|Який крок з вашого боку?
+I'll get back to you tomorrow.|Повернуся завтра.
+We'll come back to you with an answer.|Повернемося з відповіддю.
+Let me scope it out and come back with numbers.|Опрацюю і повернуся з цифрами.
+I'll confirm it in writing after the call.|Підтверджу письмово після дзвінка.
+I'll send you a summary right after this.|Надішлю підсумок одразу після.
+Give me till tomorrow.|Дай до завтра.
+Can you get back to us within 24 hours?|Відповідаєте протягом доби?
+Just let us know what's going on.|Тримайте в курсі.
+Do you have space to start this project?|Є ресурс взятися?
+Let me walk you through it.|Проведу по пунктах.
+Let's go step by step.|Йдімо по кроках.
+Here's what I'd suggest.|Ось що пропоную.
+My honest recommendation is X, but it's your call.|Раджу X, але вирішувати тобі.
+I hear you. Here's what I'd push back on.|Розумію. Ось із чим посперечаюся.
+That's fair. The trade-off is…|Справедливо. Компроміс у тому, що…
+We can do that — I just want to flag the cost later.|Можемо, але зазначу, у що виллється.
+I'd rather not, and here's why.|Я б не став, і ось чому.
+In my experience, that doesn't convert.|З досвіду, це не конвертить.
+We've A/B tested this on other stores.|Ми це тестували на інших магазинах.
+It's not my opinion, it's what we've measured.|Це не думка, це заміри.
+Shopify is stronger on security.|Shopify надійніший щодо безпеки.
+In six years I haven't seen a single case like that.|За шість років жодного разу такого не бачив.
+You'd be able to change content without a developer.|Зможеш міняти контент без розробника.
+We build on a template to save budget.|Збираємо на шаблоні, щоб зекономити.
+We don't build from scratch unless you need it.|З нуля не робимо без потреби.
+I can give you a proper estimate once I've seen the Figma.|Дам точну оцінку, щойно побачу Figma.
+That's a ballpark.|Це груба прикидка.
+Let's split the scope into two milestones.|Розіб'ємо на два етапи.
+The must-haves first, the rest later.|Спершу обов'язкове, потім решта.
+Let's park that and come back to it.|Відкладемо і повернемося.
+We'll take that on board.|Врахуємо.
+We'll factor that in.|Закладемо.
+Does that work for you?|Так підходить?
+How does that sound?|Як тобі?
+Let me recap so we're on the same page.|Підсумую, щоб були на одній хвилі.
+So on our side it's X, on yours it's Y.|З нашого боку X, з твого Y.
+Anything else you'd like to go over?|Щось іще обговорити?
+Any other questions from your side?|Ще запитання?
+That's it from me.|У мене все.
+Sounds good.|Годиться.
+Sounds perfect.|Чудово.
+That's fine, that's fine.|Норм, норм.
+All right then, cool.|Ну ок.
+Thanks so much, man.|Дуже дякую.
+Thank you for your time.|Дякую за час.
+I'm looking forward to seeing this.|Чекаю на результат.
+I'll look forward to talking then.|Тоді до дзвінка.
+We'll talk soon.|Скоро на зв'язку.
+Take care. / Have a nice day.|Бувай, гарного дня.
+Basically…|По суті…
+Literally.|Буквально.
+Straight away.|Одразу ж.
+At the end of the day…|Зрештою…
+It is what it is.|Як є.
+Fair enough.|Справедливо.
+No worries.|Не переймайся.
+Just a heads up.|Просто попереджаю.
+On the side.|Окремо, паралельно.
+From my side / on your end.|З мого / з твого боку.
+I can't afford to think about it too long.|Не можу дозволити собі довго думати.
+To put an extra $500 on top is almost unreasonable.|Накинути ще $500 — це вже перебір.
+I'd rather put that to use elsewhere.|Я краще пущу це на інше.
+It also has to be economic for me.|Це ще має бути мені по грошах.
+Do you not find that gap to be too wide?|Не вважаєш, що розрив завеликий?
+somewhere in the range of 3 to 5K|приблизно у вилці 3–5 тисяч
+a more refined budget|точніший кошторис
+I'm at a point where I don't even know what to do.|Я дійшов до того, що не знаю, що робити.
+I've just started this engagement and I'm already fed up.|Тільки почали працювати, а мене вже дістало.
+I'm not discounting that at all.|Я це анітрохи не применшую.
+Not asking again.|Більше просити не буду.
+It reads luxury.|Зчитується як люкс.
+brands of that caliber|бренди такого рівня
+It's like Ralph Lauren meets luxury fragrance.|Це Ralph Lauren, схрещений з люксовим парфумом.
+It takes forever to enter — that's a high friction point.|Заходить вічність — це гальмує користувача.
+What is there for me to engage with?|А за що тут зачепитися?
+at a glance|з одного погляду
+above the fold|на першому екрані, до прокрутки
+That's a long-winded way of saying…|Якщо коротко, я хочу сказати…
+to give the green light|дати добро
+Under no circumstance does anything go live without my green light.|За жодних обставин нічого не викладається без мого дозволу.
+Your Customizer changes will not carry over.|Твої правки в редакторі не перенесуться.
+The new theme does not inherit or merge the previous edits.|Нова тема не успадковує і не зливає попередні правки.
+I think this dropped off sometime before.|Здається, це десь раніше відвалилося.
+Can the checkbox untick itself with an update?|Чи може галочка сама зникнути при оновленні?
+Could they dig in the theme code?|Можуть вони покопатися в коді теми?
+All I had to do is revert to a previous theme.|Мені вистачило відкотитися на попередню тему.
+We're basically throwing money away.|Ми фактично зливаємо гроші.
+before we go too far with this|поки не зайшли надто далеко
+Rest assured that this doesn't affect the store.|Будьте спокійні, на магазин це не впливає.
+If the issue persists, we'll escalate it for a deeper investigation.|Якщо проблема лишиться, ескалюємо для глибшого розбору.
+The fact that they get stuck again strongly points to this ongoing sync.|Те, що вони знову залипають, чітко вказує на синхронізацію, що триває.
+We had reports of merchants having issues roundabout that time.|Були звернення від мерчантів приблизно в той самий час.
+The github update coinciding was likely a coincidence.|Збіг з оновленням на GitHub, імовірно, випадковий.
+It would really help us stay aligned.|Це дуже допомогло б нам не розходитися.
+By the time we get a reply, it's already late on our end.|Поки надходить відповідь, у нас уже пізно.
+We have had instances in the past where developers weren't answering.|Бували випадки, коли розробники не відповідали.
+@shopify_evgene has gone AWOL.|Женя зник зі зв'язку.

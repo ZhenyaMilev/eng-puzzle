@@ -1,0 +1,160 @@
+import { test, expect, Page } from '@playwright/test';
+import { loadApp } from './helpers';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+const INDEX = join(__dirname, '..', 'eng-puzzle', 'index.html');
+const html = () => readFileSync(INDEX, 'utf-8');
+
+/** Правки за зверненнями в підтримку від 18–19 серпня. */
+
+test.describe('«Не вистачає пояснення чого так після перевірки»', () => {
+  test('the model is asked for the reason, not just the word', () => {
+    const src = html();
+    expect(src.split('"hint": "коротке українське пояснення').length).toBe(3); // обидва напрямки
+  });
+
+  test('the reason travels into the breakdown', () => {
+    const src = html();
+    const check = src.slice(src.indexOf('function checkFillBlanksAnswers'));
+    expect(check.slice(0, 900)).toContain('source.hint');
+  });
+
+  test('a mistake row shows its explanation', async ({ page }) => {
+    await loadApp(page);
+    const out = await page.evaluate(() => (window as any).renderMistakes([
+      { english: 'threshold', translation: 'поріг', given: 'range', note: 'Тут ідеться про межу суми замовлення.' },
+    ]));
+    expect(out).toContain('Тут ідеться про межу суми замовлення.');
+    expect(out).toContain('mistake-note');
+  });
+
+  test('a row without an explanation renders no empty box', async ({ page }) => {
+    await loadApp(page);
+    const out = await page.evaluate(() => (window as any).renderMistakes([
+      { english: 'threshold', translation: 'поріг', given: 'range' },
+    ]));
+    expect(out).not.toContain('mistake-note');
+  });
+});
+
+test.describe('«Розділові знаки тут ні до чого»', () => {
+  const same = (page: Page, a: string, b: string) =>
+    page.evaluate(([x, y]) => (window as any).scSameUtterance(x, y), [a, b]);
+
+  test('a "correction" that only adds a full stop is not a mistake', async ({ page }) => {
+    await loadApp(page);
+    expect(await same(page, "that's all", "that's all.")).toBe(true);
+    expect(await same(page, 'Okay so I went there', 'Okay, so I went there.')).toBe(true);
+    expect(await same(page, 'i like it', 'I like it')).toBe(true);
+  });
+
+  test('a real correction still counts', async ({ page }) => {
+    await loadApp(page);
+    expect(await same(page, 'I like spin', 'I like spinning')).toBe(false);
+    expect(await same(page, "I don't have many time", "I don't have much time")).toBe(false);
+  });
+
+  test('the parser drops the empty ones', () => {
+    const src = html();
+    expect(src).toContain('!scSameUtterance(e.original, e.corrected)');
+  });
+});
+
+test.describe('«Пропонувати слова, які використовує аі»', () => {
+  test('the analysis now sees the partner, not only the learner', () => {
+    const src = html();
+    expect(src).toContain("scChatHistory.filter(m => m.role === 'assistant')");
+    expect(src).toContain('WHAT THE PARTNER SAID');
+  });
+
+  test('words the learner already used correctly are ruled out', () => {
+    const src = html();
+    const rule = src.slice(src.indexOf('- "words": ALWAYS return'));
+    expect(rule.slice(0, 700)).toContain('NEVER suggest a word the learner already used correctly');
+    expect(rule.slice(0, 700)).toContain('the PARTNER used that are less common');
+  });
+});
+
+test.describe('«В кроссворде не хватает посмотреть, как правильно»', () => {
+  test('the crossword offers to show the answer', () => {
+    const src = html();
+    expect(src).toContain('onclick="revealCrossword()"');
+    expect(src).toContain('function revealCrossword()');
+  });
+
+  test('what was revealed is told apart from what was solved', () => {
+    const src = html();
+    const fn = src.slice(src.indexOf('function revealCrossword()'));
+    expect(fn.slice(0, 1200)).toContain("classList.add('revealed')");
+    expect(fn.slice(0, 1200)).toContain("input.value.toUpperCase() === correct");
+    expect(src).toContain('.crossword-cell input.revealed');
+  });
+
+  test('a clean grid is told there is nothing to reveal', () => {
+    const src = html();
+    const fn = src.slice(src.indexOf('function revealCrossword()'));
+    expect(fn.slice(0, 1600)).toContain('Усе вже правильно');
+  });
+});
+
+/** Звернення від 19–22 серпня. */
+
+test.describe('«Возможность закончить спикинг клаб быстрее»', () => {
+  test('the chat screen has a way out before the timer', () => {
+    const src = html();
+    const chat = src.slice(src.indexOf('id="sc-chat-screen"'), src.indexOf('id="sc-analysis-screen"'));
+    expect(chat).toContain('onclick="scEndEarly()"');
+  });
+
+  test('leaving early still goes through the analysis', () => {
+    const src = html();
+    const fn = src.slice(src.indexOf('async function scEndEarly()'));
+    expect(fn.slice(0, 700)).toContain('scEndChat()');
+  });
+
+  test('a conversation too short to analyse is refused', () => {
+    const src = html();
+    const fn = src.slice(src.indexOf('async function scEndEarly()'));
+    expect(fn.slice(0, 700)).toContain('scMessageCount < 2');
+  });
+});
+
+test.describe('«Кроссворд по изученным словам только»', () => {
+  test('a word never seen is set aside', () => {
+    const src = html();
+    const fn = src.slice(src.indexOf('async function generateNewCrossword()'));
+    expect(fn.slice(0, 2500)).toContain("Number(doc.data().interactions || 0) > 0");
+    expect(fn.slice(0, 2500)).toContain('untouched');
+  });
+
+  test('a brand-new dictionary still gets a crossword', () => {
+    const src = html();
+    const fn = src.slice(src.indexOf('async function generateNewCrossword()'));
+    expect(fn.slice(0, 2500)).toContain('CROSSWORD_MIN');
+    expect(fn.slice(0, 2500)).toContain('untouched.slice(0, CROSSWORD_MIN - wordsArray.length)');
+  });
+});
+
+test.describe('«У клавіатурі немає коми»', () => {
+  test('the input keyboard offers a comma for a second translation', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => (window as any).showAddWord());
+    await page.click('#translation');
+    await expect(page.locator('#input-keyboard .cw-key[data-letter=","]')).toBeVisible();
+  });
+
+  test('it types into the field like any other key', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => (window as any).showAddWord());
+    await page.click('#translation');
+    await page.click('#input-keyboard .cw-key[data-letter=","]');
+    expect(await page.inputValue('#translation')).toContain(',');
+  });
+
+  test('the crossword keyboard stays letters-only', () => {
+    const src = html();
+    const kb = src.slice(src.indexOf('function renderCrosswordKeyboard()'));
+    expect(kb.slice(0, 900)).not.toContain("data-letter=\",\"");
+  });
+});

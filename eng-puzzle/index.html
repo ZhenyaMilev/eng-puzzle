@@ -3296,6 +3296,7 @@
        button дає одній margin-bottom 20px, а .check-button — 10px згори, і в
        ряду вони стояли на різній висоті. */
     .cw-keyboard-crossword .cw-keyboard-actions .check-button,
+    .cw-keyboard-crossword .cw-keyboard-actions .reveal-crossword-button,
     .cw-keyboard-crossword .cw-keyboard-actions .new-crossword-button {
       flex: 1;
       margin: 0;
@@ -3313,6 +3314,16 @@
 
     /* «Перевірити» бере вигляд головної дії з .cw-keyboard-actions — той самий,
        що в конструкторі. «Новий» — другорядна, як «Пропустити» там. */
+    .cw-keyboard-crossword .reveal-crossword-button {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: rgba(240, 237, 232, 0.8);
+    }
+
+    .cw-keyboard-crossword .reveal-crossword-button:active {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
     .cw-keyboard-crossword .new-crossword-button {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -3417,6 +3428,11 @@
       font-size: 16px;
       color: rgba(240, 237, 232, 0.5);
       line-height: 1.5;
+    }
+
+    .crossword-cell input.revealed {
+      color: #E8A838;
+      background: rgba(232, 168, 56, 0.12);
     }
 
     .crossword-popup-buttons {
@@ -5688,6 +5704,19 @@
     }
     .sc-start-btn:disabled { opacity:0.4; cursor:default; }
 
+    .sc-stop-btn {
+      width: auto;
+      margin: 0 0 0 10px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      color: rgba(240, 237, 232, 0.75);
+      font-size: 14px;
+    }
+
+    .sc-stop-btn:active { background: rgba(255, 255, 255, 0.12); }
+
     /* Вводини читають кілька секунд перед стартом, тож рядки короткі й окремі */
     .sc-brief-body { display:flex; flex-direction:column; gap:12px; }
 
@@ -6142,6 +6171,13 @@
       font-size: 15px;
       color: #34d399;
     }
+    .mistake-note {
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: rgba(240, 237, 232, 0.6);
+    }
+
     .mistake-given {
       margin-top: 3px;
       font-size: 12px;
@@ -6726,7 +6762,7 @@
       <div class="acc-telegram hidden" id="acc-telegram">
         <div class="acc-telegram-text">
           <strong id="acc-telegram-title">Нагадування в Telegram</strong>
-          <span id="acc-telegram-sub">Підкажу, коли стрик під загрозою і коли закінчується підписка</span>
+          <span id="acc-telegram-sub">Підкажу, коли серія під загрозою і коли закінчується підписка</span>
         </div>
         <button id="acc-telegram-btn" onclick="connectTelegram()">
           <svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16-1.86 8.772c-.14.622-.508.775-1.03.483l-2.84-2.093-1.37 1.32c-.152.152-.278.278-.57.278l.203-2.888 5.257-4.75c.229-.203-.05-.316-.354-.114l-6.497 4.09-2.798-.875c-.608-.19-.62-.608.127-.9l10.937-4.216c.507-.183.95.114.786.893z"/></svg> Підключити
@@ -8006,6 +8042,9 @@
           <div class="sc-chat-header">
             <span style="font-size:13px;color:rgba(240,237,232,0.5);" id="sc-chat-topic"></span>
             <div class="sc-timer" id="sc-timer">05:00</div>
+            <button class="sc-stop-btn" id="sc-stop-btn" onclick="scEndEarly()" title="Завершити й подивитись розбір">
+              <i class="fas fa-flag-checkered"></i>
+            </button>
           </div>
           <div class="sc-hint-bar">Можеш писати українською, якщо не знаєш слово 🇺🇦🇬🇧</div>
           <div class="sc-messages" id="sc-messages"></div>
@@ -9181,7 +9220,7 @@
 
       if (!linked) {
         title.textContent = 'Нагадування в Telegram';
-        sub.textContent = 'Підкажу, коли стрик під загрозою і коли закінчується підписка';
+        sub.textContent = 'Підкажу, коли серія під загрозою і коли закінчується підписка';
         btn.innerHTML = '<svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16-1.86 8.772c-.14.622-.508.775-1.03.483l-2.84-2.093-1.37 1.32c-.152.152-.278.278-.57.278l.203-2.888 5.257-4.75c.229-.203-.05-.316-.354-.114l-6.497 4.09-2.798-.875c-.608-.19-.62-.608.127-.9l10.937-4.216c.507-.183.95.114.786.893z"/></svg> Підключити';
         btn.onclick = connectTelegram;
         return;
@@ -9410,7 +9449,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-18.7';
+    const APP_VERSION = '2026-08-23.1';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -9453,6 +9492,7 @@
     let speedTrainingWords = [];
     let currentSpeedQuestion = 0;
     let speedCorrectAnswers = 0;
+    let speedMistakes = [];
     let speedTotalAnswers = 0;
     let speedTimer = 60; // 60 секунд
     let speedTrainingMode = ''; // 'ukr_to_eng' або 'eng_to_ukr'
@@ -9549,6 +9589,7 @@
 
       currentSpeedQuestion = 0;
       speedCorrectAnswers = 0;
+      speedMistakes = [];
       speedTotalAnswers = 0;
       speedTimer = 60;
       updateSpeedTimerDisplay();
@@ -9659,6 +9700,7 @@
         speedTimer += 1;
         timeFeedback = '<span class="speed-time-feedback positive">+1</span>';
       } else {
+        recordMistake(speedMistakes, questionWord, selectedOption);
         speedTimer -= 2;
         if (speedTimer < 0) speedTimer = 0;
         timeFeedback = '<span class="speed-time-feedback negative">-2</span>';
@@ -9721,6 +9763,7 @@
         ${recordHTML}
         <div class="quiz-result-xp">+${xpEarned} XP</div>
         <div class="quiz-result-message">${message}</div>
+        ${renderMistakes(speedMistakes)}
         <button class="finish-button" onclick="finishSpeedTrainingSession()">Продовжити</button>
       `;
     }
@@ -9734,6 +9777,7 @@
       speedTrainingWords = [];
       currentSpeedQuestion = 0;
       speedCorrectAnswers = 0;
+      speedMistakes = [];
       speedTotalAnswers = 0;
       speedTimer = 60;
       speedTrainingMode = '';
@@ -9819,6 +9863,7 @@ function exitSpeedTraining() {
   speedTrainingWords = [];
   currentSpeedQuestion = 0;
   speedCorrectAnswers = 0;
+  speedMistakes = [];
   speedTotalAnswers = 0;
   speedTimer = 60;
   speedTrainingMode = '';
@@ -14408,6 +14453,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
     let phraseConstructorPhrases = [];
     let currentPhraseQuestion = 0;
     let phraseCorrectAnswers = 0;
+    let phraseMistakes = [];
     let phraseSelectedWords = [];
 
     let currentVocabTab = 'words';
@@ -14780,6 +14826,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
         phraseConstructorPhrases = combined.slice(0, Math.min(10, combined.length));
         currentPhraseQuestion = 0;
         phraseCorrectAnswers = 0;
+        phraseMistakes = [];
         document.getElementById('phrase-constructor-result').classList.add('hidden');
         document.getElementById('phrase-constructor-container').classList.remove('hidden');
         showPhraseConstructorQuestion();
@@ -14948,6 +14995,10 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
         phraseCorrectAnswers++;
         playSound(true);
       } else {
+        const given = phraseVoiceTranscript
+          || phraseSelectedWords.map(w => w.word).join(' ');
+        recordMistake(phraseMistakes,
+          { english: phraseExpected(phrase), translation: phrase.translation || '' }, given);
         playSound(false);
       }
 
@@ -15030,6 +15081,7 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
         <div class="quiz-result-score ${scoreClass}">${phraseCorrectAnswers}/${total}</div>
         <div class="quiz-result-xp">+${xpEarned} XP</div>
         <div class="quiz-result-message">${message}</div>
+        ${renderMistakes(phraseMistakes, 'phrases')}
         <button class="finish-button" onclick="finishPhraseConstructor()">Продовжити</button>
       `;
     }
@@ -17161,10 +17213,11 @@ function copyStory() {
         .replace(/"/g, '&quot;');
     }
 
-    function renderMistakes(mistakes) {
+    function renderMistakes(mistakes, kind) {
+      const isPhrases = kind === 'phrases';
       if (!mistakes || !mistakes.length) {
         return `<div class="result-clean">
-          <i class="fas fa-circle-check"></i> Жодної помилки — ці слова можна вважати вивченими
+          <i class="fas fa-circle-check"></i> Жодної помилки — ${isPhrases ? 'ці фрази' : 'ці слова'} можна вважати вивченими
         </div>`;
       }
 
@@ -17175,15 +17228,35 @@ function copyStory() {
             <span>${escapeHtml(m.translation)}</span>
           </div>
           ${m.given ? `<div class="mistake-given">Ви обрали: ${escapeHtml(m.given)}</div>` : ''}
+          ${m.note ? `<div class="mistake-note">${escapeHtml(m.note)}</div>` : ''}
         </div>`).join('');
 
-      const noun = pluralUa(mistakes.length, 'слово', 'слова', 'слів');
+      const noun = isPhrases
+        ? pluralUa(mistakes.length, 'фраза', 'фрази', 'фраз')
+        : pluralUa(mistakes.length, 'слово', 'слова', 'слів');
       return `
         <div class="mistakes-block">
           <h4>Варто повторити: ${mistakes.length} ${noun}</h4>
           ${rows}
-          <p class="mistakes-hint">Ці слова алгоритм покаже частіше в наступних тренуваннях.</p>
+          <p class="mistakes-hint">${isPhrases ? 'Ці фрази' : 'Ці слова'} алгоритм покаже частіше в наступних тренуваннях.</p>
         </div>`;
+    }
+
+    /**
+     * Одна помилка — один рядок. У конструкторі слово лишається на екрані до
+     * правильної відповіді, тож без перевірки на повтор список склався б із
+     * трьох однакових рядків замість одного.
+     */
+    function recordMistake(list, word, given, note) {
+      if (!list || !word) return;
+      const english = word.english || word.word || '';
+      if (!english || list.some(m => m.english === english)) return;
+      list.push({
+        english,
+        translation: word.translation || '',
+        given: given || '',
+        note: note || '',
+      });
     }
 
     // Перевірка відповіді
@@ -17539,6 +17612,7 @@ async function translateStory() {
           }));
           currentListeningQuestion = 0;
           listeningCorrectAnswers = 0;
+          listeningMistakes = [];
           showListeningQuestion();
           hideLoading();
         });
@@ -17548,6 +17622,7 @@ async function translateStory() {
     let listeningWords = [];
     let currentListeningQuestion = 0;
     let listeningCorrectAnswers = 0;
+    let listeningMistakes = [];
 
     function showListeningQuestion() {
       if (currentListeningQuestion >= listeningWords.length) {
@@ -17587,6 +17662,7 @@ async function translateStory() {
         feedback.textContent = 'Правильно!';
         feedback.style.color = '#2ecc71'; // Зеленый
       } else {
+        recordMistake(listeningMistakes, listeningWords[currentListeningQuestion], userAnswer);
         feedback.textContent = `Неправильно! Правильне слово: ${correctWord}`;
         feedback.style.color = '#e74c3c'; // Красный
       }
@@ -17651,6 +17727,7 @@ async function translateStory() {
 
     function skipListeningQuestion() {
       if (!lockAnswer('#listening-quiz-container')) return;
+      recordMistake(listeningMistakes, listeningWords[currentListeningQuestion], '');
       unlockAnswer();
       currentListeningQuestion++;
       showListeningQuestion();
@@ -17773,6 +17850,7 @@ async function translateStory() {
           }));
           currentConstructorQuestion = 0;
           constructorCorrectAnswers = 0;
+          constructorMistakes = [];
           showConstructorQuestion();
           hideLoading();
         })
@@ -17786,6 +17864,7 @@ async function translateStory() {
     let constructorWords = [];
     let currentConstructorQuestion = 0;
     let constructorCorrectAnswers = 0;
+    let constructorMistakes = [];
 
     function showConstructorQuestion() {
       if (currentConstructorQuestion >= constructorWords.length) {
@@ -18010,6 +18089,7 @@ async function translateStory() {
         }, 1500);
       } else {
         updateWordStats(correctWord, false);
+        recordMistake(constructorMistakes, constructorWords[currentConstructorQuestion], userAnswer);
         feedback.classList.remove('correct-label');
         feedback.classList.add('not-correct-label');
         feedback.textContent = `Неправильно! спробуйте ще раз.`;
@@ -18035,8 +18115,51 @@ async function translateStory() {
       });
     }
 
+    /**
+     * На комп'ютері клавіатура вже є — фізична. Поле відповіді навмисно
+     * readonly з inputmode="none", інакше на телефоні поверх власних клавіш
+     * вилазила б системна; тож натискання ловимо на документі й переводимо
+     * в ті самі дії, що й екранні клавіші.
+     *
+     * Літеру не фільтруємо за алфавітом: напрямок буває і на українську,
+     * і на англійську, а `addLetterToConstructor` і так мовчки відмовляє,
+     * якщо такої клавіші в розкладці немає.
+     */
+    function onConstructorPhysicalKey(event) {
+      const section = document.getElementById('word-constructor-training-section');
+      if (!section || section.classList.contains('hidden')) return;
+      // Cmd+R, Ctrl+C і подібне лишаються браузеру
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      // Відкритий попап забирає клавіатуру собі
+      const overlay = document.querySelector('.overlay');
+      if (overlay && !overlay.classList.contains('hidden')) return;
+      // Людина друкує в іншому полі — не втручаємось
+      const active = document.activeElement;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
+          && active.id !== 'constructor-answer') return;
+
+      if (event.key === 'Backspace') {
+        event.preventDefault();
+        deleteLastLetter();
+        return;
+      }
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const word = constructorWords[currentConstructorQuestion];
+        if (word) submitConstructorAnswer(word.english);
+        return;
+      }
+      // Shift, Tab, стрілки, F5 — усе, що довше за один символ
+      if (event.key.length !== 1) return;
+      event.preventDefault();
+      addLetterToConstructor(event.key.toLowerCase());
+    }
+    document.addEventListener('keydown', onConstructorPhysicalKey);
+
     function skipConstructor() {
       if (!lockAnswer('#word-constructor-training-section')) return;
+      // Пропущене слово — теж те, якого людина не знала
+      recordMistake(constructorMistakes, constructorWords[currentConstructorQuestion], '');
       unlockAnswer();
       currentConstructorQuestion++;
       showConstructorQuestion();
@@ -18168,6 +18291,7 @@ async function translateStory() {
     let pictureQuizWords = [];
     let currentPictureQuestion = 0;
     let pictureCorrectAnswers = 0;
+    let pictureMistakes = [];
 
     function startPictureQuiz() {
       toggleMainTitle();
@@ -18222,6 +18346,7 @@ async function translateStory() {
         pictureOptionsPool = wordsArray;
         currentPictureQuestion = 0;
         pictureCorrectAnswers = 0;
+        pictureMistakes = [];
 
         // Попереднє завантаження картинок
         await preloadPictureQuizImages();
@@ -18306,6 +18431,8 @@ async function translateStory() {
 
       if (isCorrect) {
         pictureCorrectAnswers++;
+      } else {
+        recordMistake(pictureMistakes, questionWord, selectedAnswer);
       }
 
       // Оновлюємо статистику слова
@@ -18344,6 +18471,7 @@ async function translateStory() {
         <div class="quiz-result-score ${scoreClass}">${pictureCorrectAnswers}/${total}</div>
         <div class="quiz-result-xp">+${xpEarned} XP</div>
         <div class="quiz-result-message">${message}</div>
+        ${renderMistakes(pictureMistakes)}
         <button class="finish-button" onclick="finishPictureQuiz()">Продовжити</button>
       `;
     }
@@ -18379,6 +18507,7 @@ async function translateStory() {
       document.getElementById('picture-quiz-progress').classList.remove('hidden');
       document.querySelector('#picture-quiz-section > .skip-button').classList.remove('hidden');
       pictureCorrectAnswers = 0;
+      pictureMistakes = [];
       currentPictureQuestion = 0;
     }
     // ============ Кінець тренування по картинках ============
@@ -18406,15 +18535,23 @@ async function translateStory() {
           .get();
 
         let wordsArray = [];
+        let untouched = [];
         querySnapshot.forEach(doc => {
           const english = doc.id.toUpperCase();
-          if (/^[A-Z]+$/.test(english) && english.length >= 3 && english.length <= 10) {
-            wordsArray.push({
-              english: english,
-              translation: doc.data().translation
-            });
-          }
+          if (!/^[A-Z]+$/.test(english) || english.length < 3 || english.length > 10) return;
+          const entry = { english: english, translation: doc.data().translation };
+          // priority = correctAnswers/interactions, у нового слова це 0 — тобто
+          // сортування «за складністю» ставить першими саме ті, яких людина ще
+          // не бачила. Кросворд із них перетворюється на вгадування.
+          if (Number(doc.data().interactions || 0) > 0) wordsArray.push(entry);
+          else untouched.push(entry);
         });
+
+        // Новачкові вчити ще нічого — тоді краще хоч якийсь кросворд, ніж жоден
+        const CROSSWORD_MIN = 8;
+        if (wordsArray.length < CROSSWORD_MIN) {
+          wordsArray = wordsArray.concat(untouched.slice(0, CROSSWORD_MIN - wordsArray.length));
+        }
 
         if (wordsArray.length < 5) {
           document.getElementById('crossword-grid').innerHTML =
@@ -18740,6 +18877,7 @@ async function translateStory() {
         ${fullKeyboardRowsHTML('addCrosswordLetter', 'crosswordBackspace')}
         <div class="cw-keyboard-actions">
           <button class="check-button" onclick="checkCrossword()"><i class="fas fa-check"></i> Перевірити</button>
+          <button class="reveal-crossword-button" onclick="revealCrossword()"><i class="fas fa-eye"></i> Показати</button>
           <button class="new-crossword-button" onclick="generateNewCrossword()"><i class="fas fa-sync-alt"></i> Новий</button>
         </div>`;
       kb.classList.remove('hidden');
@@ -18825,6 +18963,7 @@ async function translateStory() {
           <button class="cw-key cw-kb-layout" onclick="toggleTextKeyboardLayout()" aria-label="Розкладка">${other}</button>
           <button class="cw-key" data-letter="'" onclick="textKeyboardType(&quot;'&quot;)">'</button>
           <button class="cw-key cw-key-space" data-letter=" " onclick="textKeyboardType(' ')">${spaceLabel}</button>
+          <button class="cw-key" data-letter="," onclick="textKeyboardType(',')">,</button>
         </div>
         <div class="cw-kb-tools">
           <button class="cw-key cw-kb-tool-wide cw-kb-tool-accent${recording}" id="text-kb-mic"
@@ -19278,6 +19417,50 @@ async function translateStory() {
       }
       popup.classList.remove('hidden');
     }
+    /**
+     * «Не хватает посмотреть, как правильно заполнить слова» — зі звернення.
+     * «Перевірити» лише фарбувало чужі літери червоним, і той, хто застряг,
+     * міг тільки згенерувати новий кросворд, так і не дізнавшись відповіді.
+     *
+     * Заповнені правильно клітинки лишаємо як є — тоді видно, що людина
+     * встигла зробити сама, а що їй показали.
+     */
+    function revealCrossword() {
+      const inputs = document.querySelectorAll('.crossword-cell input');
+      let shown = 0;
+
+      inputs.forEach(input => {
+        const row = parseInt(input.dataset.row);
+        const col = parseInt(input.dataset.col);
+        const correct = crosswordGrid[row][col];
+        if (!correct) return;
+
+        input.classList.remove('incorrect');
+        if (input.value.toUpperCase() === correct) {
+          input.classList.add('correct');
+          return;
+        }
+        input.value = correct;
+        input.classList.add('revealed');
+        shown++;
+      });
+
+      const popup = document.getElementById('crossword-popup');
+      const icon = document.getElementById('crossword-popup-icon');
+      const title = document.getElementById('crossword-popup-title');
+      const text = document.getElementById('crossword-popup-text');
+      const newBtn = document.getElementById('popup-new-btn');
+
+      icon.className = 'crossword-popup-icon warning';
+      icon.innerHTML = '<i class="fas fa-eye"></i>';
+      title.textContent = shown ? 'Ось відповідь' : 'Усе вже правильно';
+      text.textContent = shown
+        ? `Показані літери підсвічені — решту ви зібрали самі. Слова лишаються у словнику, вони ще трапляться в інших тренуваннях.`
+        : 'Ви заповнили кросворд без помилок — показувати нічого.';
+      newBtn.style.display = '';
+      popup.classList.remove('hidden');
+    }
+
     function closeCrosswordPopup() {
       document.getElementById('crossword-popup').classList.add('hidden');
     }
@@ -19332,6 +19515,7 @@ async function translateStory() {
         <div class="quiz-result-score ${scoreClass}">${listeningCorrectAnswers}/${total}</div>
         <div class="quiz-result-xp">+${xpEarned} XP</div>
         <div class="quiz-result-message">${message}</div>
+        ${renderMistakes(listeningMistakes)}
         <button class="finish-button" onclick="finishListening()">Продовжити</button>
       `;
     }
@@ -19343,6 +19527,7 @@ async function translateStory() {
       backToAccount();
       // Скидання результатів слухання
       listeningCorrectAnswers = 0;
+      listeningMistakes = [];
       currentListeningQuestion = 0;
       initializeListeningTraining();
     }
@@ -19393,6 +19578,7 @@ async function translateStory() {
         <div class="quiz-result-score ${scoreClass}">${constructorCorrectAnswers}/${total}</div>
         <div class="quiz-result-xp">+${xpEarned} XP</div>
         <div class="quiz-result-message">${message}</div>
+        ${renderMistakes(constructorMistakes)}
         <button class="finish-button" onclick="finishConstructor()">Продовжити</button>
       `;
     }
@@ -19408,6 +19594,7 @@ async function translateStory() {
       document.getElementById('constructor-progress').classList.add('hidden');
       // Сброс результатов
       constructorCorrectAnswers = 0;
+      constructorMistakes = [];
       currentConstructorQuestion = 0;
       backToAccount();
     }
@@ -19681,6 +19868,7 @@ async function generateStory() {
     // ============ Вставте пропущене слово ============
     let fillBlanksMode = ''; // 'ukrainian' або 'english'
     let fillBlanksData = []; // Масив об'єктів {sentence, word, translation}
+    let fillBlanksMistakes = [];
     let selectedWord = null; // Поточне вибране слово
 
     function startFillBlanksTraining() {
@@ -19758,7 +19946,7 @@ async function generateStory() {
 The English word should be naturally incorporated into the Ukrainian sentence and will be the blank.
 Return ONLY a valid JSON array with exactly 10 objects in this format:
 [
-  {"sentence": "Ukrainian sentence with ___ for blank", "word": "english_word", "translation": "ukrainian_translation"},
+  {"sentence": "Ukrainian sentence with ___ for blank", "word": "english_word", "translation": "ukrainian_translation", "hint": "коротке українське пояснення, чому підходить саме це слово"},
   ...
 ]
 Replace the English word position with "___" (three underscores) in the sentence.
@@ -19768,7 +19956,7 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
         promptText = `Generate 10 sentences in English where each sentence has one missing word from this list: ${wordPairs}.
 Return ONLY a valid JSON array with exactly 10 objects in this format:
 [
-  {"sentence": "English sentence with ___ for blank", "word": "english_word", "translation": "ukrainian_translation"},
+  {"sentence": "English sentence with ___ for blank", "word": "english_word", "translation": "ukrainian_translation", "hint": "коротке українське пояснення, чому підходить саме це слово"},
   ...
 ]
 Replace the missing word position with "___" (three underscores) in the sentence.
@@ -19918,6 +20106,7 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
 
     function checkFillBlanksAnswers() {
       let correctCount = 0;
+      fillBlanksMistakes = [];
       const blanks = document.querySelectorAll('.fill-blank');
 
       blanks.forEach(blank => {
@@ -19931,6 +20120,12 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
           correctCount++;
         } else {
           blank.classList.add('incorrect');
+          const source = fillBlanksData.find(d => d.word === answer) || {};
+          // «Не вистачає пояснення чого так після перевірки» — зі звернення в підтримку
+          const why = source.hint
+            || (source.sentence ? source.sentence.replace('___', answer) : '');
+          recordMistake(fillBlanksMistakes,
+            { english: answer, translation: source.translation || '' }, userAnswer, why);
           // Показуємо правильну відповідь
           if (!blank.classList.contains('filled')) {
             blank.innerHTML = `<span class="blank-word" style="color:#ef4444">${answer}</span>`;
@@ -19979,6 +20174,7 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
         <div class="quiz-result-score ${scoreClass}">${correctCount}/${total}</div>
         <div class="quiz-result-xp">+${xpEarned} XP</div>
         <div class="quiz-result-message">${message}</div>
+        ${renderMistakes(fillBlanksMistakes)}
         <button class="finish-button" onclick="finishFillBlanks()">Продовжити</button>
       `;
     }
@@ -19998,6 +20194,7 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
     let definitionQuizData = [];
     let currentDefinitionQuestion = 0;
     let definitionCorrectAnswers = 0;
+    let definitionMistakes = [];
 
     function startDefinitionQuiz() {
       closeAllInfoPopups();
@@ -20013,6 +20210,7 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
       definitionQuizData = [];
       currentDefinitionQuestion = 0;
       definitionCorrectAnswers = 0;
+      definitionMistakes = [];
       document.getElementById('definition-quiz-mode-selection').classList.remove('hidden');
       document.getElementById('definition-quiz-difficulty-selection').classList.add('hidden');
       document.getElementById('definition-quiz-training').classList.add('hidden');
@@ -20195,6 +20393,9 @@ Return ONLY the JSON array, no other text.`;
         definitionCorrectAnswers++;
       } else {
         button.classList.add('wrong');
+        recordMistake(definitionMistakes,
+          { english: currentItem.word, translation: currentItem.translation || currentItem.definition || '' },
+          selectedWord);
         // Показуємо правильну відповідь
         buttons.forEach(btn => {
           if (btn.textContent.startsWith(currentItem.word)) {
@@ -20241,6 +20442,7 @@ Return ONLY the JSON array, no other text.`;
         <div class="quiz-result-score ${scoreClass}">${definitionCorrectAnswers}/${total}</div>
         <div class="quiz-result-xp">+${xpEarned} XP</div>
         <div class="quiz-result-message">${message}</div>
+        ${renderMistakes(definitionMistakes)}
         <button class="finish-button" onclick="finishDefinitionQuiz()">Продовжити</button>
       `;
     }
@@ -21466,6 +21668,21 @@ ${scConfig.mode === 'scenario' && scScenario
     // в історію робилися двічі, тому в історії й з'являлися дублі.
     let scEnded = false;
 
+    /**
+     * Розмова закінчувалася лише коли добігав таймер, і сказавши все за
+     * дві хвилини з п'яти, людина сиділа й чекала. Розбір — найцінніше в
+     * тренуванні, тож дійти до нього треба будь-коли. Зі звернення в підтримку.
+     */
+    async function scEndEarly() {
+      if (scEnded) return;
+      if (scMessageCount < 2) {
+        showNotification('Скажіть хоча б кілька реплік — інакше не буде що розбирати', 'warning');
+        return;
+      }
+      const ok = await appConfirm('Завершити розмову?', 'Покажемо розбір того, що ви вже сказали.', 'Завершити');
+      if (ok) scEndChat();
+    }
+
     async function scEndChat() {
       if (scEnded) return;
       scEnded = true;
@@ -21489,6 +21706,10 @@ ${scConfig.mode === 'scenario' && scScenario
 
       // Build analysis prompt
       const userMessages = scChatHistory.filter(m => m.role === 'user').map(m => m.content);
+      // Раніше в аналіз їхали лише репліки учня, тому «слова на вивчення»
+      // складалися з того, що він уже сам сказав — тобто вже знає. Слова
+      // співрозмовника і є тим новим, заради чого варто читати розбір.
+      const partnerMessages = scChatHistory.filter(m => m.role === 'assistant').map(m => m.content);
       if (userMessages.length === 0) {
         scShowAnalysis({ errors:[], suggestions:[], words:[], summary:'Розмова була занадто короткою для аналізу.' }, xpEarned);
         return;
@@ -21500,6 +21721,9 @@ ${scConfig.mode === 'scenario' && scScenario
 
 USER MESSAGES:
 ${userMessages.map((m,i) => (i+1) + '. ' + m).join('\n')}
+
+WHAT THE PARTNER SAID (source of new vocabulary for this learner):
+${partnerMessages.map((m,i) => (i+1) + '. ' + m).join('\n') || '(nothing)'}
 
 AVAILABLE GRAMMAR TOPICS IN THE APP:
 ${grammarList}
@@ -21522,9 +21746,9 @@ Respond ONLY with JSON:
 }
 
 Rules:
-- "errors": find grammar, vocabulary, and phrasing mistakes. Max 8 errors. IGNORE punctuation and capitalization errors completely — this is a speaking club, messages may come from voice transcription.
+- "errors": find grammar, vocabulary, and phrasing mistakes. Max 8 errors. IGNORE punctuation and capitalization completely — this is a speaking club and the text comes from voice transcription, where the speaker never dictated the commas. Never return an entry whose "corrected" differs from "original" only by punctuation, capitalization or nothing at all: if the phrase was fine, it is not an error and must be left out entirely.
 - MOST IMPORTANT: If the user wrote any words or sentences in Ukrainian or Russian (not English), extract those and provide the correct English translation. These are words/phrases the user didn't know in English and wanted to say.
-- "words": ALWAYS return 4-6 useful single English WORDS for this learner to study — never an empty list. Prioritize in this order: (1) words they tried to say in Ukrainian/Russian, (2) more natural or precise words than the simple ones they used, (3) useful vocabulary from the conversation topic suited to their level (${scConfig.level}). Include a Ukrainian translation for each.
+- "words": ALWAYS return 4-6 useful single English WORDS for this learner to study — never an empty list. NEVER suggest a word the learner already used correctly in their own messages: they clearly know it, and seeing "hello" or "like" on a study list is useless. Prioritize in this order: (1) words they tried to say in Ukrainian/Russian, (2) words the PARTNER used that are less common and likely new to a ${scConfig.level} learner, (3) a more precise or natural word than a simple one they reached for, naming what it replaces, (4) useful vocabulary from the conversation topic. Include a Ukrainian translation for each.
 - "phrases": English PHRASES (2+ words, expressions, collocations) the user should learn — especially phrases they tried to express in Ukrainian/Russian, plus 1-3 natural expressions that fit the conversation. Include Ukrainian translation.
 - "grammar": ALWAYS recommend 2-4 grammar topics from the list above to study or review — never an empty list — based on their mistakes and their level (${scConfig.level}). Use EXACT topic IDs from the list. Explain in Ukrainian why.
 - "summary": brief encouraging summary in Ukrainian.
@@ -21545,6 +21769,25 @@ Rules:
         console.error('Analysis error:', e);
         scShowAnalysis({ errors:[], words:[], summary:'Не вдалося проаналізувати розмову.' }, xpEarned);
       }
+    }
+
+    /**
+     * Дві репліки, що відрізняються лише комами й великими літерами, — це
+     * одна репліка. Розмовний клуб слухає голос, розділових знаків туди не
+     * диктують, тож «that's all.» проти «that's all.» потрапляло в помилки
+     * і роздувало їх лік. Це зі звернення в підтримку.
+     */
+    function scSameUtterance(a, b) {
+      var strip = function(s) {
+        return String(s || '')
+          .toLowerCase()
+          .replace(/[.,!?;:'"()\u2019\u2018\u201c\u201d\u2013\u2014-]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      };
+      var left = strip(a);
+      var right = strip(b);
+      return !left || !right || left === right;
     }
 
     async function scShowAnalysis(analysis, xpEarned) {
@@ -21630,7 +21873,7 @@ Rules:
             translation: text(e, ['translation']),
             explanation: text(e, ['explanation', 'why', 'reason']),
           };
-        }).filter(function(e) { return e.corrected || e.original; }),
+        }).filter(function(e) { return (e.corrected || e.original) && !scSameUtterance(e.original, e.corrected); }),
         words: (a.words || []).map(function(w) {
           return { word: text(w, ['word', 'english', 'text']), translation: text(w, ['translation']) };
         }).filter(function(w) { return w.word; }),

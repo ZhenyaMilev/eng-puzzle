@@ -132,8 +132,8 @@ const SCENARIOS = [
       return !!active && kyivParts(active).day !== kyivParts(now).day;
     },
     message: (user) => ({
-      text: `<b>Стрик ${Number(user.streak || 0)} дн.</b> — сьогодні ще нічого не зроблено.\n\n`
-        + 'Одне тренування, і серія залишиться.',
+      text: `<b>${Number(user.streak || 0)} дн. поспіль</b> — а сьогодні ще нічого не зроблено.\n\n`
+        + 'Одне тренування — і серія не обірветься.',
       buttons: [openAppButton('Продовжити серію')],
     }),
   },
