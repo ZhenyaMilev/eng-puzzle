@@ -1,15 +1,20 @@
 'use strict';
 
 const { firestore, auth, json } = require('./_shared');
-const { callBot, escapeHtml } = require('./_telegram');
+const { uploadToR2 } = require('./_r2');
 
 /**
- * A support request that actually reaches somebody.
+ * A support request that reaches somebody who can act on it.
  *
- * Writing it to Firestore alone meant it sat in a collection nobody opens.
- * It is stored *and* sent to the owner's Telegram, with the screenshots
- * attached, because a description of a broken screen is worth far less than
- * the screen.
+ * It used to go straight to the owner's Telegram with the screenshots
+ * attached — which meant every "the button is cut off" waited for a human to
+ * read it, and the screenshots existed only inside a chat, where no agent and
+ * no dashboard could reach them.
+ *
+ * Now the screenshots go to R2 and the request goes to the agent farm, which
+ * triages it: an interface fix it makes itself, and anything outside its remit
+ * — money, accounts, questions — is passed to the owner untouched. Telegram
+ * still hears about it, but afterwards, and from the agent.
  */
 
 const MAX_MESSAGE = 2000;
@@ -77,35 +82,50 @@ exports.handler = async (event) => {
       status: 'new',
     });
 
-    const owner = process.env.TG_SUPPORT_CHAT_ID;
-    let delivered = false;
-    if (owner) {
+    // Скриншоты — в R2: ссылка проходит и в JSON, и в строку БД, и в промпт
+    const imageUrls = [];
+    for (const [index, image] of images.entries()) {
       try {
-        await callBot('sendMessage', {
-          chat_id: owner,
-          text: summary(body, user, uid),
-          parse_mode: 'HTML',
-          disable_web_page_preview: true,
-        });
-
-        for (const image of images) {
-          // sendPhoto wants multipart; the bytes arrive base64 from the browser
-          const form = new FormData();
-          form.append('chat_id', String(owner));
-          form.append('photo', new Blob([Buffer.from(image, 'base64')], { type: 'image/jpeg' }), 'screenshot.jpg');
-          const response = await fetch(
-            `https://api.telegram.org/bot${process.env.TG_BOT_TOKEN}/sendPhoto`,
-            { method: 'POST', body: form },
-          );
-          if (!response.ok) console.error('sendPhoto failed:', response.status);
-        }
-        delivered = true;
+        const url = await uploadToR2(
+          `support/${ref.id}/${index + 1}.jpg`,
+          Buffer.from(image, 'base64'),
+          'image/jpeg',
+        );
+        imageUrls.push(url);
       } catch (e) {
-        // The request is saved; a failed notification must not lose it
-        console.error('Support notification failed:', e && e.message);
+        // Потерять скриншот неприятно, потерять обращение — хуже
+        console.error('R2 upload failed:', e && e.message);
+      }
+    }
+    if (imageUrls.length) await ref.update({ imageUrls });
+
+    const intake = process.env.SUPPORT_INTAKE_URL;
+    const intakeKey = process.env.SUPPORT_INTAKE_KEY;
+    let delivered = false;
+    if (intake && intakeKey) {
+      try {
+        const response = await fetch(intake, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-intake-key': intakeKey },
+          body: JSON.stringify({
+            requestId: ref.id,
+            uid,
+            email: user.email || '',
+            telegramId: user.telegramId || null,
+            message: body.message.trim().slice(0, MAX_MESSAGE),
+            imageUrls,
+            platform: String(body.platform || '').slice(0, 32),
+            version: String(body.version || '').slice(0, 32),
+          }),
+        });
+        delivered = response.ok;
+        if (!response.ok) console.error('Support intake failed:', response.status);
+      } catch (e) {
+        // Обращение уже в Firestore; недоставленное уведомление его не теряет
+        console.error('Support intake failed:', e && e.message);
       }
     } else {
-      console.error('TG_SUPPORT_CHAT_ID is not set — support request only stored');
+      console.error('SUPPORT_INTAKE_URL/KEY are not set — support request only stored');
     }
 
     await ref.update({ delivered });

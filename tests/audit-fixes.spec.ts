@@ -308,10 +308,34 @@ test.describe('Support without a personal account', () => {
   test('the function stores the request before trying to deliver it', () => {
     const src = readFileSync(FN('support'), 'utf-8');
     const store = src.indexOf("collection('supportRequests').add");
-    const send = src.indexOf("callBot('sendMessage'");
+    const send = src.indexOf('SUPPORT_INTAKE_URL');
     expect(store).toBeGreaterThan(-1);
-    // A Telegram outage must not lose the request
+    // An outage at the far end must not lose the request
     expect(store).toBeLessThan(send);
+  });
+
+  /**
+   * A screenshot pasted into a chat is a screenshot only a person can open.
+   * The agent that triages these requests cannot, and neither can the
+   * dashboard, so the bytes go to R2 and a URL travels instead.
+   */
+  test('screenshots go to R2, and the request goes to the agent', () => {
+    const src = readFileSync(FN('support'), 'utf-8');
+    expect(src).toContain("require('./_r2')");
+    expect(src).toContain('uploadToR2');
+    expect(src).toContain('imageUrls');
+    // Telegram is no longer the first stop
+    expect(src).not.toContain('sendPhoto');
+    expect(src).not.toContain('TG_SUPPORT_CHAT_ID');
+  });
+
+  test('a screenshot that fails to upload does not take the request with it', () => {
+    const src = readFileSync(FN('support'), 'utf-8');
+    const upload = src.indexOf('uploadToR2');
+    const guard = src.indexOf('catch', upload);
+    const intake = src.indexOf('SUPPORT_INTAKE_URL');
+    expect(guard).toBeGreaterThan(upload);
+    expect(guard).toBeLessThan(intake);      // caught before the hand-off
   });
 
   test('requests are write-only for clients', () => {
