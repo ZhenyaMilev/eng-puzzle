@@ -1901,8 +1901,6 @@
     }
 
 
-
-
     /* Leaderboard */
     .mode-group-label {
       font-size: 13px;
@@ -8076,8 +8074,6 @@
     </div>
 
 
-
-
     <!-- Свій ввід замість браузерного prompt() -->
     <div id="app-prompt-modal" class="app-modal hidden">
       <div class="app-modal-box">
@@ -9469,7 +9465,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-24.6';
+    const APP_VERSION = '2026-08-24.7';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -10401,8 +10397,6 @@ function exitSpeedTraining() {
             return loadWordsPool();
           })
           .then(() => {
-            // Одноразова міграція поля priority для існуючих слів (у фоні)
-            migratePriorityField();
             checkForSharedSetOnLoad();
           })
           .catch(error => {
@@ -16718,8 +16712,6 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       popup.classList.add('popup-animate');
     }
 
-
-
     // ========== STORY MODE & QUIZ ==========
     let currentStoryMode = 'text';
     let storyAudioListens = 2;
@@ -16941,8 +16933,6 @@ Where "correct" is the index (0-3) of the correct option. ${langInstruction}`;
       }
     }
 
-
-
     // Функція для додавання всіх слів з попапу
     async function addAllSharedWords() {
       const wordsList = document.getElementById('shared-words-container');
@@ -17033,10 +17023,6 @@ Where "correct" is the index (0-3) of the correct option. ${langInstruction}`;
 
 
 
-
-
-
-
 function copyStory() {
   const title = document.getElementById('story-title').innerText;
   const text = document.getElementById('story-text').innerText;
@@ -17072,8 +17058,6 @@ function copyStory() {
       document.getElementById('speedInfoPopup').classList.remove('show');
       document.querySelector('.overlay').classList.add('hidden');
     }
-
-
 
     function openGenerativeTextInfoPopup() {
       document.getElementById('generativeTextInfoPopup').classList.remove('hidden');
@@ -17692,8 +17676,6 @@ async function translateStory() {
     storyIsEnglish = true;
   }
 }
-
-
 
     // Отримання рекомендацій перекладу
     function getTranslationSuggestions(word) {
@@ -18381,37 +18363,6 @@ async function translateStory() {
     }
 
     // Одноразова міграція: розраховує priority для всіх існуючих слів без нього
-    async function migratePriorityField() {
-      if (!auth.currentUser) return;
-      const userId = auth.currentUser.uid;
-      const migrationKey = `priority_migrated_${userId}`;
-      if (localStorage.getItem(migrationKey)) return; // Вже виконано
-
-      try {
-        const snapshot = await db.collection('users').doc(userId).collection('words').get();
-        const batch = db.batch();
-        let count = 0;
-        snapshot.forEach(doc => {
-          if (doc.data().priority === undefined) {
-            const d = doc.data();
-            const interactions = d.interactions || 0;
-            const correctAnswers = d.correctAnswers || 0;
-            const priority = interactions > 0 ? correctAnswers / interactions : 0;
-            batch.update(doc.ref, { priority });
-            count++;
-          }
-        });
-        if (count > 0) {
-          await batch.commit();
-          console.log(`Міграція priority: оновлено ${count} слів.`);
-        }
-        localStorage.setItem(migrationKey, '1');
-      } catch (error) {
-        console.error('Помилка міграції priority:', error);
-      }
-    }
-
-
 
     function finishQuiz() {
       showConfetti();

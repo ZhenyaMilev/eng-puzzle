@@ -1,5 +1,9 @@
 import { test, expect, Page } from '@playwright/test';
 import { loadApp } from './helpers';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+const INDEX = join(__dirname, '..', 'eng-puzzle', 'index.html');
 
 /**
  * Два алгоритми відбору, що чергуються: за складністю (спершу нові) і за
@@ -211,5 +215,34 @@ test.describe('An exercise that asks for more than it shows', () => {
       const ten = picked.slice(block * 10, block * 10 + 10);
       expect(ten.filter((id) => id.startsWith('old')).length).toBe(3);
     }
+  });
+});
+
+test.describe('No word is written without the fields the selection needs', () => {
+  /**
+   * orderBy у Firestore не бачить документа без потрібного поля. Слово без
+   * priority лежить у словнику й не трапляється в тренуванні ніколи — так
+   * загубилося 749 слів у 19 користувачів. Полагоджено в базі; тут стежимо,
+   * щоб новий шлях додавання не завів дірку заново.
+   */
+  test('every place that creates a word writes priority and interactions', () => {
+    const src = readFileSync(INDEX, 'utf-8');
+    const creations = src.split('interactions: 0');
+    expect(creations.length).toBeGreaterThan(10);
+    // навколо кожного запису має стояти й priority
+    creations.slice(1).forEach((tail, i) => {
+      const around = src.slice(
+        Math.max(0, src.indexOf('interactions: 0', i) - 300),
+        src.indexOf('interactions: 0', i) + 300,
+      );
+      expect(around).toContain('priority:');
+    });
+  });
+
+  test('the one-off client migration is gone, the data was fixed at the source', () => {
+    const src = readFileSync(INDEX, 'utf-8');
+    expect(src).not.toContain('migratePriorityField');
+    // саме localStorage робив її ненадійною: вона чекала, поки людина зайде
+    expect(src).not.toContain('priority_migrated_');
   });
 });
