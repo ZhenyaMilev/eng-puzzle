@@ -124,7 +124,7 @@ test.describe('Phrase practice modes', () => {
 
     await page.evaluate(() => {
       // @ts-ignore — what speech recognition would have produced
-      phraseVoiceTranscript = 'slow down';
+      (document.getElementById('phrase-voice-answer') as HTMLInputElement).value = 'slow down';
     });
     await page.click('#phrase-constructor-container .check-button');
 
@@ -139,7 +139,7 @@ test.describe('Phrase practice modes', () => {
 
     await page.evaluate(() => {
       // @ts-ignore
-      phraseVoiceTranscript = 'could you slow down please';
+      (document.getElementById('phrase-voice-answer') as HTMLInputElement).value = 'could you slow down please';
     });
     await page.click('#phrase-constructor-container .check-button');
 
@@ -160,7 +160,7 @@ test.describe('Phrase practice modes', () => {
 
     await page.evaluate(() => {
       // @ts-ignore
-      phraseVoiceTranscript = 'stand up';
+      (document.getElementById('phrase-voice-answer') as HTMLInputElement).value = 'stand up';
     });
     await page.click('#phrase-constructor-container .check-button');
 

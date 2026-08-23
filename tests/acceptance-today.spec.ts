@@ -1145,7 +1145,7 @@ test.describe('10. Phrase practice modes', () => {
     await start(page, 'uk_to_en', 'voice');
     await page.evaluate(() => {
       // @ts-ignore
-      phraseVoiceTranscript = 'slow down';
+      (document.getElementById('phrase-voice-answer') as HTMLInputElement).value = 'slow down';
     });
     await page.click('#phrase-constructor-container .check-button');
     await expect(page.locator('#phrase-feedback')).toContainText('Правильно');
@@ -1158,7 +1158,7 @@ test.describe('10. Phrase practice modes', () => {
     await start(page, 'uk_to_en', 'voice');
     await page.evaluate(() => {
       // @ts-ignore
-      phraseVoiceTranscript = 'could you slow down please';
+      (document.getElementById('phrase-voice-answer') as HTMLInputElement).value = 'could you slow down please';
     });
     await page.click('#phrase-constructor-container .check-button');
     await expect(page.locator('#phrase-feedback')).toContainText('Правильно');
@@ -1172,7 +1172,7 @@ test.describe('10. Phrase practice modes', () => {
     await start(page, 'uk_to_en', 'voice');
     await page.evaluate(() => {
       // @ts-ignore
-      phraseVoiceTranscript = 'stand up';
+      (document.getElementById('phrase-voice-answer') as HTMLInputElement).value = 'stand up';
     });
     await page.click('#phrase-constructor-container .check-button');
     await expect(page.locator('#phrase-feedback')).toContainText('Неправильно');

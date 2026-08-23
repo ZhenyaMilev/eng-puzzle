@@ -1947,6 +1947,8 @@
       line-height: 1.5;
     }
 
+    .voice-answer-box::placeholder { color: rgba(240, 237, 232, 0.35); }
+
     .voice-answer-box {
       min-height: 56px;
       padding: 14px;
@@ -9449,7 +9451,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-23.2';
+    const APP_VERSION = '2026-08-23.3';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -14861,7 +14863,11 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
           <button class="voice-record-btn" id="phrase-voice-btn" onclick="togglePhraseVoice()">
             <i class="fas fa-microphone"></i><span>Сказати переклад</span>
           </button>
-          <div class="voice-answer-box empty" id="phrase-voice-answer">Тут з'явиться те, що ти скажеш</div>
+          <input type="text" class="voice-answer-box" id="phrase-voice-answer"
+                 data-kbd="${phraseAnswerLang() === 'uk' ? 'uk' : 'en'}"
+                 placeholder="Скажи або набери переклад"
+                 autocapitalize="none" autocorrect="off" spellcheck="false"
+                 oninput="phraseVoiceTranscript = this.value">
         ` + controls;
         return;
       }
@@ -14899,8 +14905,7 @@ Examples: "goes — бо він (he)", "go — забрали s, а тут he", 
         },
         onText: (text) => {
           phraseVoiceTranscript = text;
-          box.textContent = text;
-          box.classList.remove('empty');
+          box.value = text;
         },
       });
     }
@@ -14973,8 +14978,12 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       let note = '';
 
       if (phraseMethod === 'voice') {
+        // Поле тепер і для набору: диктувати переклад не завжди зручно, а
+        // розпізнавання не завжди чує те, що сказали. Зі звернення в підтримку.
+        const typed = document.getElementById('phrase-voice-answer');
+        if (typed) phraseVoiceTranscript = typed.value.trim();
         if (!phraseVoiceTranscript) {
-          showNotification('Спочатку скажи переклад', 'warning');
+          showNotification('Скажи або набери переклад', 'warning');
           return;
         }
         const checkBtn = document.querySelector('#phrase-constructor-container .check-button');
@@ -15123,6 +15132,25 @@ Return ONLY JSON: {"correct": true or false, "note": "one short sentence in Ukra
       }
       document.body.appendChild(container);
       setTimeout(() => container.remove(), 2500);
+    }
+
+    /**
+     * Запасна картинка малюється тут же, у data-URI.
+     *
+     * Раніше сюди підставлявся via.placeholder.com — сервіс, якого більше
+     * немає в DNS. Кожне слово без фото ставало порожньою рамкою з написом
+     * «Word image», і вправа виглядала зламаною. Зі звернення в підтримку.
+     */
+    function wordImagePlaceholder(word) {
+      const label = String(word || '').slice(0, 22);
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="280" height="200">
+        <rect width="280" height="200" rx="12" fill="#1a1d26"/>
+        <text x="140" y="92" text-anchor="middle" font-family="Outfit,Arial,sans-serif"
+              font-size="20" font-weight="600" fill="#E8A838">${escapeHtml(label)}</text>
+        <text x="140" y="120" text-anchor="middle" font-family="Outfit,Arial,sans-serif"
+              font-size="12" fill="rgba(240,237,232,0.45)">картинки для цього слова немає</text>
+      </svg>`;
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     }
 
     // ========== STATISTICS ==========
@@ -18398,21 +18426,30 @@ async function translateStory() {
 
       const questionWord = pictureQuizWords[currentPictureQuestion];
 
-      // Отримуємо картинку
-      const imageUrl = await getWordImage(questionWord.english);
-      const imgElement = document.getElementById('picture-quiz-image');
-
-      if (imageUrl) {
-        imgElement.src = imageUrl;
-        imgElement.style.display = 'block';
-      } else {
-        // Якщо картинки немає, показуємо placeholder
-        imgElement.src = 'https://via.placeholder.com/280x200?text=' + encodeURIComponent(questionWord.english);
-        imgElement.style.display = 'block';
+      // Абстрактні слова на кшталт «scope creep» Unsplash не ілюструє ніяк.
+      // Показувати замість фото рамку — це вправа без завдання, тож спершу
+      // пробуємо наступні слова, і лише коли й вони без фото, лишаємо це.
+      let imageUrl = await getWordImage(questionWord.english);
+      for (let ahead = 1; !imageUrl && currentPictureQuestion + ahead < pictureQuizWords.length && ahead <= 3; ahead++) {
+        const candidate = pictureQuizWords[currentPictureQuestion + ahead];
+        const found = await getWordImage(candidate.english);
+        if (!found) continue;
+        pictureQuizWords[currentPictureQuestion + ahead] = questionWord;
+        pictureQuizWords[currentPictureQuestion] = candidate;
+        imageUrl = found;
       }
 
+      const shownWord = pictureQuizWords[currentPictureQuestion];
+      const imgElement = document.getElementById('picture-quiz-image');
+      const fallback = wordImagePlaceholder(shownWord.english);
+      // Живе посилання теж уміє віддати 404 — тоді рамка була б така сама порожня
+      imgElement.onerror = () => { imgElement.onerror = null; imgElement.src = fallback; };
+      imgElement.src = imageUrl || fallback;
+      imgElement.alt = shownWord.english;
+      imgElement.style.display = 'block';
+
       // Генеруємо 4 варіанти відповіді (англійські слова)
-      const options = [questionWord.english];
+      const options = [shownWord.english];
       const pool = pictureOptionsPool.length > 0 ? pictureOptionsPool : wordPool;
       while (options.length < 4 && pool.length > options.length) {
         const randomWord = pool[Math.floor(Math.random() * pool.length)];

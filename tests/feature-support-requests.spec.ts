@@ -208,3 +208,71 @@ test.describe('«Озвучка зачитывает англ слово и по
     expect(lang).toBe('uk');
   });
 });
+
+test.describe('«Картинки постоянно в таком виде»', () => {
+  test('the dead placeholder domain is gone', () => {
+    const src = html();
+    const code = src.slice(src.indexOf('async function showPictureQuestion'));
+    expect(code.slice(0, 2000)).not.toContain('via.placeholder.com');
+  });
+
+  test('the fallback draws itself, with no network at all', async ({ page }) => {
+    await loadApp(page);
+    const uri = await page.evaluate(() => (window as any).wordImagePlaceholder('scope creep'));
+    expect(uri.startsWith('data:image/svg+xml')).toBe(true);
+    expect(decodeURIComponent(uri)).toContain('scope creep');
+    // Єдиний http тут — простір імен SVG, він нікуди не ходить
+    const decoded = decodeURIComponent(uri);
+    const hosts = decoded.match(/https?:\/\/[^"'\s)]+/g) || [];
+    expect(hosts).toEqual(['http://www.w3.org/2000/svg']);
+  });
+
+  test('a word that cannot be drawn is escaped, not injected', async ({ page }) => {
+    await loadApp(page);
+    const uri = await page.evaluate(() => (window as any).wordImagePlaceholder('<script>x</script>'));
+    expect(decodeURIComponent(uri)).not.toContain('<script>');
+    expect(decodeURIComponent(uri)).toContain('&lt;script&gt;');
+  });
+
+  test('a broken live URL falls back too', () => {
+    const src = html();
+    const code = src.slice(src.indexOf('async function showPictureQuestion'));
+    expect(code.slice(0, 2000)).toContain('imgElement.onerror');
+  });
+
+  test('a word with no photo yields to one that has it', () => {
+    const src = html();
+    const code = src.slice(src.indexOf('async function showPictureQuestion'));
+    expect(code.slice(0, 2000)).toContain('ahead <= 3');
+    expect(code.slice(0, 2000)).toContain('pictureQuizWords[currentPictureQuestion] = candidate');
+  });
+});
+
+test.describe('«Убрать голосовой, пускай вводят нашей клавиатурой»', () => {
+  test('the answer box takes typing, not only speech', () => {
+    const src = html();
+    expect(src).toContain('id="phrase-voice-answer"');
+    const box = src.slice(src.indexOf('id="phrase-voice-answer"') - 120, src.indexOf('id="phrase-voice-answer"') + 400);
+    expect(box).toContain('input type="text"');
+    expect(box).toContain('data-kbd=');
+  });
+
+  test('the check reads the field, however it was filled', () => {
+    const src = html();
+    const fn = src.slice(src.indexOf('async function checkPhraseAnswer()'));
+    expect(fn.slice(0, 900)).toContain("document.getElementById('phrase-voice-answer')");
+    expect(fn.slice(0, 900)).toContain('typed.value.trim()');
+  });
+
+  test('a typed answer is judged by meaning, like a spoken one', () => {
+    const src = html();
+    const fn = src.slice(src.indexOf('async function checkPhraseAnswer()'));
+    expect(fn.slice(0, 900)).toContain('judgePhraseAnswer(phrase, phraseVoiceTranscript)');
+  });
+
+  test('dictation still fills the same field', () => {
+    const src = html();
+    const fn = src.slice(src.indexOf('function togglePhraseVoice()'));
+    expect(fn.slice(0, 1200)).toContain('box.value = text');
+  });
+});
