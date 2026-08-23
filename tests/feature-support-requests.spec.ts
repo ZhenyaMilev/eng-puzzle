@@ -158,3 +158,53 @@ test.describe('«У клавіатурі немає коми»', () => {
     expect(kb.slice(0, 900)).not.toContain("data-letter=\",\"");
   });
 });
+
+test.describe('«Озвучка зачитывает англ слово и подсказывает ответ» — конструктор', () => {
+  test('the speaker no longer reads the answer aloud', () => {
+    const src = html();
+    const q = src.slice(src.indexOf('function showConstructorQuestion'));
+    expect(q.slice(0, 1600)).not.toContain('speakWord(${jsArg(questionWord.english)}, this)');
+    expect(q.slice(0, 1600)).toContain('speakConstructorPrompt(');
+  });
+
+  test('uk → en reads the Ukrainian side, with the Ukrainian voice', async ({ page }) => {
+    await loadApp(page);
+    const spoken = await page.evaluate(() => {
+      const w: any = { english: 'animal', translation: 'тварина' };
+      (window as any).setConstructorDirection('uk-en');
+      return {
+        shown: (window as any).constructorAsking(w),
+        lang: (window as any).constructorAskingLang(w),
+        expected: (window as any).constructorExpected(w),
+      };
+    });
+    expect(spoken.shown).toBe('тварина');
+    expect(spoken.lang).toBe('uk');
+    expect(spoken.expected).toBe('animal');
+  });
+
+  test('en → uk still reads the English prompt', async ({ page }) => {
+    await loadApp(page);
+    const spoken = await page.evaluate(() => {
+      const w: any = { english: 'animal', translation: 'тварина' };
+      (window as any).setConstructorDirection('en-uk');
+      return {
+        shown: (window as any).constructorAsking(w),
+        lang: (window as any).constructorAskingLang(w),
+      };
+    });
+    expect(spoken.shown).toBe('animal');
+    expect(spoken.lang).toBe('en');
+  });
+
+  test('a pair stored the wrong way round is read by its letters, not its field', async ({ page }) => {
+    await loadApp(page);
+    const lang = await page.evaluate(() => {
+      // english холдить українське слово — таке в базі трапляється
+      const w: any = { english: 'тварина', translation: 'animal' };
+      (window as any).setConstructorDirection('uk-en');
+      return (window as any).constructorAskingLang(w);
+    });
+    expect(lang).toBe('uk');
+  });
+});

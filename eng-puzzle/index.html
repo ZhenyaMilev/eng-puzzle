@@ -9449,7 +9449,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-23.1';
+    const APP_VERSION = '2026-08-23.2';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -17773,6 +17773,32 @@ async function translateStory() {
      * напрямок, досить одній парі лежати не так — і на екрані з'являється
      * клавіатура, якою потрібне слово просто не набрати.
      */
+    /**
+     * Кнопка звуку завжди читала англійське слово — тобто в напрямку
+     * «з української на англійську» проговорювала готову відповідь, і
+     * вправа зводилася до «набери те, що почув». Зі звернення в підтримку.
+     *
+     * Читаємо той бік, що на екрані: він і стоїть під знаком озвучки.
+     */
+    function constructorAskingLang(word) {
+      const shown = constructorAsking(word);
+      if (CYRILLIC_LETTER.test(shown)) return 'uk';
+      if (LATIN_LETTER.test(shown)) return 'en';
+      return constructorDirection === 'en-uk' ? 'en' : 'uk';
+    }
+
+    function speakConstructorPrompt(word, btn) {
+      const shown = constructorAsking(word);
+      const voice = constructorAskingLang(word) === 'uk' ? 'Ukrainian Female' : 'UK English Female';
+      if (btn) {
+        btn.classList.add('playing');
+        kokoroSpeak(shown, voice, { onend: () => btn.classList.remove('playing') });
+        setTimeout(() => btn.classList.remove('playing'), 3000);
+        return;
+      }
+      kokoroSpeak(shown, voice);
+    }
+
     function constructorAnswerLang(word) {
       const target = word
         ? constructorExpected(word)
@@ -17890,7 +17916,7 @@ async function translateStory() {
         // Обновляем контент после анимации
         container.innerHTML = `
       <div class="sound-icon-container">
-        <button onclick="speakWord(${jsArg(questionWord.english)}, this)" class="listening-sound-icon">
+        <button onclick="speakConstructorPrompt(constructorWords[currentConstructorQuestion], this)" class="listening-sound-icon">
           <i class="fas fa-volume-up"></i>
         </button>
       </div>
