@@ -8207,11 +8207,26 @@
       }
     }
 
+    /**
+     * Слово у вправі має прозвучати одразу.
+     *
+     * Жива озвучка — це запит до OpenAI: поки він ходить, людина чекає, і
+     * кожне натискання коштує грошей. У тренуваннях це чути на кожному
+     * слові, тож типово читає браузер — миттєво й безкоштовно.
+     */
     function kokoroSpeak(text, voice, options) {
       if (!text) return;
+      kokoroSpeakNative(text, voice, options);
+    }
+
+    /**
+     * Там, де голос — частина сенсу: Speaking Club і генеративний текст.
+     * Українську й довгі шматки жива озвучка все одно не тягне, тому вони
+     * лишаються браузерові навіть тут.
+     */
+    function kokoroSpeakLive(text, voice, options) {
+      if (!text) return;
       var isUkrainian = voice && voice.toLowerCase().includes('ukrainian');
-      // Довгі шматки (історії) і українську лишаємо браузеру: там жива озвучка
-      // або надто повільна, або голоси все одно англомовні
       if (isUkrainian || !aiAvailable() || text.length > 800) {
         kokoroSpeakNative(text, voice, options);
         return;
@@ -9451,7 +9466,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-24.1';
+    const APP_VERSION = '2026-08-24.2';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -16789,7 +16804,7 @@ Where "correct" is the index (0-3) of the correct option. ${langInstruction}`;
       document.getElementById('play-audio-story-btn').disabled = true;
 
       const text = generatedStoryText;
-      kokoroSpeak(text, 'UK English Female', {
+      kokoroSpeakLive(text, 'UK English Female', {
         onend: () => {
           document.getElementById('play-audio-story-btn').disabled = false;
         }
@@ -17428,7 +17443,7 @@ function copyStory() {
       sentenceSpans = Array.from(storyTextElement.querySelectorAll('.sentence-span'));
 
       if (sentenceSpans.length === 0) {
-        kokoroSpeak(storyTextElement.innerText, "UK English Female");
+        kokoroSpeakLive(storyTextElement.innerText, "UK English Female");
         return;
       }
 
@@ -17461,7 +17476,7 @@ function copyStory() {
 
       const sentence = currentSpan.innerText;
 
-      kokoroSpeak(sentence, "UK English Female", {
+      kokoroSpeakLive(sentence, "UK English Female", {
         onend: function() {
           currentSentenceIndex++;
           playSentence();
@@ -17968,9 +17983,8 @@ async function translateStory() {
         // Добавляем класс для анимации появления
         container.classList.remove('fade-out');
         container.classList.add('fade-in');
-        // Автоозвучка теж читає показане слово, а не відповідь: кнопку
-        // виправили, а цей рядок лишився і підказував ще до першого дотику
-        speakConstructorPrompt(questionWord);
+        // Автозапуску тут більше немає: слово і так написане, а звук
+        // потрібен не завжди — для нього є кнопка над словом
       }, 500); // Задержка должна совпадать с длительностью анимации в CSS
     }
 

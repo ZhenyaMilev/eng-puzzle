@@ -167,20 +167,20 @@ test.describe('«Озвучка зачитывает англ слово и по
     expect(q.slice(0, 1600)).toContain('speakConstructorPrompt(');
   });
 
-  /** Озвучок дві: кнопка і автозапуск. Друга лишалася англійською. */
-  test('neither of the two playbacks says the English word by itself', () => {
+  /** Озвучок було дві — кнопка і автозапуск. Лишилася одна, на вимогу. */
+  test('there is one playback, not two', () => {
     const src = html();
     const q = src.slice(src.indexOf('function showConstructorQuestion'),
                         src.indexOf('function getFullKeyboardLetters'));
-    expect(q).not.toContain("kokoroSpeak(questionWord.english");
-    expect(q.match(/speakConstructorPrompt\(/g) || []).toHaveLength(2);
+    expect(q).not.toContain('kokoroSpeak(questionWord.english');
+    expect(q.match(/speakConstructorPrompt\(/g) || []).toHaveLength(1);
   });
 
-  test('the automatic one fires through the same function as the button', () => {
+  test('nothing speaks before the word is even asked for', () => {
     const src = html();
     const q = src.slice(src.indexOf('function showConstructorQuestion'),
                         src.indexOf('function getFullKeyboardLetters'));
-    expect(q).toContain('speakConstructorPrompt(questionWord);');
+    expect(q).not.toContain('speakConstructorPrompt(questionWord);');
   });
 
   test('uk → en reads the Ukrainian side, with the Ukrainian voice', async ({ page }) => {
@@ -290,5 +290,57 @@ test.describe('«Убрать голосовой, пускай вводят на
     const src = html();
     const fn = src.slice(src.indexOf('function togglePhraseVoice()'));
     expect(fn.slice(0, 1200)).toContain('box.value = text');
+  });
+});
+
+test.describe('«Одна озвучка, машинная — быстрее и дешевле»', () => {
+  test('an exercise never waits for the network to say a word', async ({ page }) => {
+    await loadApp(page);
+    const live = await page.evaluate(() => {
+      let liveCalls = 0;
+      // @ts-ignore
+      window.speakWithLiveVoice = () => { liveCalls++; };
+      // @ts-ignore
+      kokoroSpeak('threshold', 'UK English Female');
+      // @ts-ignore
+      kokoroSpeak('deadline', 'UK English Female');
+      return liveCalls;
+    });
+    expect(live).toBe(0);
+  });
+
+  test('the browser voice is what actually speaks', async ({ page }) => {
+    await loadApp(page);
+    const spoken = await page.evaluate(() => {
+      // @ts-ignore — silenceAudio records everything handed to the synthesiser
+      (window as any).__spoken = [];
+      // @ts-ignore
+      kokoroSpeak('threshold', 'UK English Female');
+      return (window as any).__spoken;
+    });
+    expect(spoken).toContain('threshold');
+  });
+
+  test('Speaking Club and the generated story keep the paid voice', () => {
+    const src = readFileSync(INDEX, 'utf-8');
+    const live = src.match(/kokoroSpeakLive\(/g) || [];
+    // три виклики в генеративному тексті плюс саме оголошення функції
+    expect(live.length).toBe(4);
+    expect(src).toContain('const resp = await aiSpeech({ model:\'tts-1\'');
+  });
+
+  test('a long passage or Ukrainian still goes to the browser, even there', async ({ page }) => {
+    await loadApp(page);
+    const live = await page.evaluate(() => {
+      let liveCalls = 0;
+      // @ts-ignore
+      window.speakWithLiveVoice = () => { liveCalls++; };
+      // @ts-ignore
+      kokoroSpeakLive('привіт', 'Ukrainian Female');
+      // @ts-ignore
+      kokoroSpeakLive('word '.repeat(300), 'UK English Female');
+      return liveCalls;
+    });
+    expect(live).toBe(0);
   });
 });

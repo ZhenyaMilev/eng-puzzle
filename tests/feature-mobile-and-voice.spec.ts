@@ -56,8 +56,14 @@ async function buildCrossword(page: Page) {
   });
 }
 
-test.describe('Live voice instead of the browser robot', () => {
-  test('an English word is spoken with the Speaking Club voice', async ({ page }) => {
+test.describe('The paid voice only where it is worth paying for', () => {
+  /**
+   * Жива озвучка — це запит до OpenAI на кожне слово. У тренуванні воно
+   * звучить постійно: людина чекає, а власник платить. Тому вправи читає
+   * браузер, а живий голос лишився там, де голос і є змістом.
+   */
+
+  test('a word in an exercise does not go to the network at all', async ({ page }) => {
     await loadApp(page);
     const calls = captureSpeech(page);
 
@@ -65,44 +71,22 @@ test.describe('Live voice instead of the browser robot', () => {
       // @ts-ignore
       kokoroSpeak('opportunity', 'UK English Female');
     });
-    await expect.poll(() => calls.length).toBe(1);
-    expect(calls[0].model).toBe('tts-1');
-    expect(calls[0].input).toBe('opportunity');
-    expect(calls[0].voice).toBe('nova');
-  });
-
-  test('the voice follows the Speaking Club setting', async ({ page }) => {
-    await loadApp(page);
-    const calls = captureSpeech(page);
-
-    await page.evaluate(() => {
-      // @ts-ignore
-      scConfig.voice = 'onyx';
-      // @ts-ignore
-      kokoroSpeak('river', 'UK English Female');
-    });
-    await expect.poll(() => calls.length).toBe(1);
-    expect(calls[0].voice).toBe('onyx');
-  });
-
-  test('the same word is not re-synthesised', async ({ page }) => {
-    await loadApp(page);
-    const calls = captureSpeech(page);
-
-    await page.evaluate(async () => {
-      // @ts-ignore
-      kokoroSpeak('river', 'UK English Female');
-    });
-    await expect.poll(() => calls.length).toBe(1);
-    await page.evaluate(() => {
-      // @ts-ignore
-      kokoroSpeak('river', 'UK English Female');
-    });
     await page.waitForTimeout(400);
-    expect(calls).toHaveLength(1);
+    expect(calls).toHaveLength(0);
   });
 
-  test('the listening exercise speaks with the live voice', async ({ page }) => {
+  test('it is still spoken — by the browser', async ({ page }) => {
+    await loadApp(page);
+    const spoken = await page.evaluate(() => {
+      (window as any).__spoken = [];
+      // @ts-ignore
+      kokoroSpeak('opportunity', 'UK English Female');
+      return (window as any).__spoken;
+    });
+    expect(spoken).toContain('opportunity');
+  });
+
+  test('the listening exercise no longer waits for the network either', async ({ page }) => {
     await loadApp(page);
     const calls = captureSpeech(page);
 
@@ -110,8 +94,35 @@ test.describe('Live voice instead of the browser robot', () => {
       // @ts-ignore
       speakWord('necessary', null);
     });
+    await page.waitForTimeout(400);
+    expect(calls).toHaveLength(0);
+  });
+
+  test('the generated story keeps the live voice', async ({ page }) => {
+    await loadApp(page);
+    const calls = captureSpeech(page);
+
+    await page.evaluate(() => {
+      // @ts-ignore
+      kokoroSpeakLive('A day of new beginnings.', 'UK English Female');
+    });
     await expect.poll(() => calls.length).toBe(1);
-    expect(calls[0].input).toBe('necessary');
+    expect(calls[0].model).toBe('tts-1');
+    expect(calls[0].input).toBe('A day of new beginnings.');
+  });
+
+  test('the live voice follows the Speaking Club setting', async ({ page }) => {
+    await loadApp(page);
+    const calls = captureSpeech(page);
+
+    await page.evaluate(() => {
+      // @ts-ignore
+      scConfig.voice = 'onyx';
+      // @ts-ignore
+      kokoroSpeakLive('A day of new beginnings.', 'UK English Female');
+    });
+    await expect.poll(() => calls.length).toBe(1);
+    expect(calls[0].voice).toBe('onyx');
   });
 
   test('Ukrainian keeps the browser voice — the live ones are English personas', async ({ page }) => {
@@ -120,7 +131,7 @@ test.describe('Live voice instead of the browser robot', () => {
 
     await page.evaluate(() => {
       // @ts-ignore
-      kokoroSpeak('привіт', 'Ukrainian Female');
+      kokoroSpeakLive('привіт', 'Ukrainian Female');
     });
     await page.waitForTimeout(400);
     expect(calls).toHaveLength(0);
@@ -130,10 +141,9 @@ test.describe('Live voice instead of the browser robot', () => {
     await loadApp(page);
     const calls = captureSpeech(page);
     await page.evaluate(() => {
-      // Nobody to bill means no live voice — the browser one takes over
       (window as any).__firebaseAuthInstance.currentUser = null;
       // @ts-ignore
-      kokoroSpeak('river', 'UK English Female');
+      kokoroSpeakLive('river', 'UK English Female');
     });
     await page.waitForTimeout(400);
     expect(calls).toHaveLength(0);
@@ -145,7 +155,7 @@ test.describe('Live voice instead of the browser robot', () => {
 
     await page.evaluate(() => {
       // @ts-ignore
-      kokoroSpeak('word '.repeat(300), 'UK English Female');
+      kokoroSpeakLive('word '.repeat(300), 'UK English Female');
     });
     await page.waitForTimeout(400);
     expect(calls).toHaveLength(0);
