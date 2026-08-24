@@ -1718,7 +1718,6 @@
     #account-screen .acc-delay-4 { animation-delay: 0.2s; }
     #account-screen .acc-delay-5 { animation-delay: 0.25s; }
     #account-screen .acc-delay-6 { animation-delay: 0.3s; }
-    #account-screen .acc-delay-7 { animation-delay: 0.35s; }
     #account-screen .acc-delay-8 { animation-delay: 0.4s; }
     #account-screen .acc-delay-9 { animation-delay: 0.45s; }
     #account-screen .acc-delay-10 { animation-delay: 0.5s; }
@@ -6886,7 +6885,6 @@
           <div class="acc-tile-icon"><i class="fas fa-pen"></i></div>
           Тестування
         </button>
-
         <button class="acc-tile acc-animate acc-delay-8" data-color="rose" onclick="startSpeedTraining()" data-needs="60">
           <div class="acc-tile-icon"><i class="fas fa-stopwatch"></i></div>
           На швидкість
@@ -7735,7 +7733,7 @@
       <!-- Що саме купують: три однакові «повний доступ» не давали підстав
            обрати ані тариф, ані взагалі підписку -->
       <div class="tariff-features">
-        <div><i class="fas fa-check"></i> Усі 12 тренувань і кросворди</div>
+        <div><i class="fas fa-check"></i> Усі 11 тренувань і кросворди</div>
         <div><i class="fas fa-check"></i> Слова та фрази з фото — AI розпізнає й перекладе</div>
         <div><i class="fas fa-check"></i> Уроки граматики з вашого конспекту</div>
         <div><i class="fas fa-check"></i> Speaking Club — розмовна практика голосом</div>
@@ -9597,7 +9595,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-24.8';
+    const APP_VERSION = '2026-08-24.9';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -11502,8 +11500,9 @@ Return ONLY the JSON array, no other text.`;
     let lastWordDoc = null;
     let allWordsLoaded = false;
 
-    // Картинки шукає та сама функція: ключ Unsplash лежав у тому ж
-    // Firestore-документі, що й ключ OpenAI, і поїхав з браузера разом із ним
+    // Вправи з картинками більше немає — пошук лишився заради картки слова:
+    // ключ Unsplash лежав у тому ж Firestore-документі, що й ключ OpenAI,
+    // і поїхав з браузера разом із ним
     const imageCache = {};
 
     // ========== GAMIFICATION: XP, Streak, Mastery ==========
