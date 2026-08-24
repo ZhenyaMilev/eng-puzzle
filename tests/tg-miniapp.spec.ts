@@ -371,7 +371,7 @@ test.describe('The app inside Telegram', () => {
     expect(state.ready).toBe(true);
     expect(state.expanded).toBe(true);
     expect(state.swipesOff).toBe(true);
-    expect(state.header).toBe('#0f1117');
+    expect(state.header).toBe('#F4F1EA');
   });
 
   test('the viewport height comes from Telegram, not from 100vh', async ({ page }) => {

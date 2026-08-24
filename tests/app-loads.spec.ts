@@ -82,7 +82,6 @@ test.describe('Account Screen (mocked auth)', () => {
   test('exercise tiles are present', async ({ page }) => {
     await loadApp(page);
     await expect(page.locator('button:has-text("Тестування")')).toBeVisible();
-    await expect(page.locator('button:has-text("Картинки")')).toBeVisible();
     await expect(page.locator('button:has-text("На швидкість")')).toBeVisible();
   });
 });

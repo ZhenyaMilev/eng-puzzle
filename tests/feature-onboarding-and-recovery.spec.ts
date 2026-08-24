@@ -100,7 +100,6 @@ test.describe('No dead ends', () => {
   const cases = [
     { name: 'Тестування', start: 'startQuiz', container: '#quiz-container', short: 25 },
     { name: 'На слух', start: 'startListeningTraining', container: '#listening-quiz-container', short: 5 },
-    { name: 'Картинки', start: 'startPictureQuiz', container: '#picture-quiz-container', short: 5 },
   ];
 
   for (const c of cases) {
@@ -202,7 +201,7 @@ test.describe('The grid says what is locked', () => {
   test('every requirement on a tile matches the gate in the exercise', () => {
     const html = readFileSync(INDEX, 'utf-8');
     const expected: Record<string, number> = {
-      'startQuiz()': 30, 'startPictureQuiz()': 10, 'startSpeedTraining()': 60,
+      'startQuiz()': 30, 'startSpeedTraining()': 60,
       'startListeningTraining()': 10, 'startWordConstructorTraining()': 10,
       'startCrossword()': 5, 'startFillBlanksTraining()': 10, 'startDefinitionQuiz()': 10,
     };

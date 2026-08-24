@@ -310,6 +310,9 @@ const FIREBASE_FIRESTORE_MOCK = `
         bestDailyXP: 150,
         speedRecord: 0,
         nickname: 'TestPlayer',
+      // Знайомство показується лише новачкам. Прогони — не новачки, інакше
+      // sheet накрив би головний екран у кожному тесті, який щось натискає.
+      onboardingSeen: true,
         grammarProgress: {},
         registrationDate: { toDate: function() { return new Date('2025-01-01'); } },
         subscriptionExpiration: { toDate: function() { return new Date('2030-01-01'); } },

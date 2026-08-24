@@ -15,7 +15,6 @@ test.describe('Every exercise collects what was missed', () => {
   const CASES: Array<[string, string]> = [
     ['конструктор слів', 'recordMistake(constructorMistakes'],
     ['аудіювання', 'recordMistake(listeningMistakes'],
-    ['picture quiz', 'recordMistake(pictureMistakes'],
     ['definition quiz', 'recordMistake(definitionMistakes'],
     ['fill blanks', 'recordMistake(fillBlanksMistakes'],
     ['конструктор фраз', 'recordMistake(phraseMistakes'],
@@ -43,7 +42,6 @@ test.describe('Every result screen shows the breakdown', () => {
   const SCREENS: Array<[string, string]> = [
     ['finishConstructor()', 'constructorMistakes'],
     ['finishListening()', 'listeningMistakes'],
-    ['finishPictureQuiz()', 'pictureMistakes'],
     ['finishDefinitionQuiz()', 'definitionMistakes'],
     ['finishFillBlanks()', 'fillBlanksMistakes'],
     ['finishPhraseConstructor()', 'phraseMistakes'],
