@@ -63,3 +63,76 @@ test.describe('Responsive Design', () => {
     await expect(page.locator('#login-form')).toBeVisible();
   });
 });
+
+test.describe('Crossword grid', () => {
+  /*
+    У темній темі клітинка була rgba(255,255,255,.1) — «світліша за підкладку».
+    Перефарбування в денну тему зробило її плоским #F1ECE3, тобто рівно тим
+    кольором, що й у підкладки сітки: різниці не лишилось, і користувач написав,
+    що квадратиків кросворда не видно. Тест тримає саме те, що зламалось, —
+    заливка клітинки має помітно відрізнятись від підкладки, а не збігатись.
+  */
+  test('cells stand out against the grid backdrop', async ({ page }) => {
+    await loadApp(page);
+
+    await page.evaluate(() => {
+      document.getElementById('account-screen')!.classList.add('hidden');
+      document.getElementById('crossword-section')!.classList.remove('hidden');
+      // @ts-ignore — module-level globals declared in the app's own script
+      crosswordSize = 10;
+      // @ts-ignore
+      crosswordGrid = Array.from({ length: 10 }, () => new Array(10).fill(null));
+      // @ts-ignore
+      placedWords = [
+        { english: 'CAT', translation: 'кіт', row: 2, col: 1, direction: 'across' },
+        { english: 'WORD', translation: 'слово', row: 0, col: 2, direction: 'down' },
+      ];
+      // @ts-ignore
+      placedWords.forEach((w) => {
+        for (let i = 0; i < w.english.length; i++) {
+          const r = w.direction === 'down' ? w.row + i : w.row;
+          const c = w.direction === 'across' ? w.col + i : w.col;
+          // @ts-ignore
+          crosswordGrid[r][c] = w.english[i];
+        }
+      });
+      // @ts-ignore
+      renderCrossword();
+    });
+
+    await expect(page.locator('.crossword-cell:not(.empty)').first()).toBeVisible();
+
+    const paint = await page.evaluate(() => {
+      // Підкладка пофарбована градієнтом, тому колір беремо з background-image,
+      // а якщо градієнта немає — зі звичайного background-color.
+      const read = (el: Element) => {
+        const s = getComputedStyle(el);
+        const gradient = s.backgroundImage.match(/rgba?\([^)]+\)/);
+        const raw = gradient ? gradient[0] : s.backgroundColor;
+        const nums = (raw.match(/[\d.]+/g) || []).map(Number);
+        return { raw, rgb: nums.slice(0, 3), alpha: nums.length > 3 ? nums[3] : 1 };
+      };
+      const empty = document.querySelector('.crossword-cell.empty');
+      return {
+        cell: read(document.querySelector('.crossword-cell:not(.empty)')!),
+        backdrop: read(document.getElementById('crossword-grid-wrapper')!),
+        empty: empty ? read(empty) : null,
+      };
+    });
+
+    // Клітинка не може бути прозорою — інакше крізь неї видно ту саму підкладку.
+    expect(paint.cell.alpha).toBeGreaterThan(0.9);
+
+    const distance = paint.cell.rgb.reduce(
+      (sum: number, channel: number, i: number) => sum + Math.abs(channel - paint.backdrop.rgb[i]),
+      0,
+    );
+    expect(
+      distance,
+      `заливка клітинки ${paint.cell.raw} зливається з підкладкою ${paint.backdrop.raw}`,
+    ).toBeGreaterThanOrEqual(24);
+
+    // Порожні клітинки навпаки — мають лишатись невидимими, це не дефект.
+    if (paint.empty) expect(paint.empty.alpha).toBe(0);
+  });
+});

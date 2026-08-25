@@ -3054,15 +3054,21 @@
       background: transparent;
     }
 
+    /* У темній темі клітинка була rgba(255,255,255,.1) — тобто «світліша за
+       підкладку». Перефарбування замінило її на плоский #F1ECE3, той самий
+       колір, що й у #crossword-grid-wrapper: різниці не лишилось зовсім, і
+       сітка зникла. Повертаємо те саме співвідношення в денних тонах —
+       біла клітинка (--acc-surface, як решта карток) на бежевій підкладці.
+       Контур усередині тіні, а не border, щоб не зсунути розмір клітинки. */
     .crossword-cell {
       width: var(--cw-cell, 30px);
       height: var(--cw-cell, 30px);
       padding: 0;
       position: relative;
-      background: #F1ECE3;
+      background: #FFFFFF;
       border: none;
       border-radius: 5px;
-      box-shadow: 0 1px 4px rgba(29, 34, 48, 0.135);
+      box-shadow: inset 0 0 0 1px rgba(29, 34, 48, 0.14), 0 1px 4px rgba(29, 34, 48, 0.135);
       transition: all 0.15s ease;
     }
 
@@ -9595,7 +9601,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-24.9';
+    const APP_VERSION = '2026-08-25.1';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
