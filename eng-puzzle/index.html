@@ -772,13 +772,22 @@
       align-items: center;
       justify-content: center;
       margin: 5px;
+      /* Без цього швидкий тап по сусідній літері браузер на телефоні іноді
+         зчитував як подвійний тап-масштабування — і сам тап пропадав,
+         кнопка виглядала так, ніби не натискається */
+      touch-action: manipulation;
     }
 
-    .unique-letter-button:hover {
-      background-color: #B0D6E5;
-      /* Тонкий эффект затемнения */
-      transform: scale(1.05);
-      /* Лёгкое увеличение */
+    /* На дотику :hover не знімається після відпускання пальця — кнопка
+       лишається підсвіченою синім і виглядає "залиплою". Лишаємо ефект
+       тільки для миші, де є з чого знімати hover. */
+    @media (hover: hover) and (pointer: fine) {
+      .unique-letter-button:hover {
+        background-color: #B0D6E5;
+        /* Тонкий эффект затемнения */
+        transform: scale(1.05);
+        /* Лёгкое увеличение */
+      }
     }
 
     .unique-letter-button:active {
@@ -9601,7 +9610,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-25.1';
+    const APP_VERSION = '2026-08-31.1';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
