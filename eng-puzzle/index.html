@@ -9610,7 +9610,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-31.1';
+    const APP_VERSION = '2026-08-31.2';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -17582,7 +17582,9 @@ function copyStory() {
             <strong>${escapeHtml(m.english)}</strong>
             <span>${escapeHtml(m.translation)}</span>
           </div>
-          ${m.given ? `<div class="mistake-given">Ви обрали: ${escapeHtml(m.given)}</div>` : ''}
+          ${m.given
+            ? `<div class="mistake-given">Ви обрали: ${escapeHtml(m.given)}</div>`
+            : `<div class="mistake-given">Ви пропустили це слово</div>`}
           ${m.note ? `<div class="mistake-note">${escapeHtml(m.note)}</div>` : ''}
         </div>`).join('');
 
