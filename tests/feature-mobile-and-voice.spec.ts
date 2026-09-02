@@ -237,7 +237,7 @@ test.describe('Section header buttons', () => {
 
   test('the Speaking Club history button is square and a real target', async ({ page }) => {
     await loadApp(page);
-    await page.click('.acc-tile:has-text("Speaking Club")');
+    await page.click('.acc-tile:has-text("Writing Club")');
 
     const m = await page.evaluate(() => {
       const b = document.getElementById('sc-history-btn')!;

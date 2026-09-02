@@ -72,7 +72,7 @@ test.describe('The tariffs say what they are worth', () => {
 
     const features = page.locator('.tariff-features');
     await expect(features).toBeVisible();
-    await expect(features).toContainText('Speaking Club');
+    await expect(features).toContainText('Writing Club');
     await expect(features).toContainText('фото');
     await expect(page.locator('#tariffs-section')).not.toContainText('Повний доступ до всіх функцій');
   });

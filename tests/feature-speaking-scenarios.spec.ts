@@ -37,7 +37,7 @@ function mockConversation(page: Page, scenario: any = SCENARIO) {
 }
 
 async function openScenarioMode(page: Page) {
-  await page.click('.acc-tile:has-text("Speaking Club")');
+  await page.click('.acc-tile:has-text("Writing Club")');
   await page.click('.sc-chip:has-text("Ситуація")');
   await page.click('.sc-chip:has-text("Подорожі")');
 }
@@ -94,7 +94,7 @@ test.describe('A conversation with a part to play', () => {
   test('and the screen does not promise a memory it will not use', async ({ page }) => {
     mockConversation(page);
     await loadApp(page, { seed: { user: { scMemory: { profile: 'Works as an engineer.', conversations: 3 } } } });
-    await page.click('.acc-tile:has-text("Speaking Club")');
+    await page.click('.acc-tile:has-text("Writing Club")');
     await expect(page.locator('#sc-memory-badge')).toBeVisible();
 
     await page.click('.sc-chip:has-text("Ситуація")');
@@ -120,7 +120,7 @@ test.describe('A conversation with a part to play', () => {
   test('the free conversation is left exactly as it was', async ({ page }) => {
     const prompts = mockConversation(page);
     await loadApp(page);
-    await page.click('.acc-tile:has-text("Speaking Club")');
+    await page.click('.acc-tile:has-text("Writing Club")');
     await expect(page.locator('#sc-start-btn')).toHaveText('Почати розмову');
 
     await page.click('.sc-chip:has-text("Подорожі")');

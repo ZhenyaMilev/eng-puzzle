@@ -99,6 +99,7 @@ test.describe('Quotes and apostrophes in a translation', () => {
     await loadApp(page, { seed: { words: vocabulary(35, tricky) } });
 
     await page.click('.acc-tile:has-text("Тестування")');
+    await page.click('#quiz-preview-start-btn');
     await expect(page.locator('#quiz-container button').first()).toBeVisible();
 
     // Answer with something that is certainly not the right translation
@@ -154,6 +155,7 @@ test.describe('The daily goal', () => {
     });
 
     await page.click('.acc-tile:has-text("Тестування")');
+    await page.click('#quiz-preview-start-btn');
     await expect(page.locator('#quiz-container button').first()).toBeVisible();
     for (let i = 0; i < 11; i++) {
       const shown = await page.textContent('#quiz-question-number');
@@ -217,7 +219,7 @@ test.describe('Screens inside Telegram', () => {
     await loadApp(page, { seed: { words: vocabulary(35) } });
     // the tiles fade in one after another, and the account screen settles its own
     // scroll on the way in — keep asking until the page really is scrolled down
-    await expect(page.locator('.acc-tile:has-text("Speaking Club")')).toBeVisible();
+    await expect(page.locator('.acc-tile:has-text("Writing Club")')).toBeVisible();
     await page.waitForFunction(() => {
       window.scrollTo(0, document.body.scrollHeight);
       return window.scrollY > 0;
@@ -360,7 +362,7 @@ test.describe('A conversation that came back malformed', () => {
     page.on('pageerror', (e) => crashes.push(e.message));
     await loadApp(page, { seed: { words: vocabulary(5), user: historyWithStrings } });
 
-    await page.click('.acc-tile:has-text("Speaking Club")');
+    await page.click('.acc-tile:has-text("Writing Club")');
     await page.click('#sc-history-btn');
     await expect(page.locator('#sc-history .sc-analysis-card').first()).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#sc-history')).toContainText('Подорожі');
@@ -370,7 +372,7 @@ test.describe('A conversation that came back malformed', () => {
 
   test('and its details still read', async ({ page }) => {
     await loadApp(page, { seed: { words: vocabulary(5), user: historyWithStrings } });
-    await page.click('.acc-tile:has-text("Speaking Club")');
+    await page.click('.acc-tile:has-text("Writing Club")');
     await page.click('#sc-history-btn');
     await page.locator('#sc-history .sc-analysis-card').first().click();
     const details = page.locator('#sc-history .sc-hist-details').first();
@@ -381,7 +383,7 @@ test.describe('A conversation that came back malformed', () => {
 
   test('one message is "1 повідомлення"', async ({ page }) => {
     await loadApp(page, { seed: { words: vocabulary(5), user: historyWithStrings } });
-    await page.click('.acc-tile:has-text("Speaking Club")');
+    await page.click('.acc-tile:has-text("Writing Club")');
     await page.click('#sc-history-btn');
     await expect(page.locator('#sc-history .sc-analysis-card').first()).toContainText('1 повідомлення');
   });
@@ -406,7 +408,7 @@ test.describe('One word, one entry', () => {
     });
     await loadApp(page, { seed: { words: vocabulary(5) } });
 
-    await page.click('.acc-tile:has-text("Speaking Club")');
+    await page.click('.acc-tile:has-text("Writing Club")');
     await page.click('.sc-chip:has-text("Подорожі")');
     await page.click('#sc-start-btn');
     await expect(page.locator('#sc-messages')).toContainText('Hey!', { timeout: 10000 });
@@ -429,6 +431,7 @@ test.describe('When the connection drops mid-exercise', () => {
   test('the learner is told the answer was not saved', async ({ page }) => {
     await loadApp(page, { seed: { words: vocabulary(35) } });
     await page.click('.acc-tile:has-text("Тестування")');
+    await page.click('#quiz-preview-start-btn');
     await expect(page.locator('#quiz-container button').first()).toBeVisible();
 
     await page.evaluate(() => ((window as any).__mockFailWrites = true));
@@ -447,6 +450,7 @@ test.describe('The streak the account screen shows', () => {
 
   async function answerOnce(page: Page) {
     await page.click('.acc-tile:has-text("Тестування")');
+    await page.click('#quiz-preview-start-btn');
     await expect(page.locator('#quiz-container button').first()).toBeVisible();
     await page.locator('#quiz-container button').first().click();
     await page.waitForTimeout(800);
@@ -592,7 +596,7 @@ test.describe('The grammar a conversation recommends', () => {
     });
 
   async function finishAConversation(page: Page) {
-    await page.click('.acc-tile:has-text("Speaking Club")');
+    await page.click('.acc-tile:has-text("Writing Club")');
     await page.click('.sc-chip:has-text("Подорожі")');
     await page.click('#sc-start-btn');
     await expect(page.locator('#sc-messages')).toContainText('Hey!', { timeout: 10000 });
@@ -653,7 +657,7 @@ test.describe('No browser dialogs left in the app', () => {
     await clubAi(page);
     await loadApp(page, { seed: { words: vocabulary(10) } });
 
-    await page.click('.acc-tile:has-text("Speaking Club")');
+    await page.click('.acc-tile:has-text("Writing Club")');
     await page.click('.sc-chip:has-text("Подорожі")');
     await page.click('.sc-chip:has-text("Голос")');
     await page.click('#sc-start-btn');
@@ -716,6 +720,7 @@ test.describe('An exercise left half-done', () => {
   test('starts from the beginning next time, not where it was abandoned', async ({ page }) => {
     await loadApp(page, { seed: { words: vocabulary(40) } });
     await page.click('.acc-tile:has-text("Тестування")');
+    await page.click('#quiz-preview-start-btn');
     await expect(page.locator('#quiz-container button').first()).toBeVisible();
     for (let i = 0; i < 3; i++) {
       const shown = await page.textContent('#quiz-question-number');
@@ -726,6 +731,7 @@ test.describe('An exercise left half-done', () => {
 
     await page.evaluate(() => (window as any).backToAccount());
     await page.click('.acc-tile:has-text("Тестування")');
+    await page.click('#quiz-preview-start-btn');
     await expect(page.locator('#quiz-container button').first()).toBeVisible();
     expect(await page.textContent('#quiz-question-number')).toBe('1/30');
   });
@@ -849,7 +855,7 @@ test.describe('One phrase, one entry', () => {
     });
     await loadApp(page, { seed: { words: vocabulary(10), phrases: {} } });
 
-    await page.click('.acc-tile:has-text("Speaking Club")');
+    await page.click('.acc-tile:has-text("Writing Club")');
     await page.click('.sc-chip:has-text("Подорожі")');
     await page.click('#sc-start-btn');
     await expect(page.locator('#sc-messages')).toContainText('Hey!', { timeout: 10000 });

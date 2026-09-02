@@ -3156,6 +3156,31 @@
       overflow: hidden;
     }
 
+    /* Перемикач формату підказки: переклад / визначення англійською */
+    .cw-hint-toggle {
+      display: flex;
+      gap: 8px;
+    }
+    .cw-hint-toggle .cw-hint-btn {
+      flex: 1;
+      padding: 8px 10px;
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1px solid rgba(29, 34, 48, 0.16);
+      background: #FFFFFF;
+      color: rgba(29, 34, 48, 0.775);
+      cursor: pointer;
+      box-shadow: none;
+    }
+    .cw-hint-toggle .cw-hint-btn.active {
+      background: rgba(232, 168, 56, 0.217);
+      border-color: #8A5D00;
+      color: #8A5D00;
+    }
+    .cw-hint-toggle.cw-hint-loading { opacity: 0.6; pointer-events: none; }
+
     .clues-header {
       display: flex;
       justify-content: space-between;
@@ -6121,6 +6146,59 @@
     }
     .result-clean i { color: #0A7048; margin-right: 6px; }
 
+    /* Перегляд слів перед тестом на нові слова */
+    .quiz-preview-hint {
+      margin: 4px 0 12px;
+      font-size: 14px;
+      color: rgba(29, 34, 48, 0.775);
+      text-align: center;
+    }
+    #quiz-preview-list {
+      margin-bottom: 16px;
+      border-radius: 14px;
+      background: #FFFFFF;
+      border: 1px solid rgba(29, 34, 48, 0.088);
+      overflow: hidden;
+    }
+    .quiz-preview-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 11px 14px;
+      border-bottom: 1px solid rgba(29, 34, 48, 0.08);
+    }
+    .quiz-preview-item:last-child { border-bottom: none; }
+    .quiz-preview-word {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .quiz-preview-word b {
+      font-size: 15px;
+      color: #1D2230;
+    }
+    .quiz-preview-word span {
+      font-size: 13px;
+      color: #0A7048;
+    }
+    .quiz-preview-audio {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      padding: 0;
+      margin: 0;
+      border-radius: 10px;
+      border: 1px solid rgba(29, 34, 48, 0.12);
+      background: rgba(232, 168, 56, 0.145);
+      color: #8A5D00;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .quiz-preview-audio.playing { background: rgba(232, 168, 56, 0.35); }
+
     /* Що входить у підписку — один список на всі тарифи, а не три однакові рядки */
     .tariff-features {
       margin: 0 0 20px;
@@ -6938,7 +7016,7 @@
         </button>
         <button class="acc-tile acc-animate acc-delay-17" data-color="emerald" onclick="showSpeakingClub()">
           <div class="acc-tile-icon"><i class="fas fa-comments"></i></div>
-          Speaking Club
+          Writing Club
         </button>
       </div>
 
@@ -7558,6 +7636,13 @@
           <i class="fas fa-info-circle"></i>
         </button>
       </div>
+      <!-- Перегляд слів перед тестом: спершу побачити переклад і почути
+           вимову, а не вгадувати з чистого аркуша -->
+      <div id="quiz-preview" class="hidden">
+        <p class="quiz-preview-hint">Перегляньте слова перед тестом:</p>
+        <div id="quiz-preview-list"></div>
+        <button type="button" id="quiz-preview-start-btn" class="finish-button" onclick="startQuizFromPreview()">Почати тест</button>
+      </div>
       <div id="quiz-container"></div>
       <div id="quiz-progress">
         <div id="quiz-progress-bar"></div>
@@ -7592,6 +7677,10 @@
 
       <!-- Підказки знизу -->
       <div id="crossword-clues">
+        <div id="crossword-hint-toggle" class="cw-hint-toggle">
+          <button type="button" class="cw-hint-btn active" data-mode="translation" onclick="setCrosswordHintMode('translation')">Переклад</button>
+          <button type="button" class="cw-hint-btn" data-mode="definition" onclick="setCrosswordHintMode('definition')">Визначення</button>
+        </div>
         <div class="clues-section">
           <div class="clues-header" onclick="toggleClues('across')">
             <h4>→ По горизонталі</h4>
@@ -7751,7 +7840,7 @@
         <div><i class="fas fa-check"></i> Усі 11 тренувань і кросворди</div>
         <div><i class="fas fa-check"></i> Слова та фрази з фото — AI розпізнає й перекладе</div>
         <div><i class="fas fa-check"></i> Уроки граматики з вашого конспекту</div>
-        <div><i class="fas fa-check"></i> Speaking Club — розмовна практика голосом</div>
+        <div><i class="fas fa-check"></i> Writing Club — спілкування з AI текстом або голосом</div>
         <div><i class="fas fa-check"></i> Живе озвучення замість роботизованого</div>
         <div><i class="fas fa-check"></i> Папки, спільні набори, статистика</div>
       </div>
@@ -8007,7 +8096,7 @@
           <i class="fas fa-arrow-left"></i>
           <span>Назад</span>
         </button>
-        <h2 style="font-size:24px;">Speaking Club</h2>
+        <h2 style="font-size:24px;">Writing Club</h2>
         <button class="header-action-btn" id="sc-history-btn" onclick="scShowHistoryScreen()" title="Історія розмов">
           <i class="fas fa-history"></i>
         </button>
@@ -8151,7 +8240,7 @@
             <li><b>На слух</b> — почули й записали: тренує розуміння мови</li>
             <li><b>На швидкість</b> — відповідь без роздумів, до автоматизму</li>
             <li><b>Кросворд, Вставте слово, Вгадай слово</b> — слово в контексті</li>
-            <li><b>Фрази та Speaking Club</b> — говорити цілими реченнями</li>
+            <li><b>Фрази та Writing Club</b> — формулювати цілі речення</li>
           </ul>
         </section>
 
@@ -9610,7 +9699,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-08-31.2';
+    const APP_VERSION = '2026-09-02.1';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -14533,6 +14622,129 @@ Answer in Ukrainian, simply and friendly (like explaining to a friend). Keep it 
       } catch (e) { console.log('Delete grammar question error:', e); }
     }
 
+    /**
+     * Reported Speech генерувався тим самим універсальним промптом, що й усі
+     * інші граматичні теми, без явних правил саме для нього — модель через
+     * раз плутала зсув часів, модальні дієслова, займенники й слова часу
+     * (today → that day тощо). Тема з купою дрібних правил і жива генерація
+     * "на льоту" разом не працюють надійно, тому тут — вручну перевірений
+     * банк питань замість запиту до AI. Кожне речення грамотично коректне;
+     * випадкові 5 із банку (і випадковий порядок варіантів у кожному) дають
+     * достатньо різноманіття, щоб тест не набридав однаковістю.
+     */
+    const REPORTED_SPEECH_QUIZ_BANK = [
+      {
+        question: 'Том сказав: "I am tired." Як це передати непрямою мовою?',
+        options: ["He said that he was tired.", "He said that he is tired.", "He said that he is tired now.", "He say that he was tired."],
+        correct: 0,
+        optionExplanations: ["am → was, стандартний зсув часу", "is — забули зсунути час у was", "is і зайве now — час не зсунули", "say → said, репортинг теж стає минулим"]
+      },
+      {
+        question: 'Вона сказала: "I am watching a movie." Оберіть правильний варіант непрямої мови.',
+        options: ["She said that she was watching a movie.", "She said that she is watching a movie.", "She said that she had watched a movie.", "She said that she watches a movie."],
+        correct: 0,
+        optionExplanations: ["am watching → was watching, тривалий час у минулому", "is watching — забули зсунути час", "had watched — це вже інший, доконаний час", "watches — загубили відтінок тривалості"]
+      },
+      {
+        question: 'Він сказав: "I saw that film yesterday." Як це буде в непрямій мові? (зверніть увагу на "yesterday")',
+        options: ["He said that he had seen that film the day before.", "He said that he saw that film yesterday.", "He said that he had seen that film yesterday.", "He said that he has seen that film the day before."],
+        correct: 0,
+        optionExplanations: ["saw → had seen, yesterday → the day before", "нічого не змінили — так не можна", "yesterday забули змінити на the day before", "has seen — не той час, потрібен had seen"]
+      },
+      {
+        question: 'Марта написала вам: "I will call you tomorrow." Перекажіть це другові — як звучатиме непряма мова?',
+        options: ["She said that she would call me the next day.", "She said that she will call me tomorrow.", "She said that she would call me tomorrow.", "She said that she would call you the next day."],
+        correct: 0,
+        optionExplanations: ["will → would, tomorrow → the next day, you → me", "will і tomorrow лишили без змін", "tomorrow забули змінити на the next day", "you не змінили на me — незрозуміло, кому дзвонять"]
+      },
+      {
+        question: 'Оля написала вам: "I can help you with this." Перекажіть це подрузі.',
+        options: ["She said that she could help me with that.", "She said that she can help me with this.", "She said that she could help me with this.", "She said that she could help you with that."],
+        correct: 0,
+        optionExplanations: ["can → could, this → that, you → me", "can лишили — має бути could", "this забули змінити на that", "you не змінили на me"]
+      },
+      {
+        question: 'Він сказав керівнику: "I must finish it today." Оберіть правильний переказ.',
+        options: ["He said that he had to finish it that day.", "He said that he must finish it today.", "He said that he had to finish it today.", "He said that he must finish it that day."],
+        correct: 0,
+        optionExplanations: ["must → had to, today → that day", "must і today лишили без змін", "today забули змінити на that day", "must забули змінити на had to"]
+      },
+      {
+        question: 'Він запитав: "Where do you live?" Як це передати непрямою мовою?',
+        options: ["He asked where I lived.", "He asked where did I live.", "He asked where I live.", "He asked where do I live."],
+        correct: 0,
+        optionExplanations: ["без do, live → lived, час зсунули", "did тут зайве — це вже не пряме питання", "live — забули зсунути час у lived", "do — зайве, як у прямому питанні"]
+      },
+      {
+        question: 'Вона запитала: "Are you happy?" Оберіть правильний варіант непрямого питання.',
+        options: ["She asked if I was happy.", "She asked if I am happy.", "She asked that I was happy.", "She asked was I happy."],
+        correct: 0,
+        optionExplanations: ["if замість ?, are → was", "am — забули зсунути час", "для так/ні питань потрібно if, а не that", "порядок слів прямого питання тут не годиться"]
+      },
+      {
+        question: 'Вона сказала: "I may be late." Як це передати непрямою мовою?',
+        options: ["She said that she might be late.", "She said that she may be late.", "She said that she might been late.", "She said that she can be late."],
+        correct: 0,
+        optionExplanations: ["may → might, стандартний зсув", "may лишили — має бути might", "been без was — так не буде", "can — зовсім інше слово за змістом"]
+      },
+      {
+        question: 'Макс сказав сестрі: "I left my keys here." Як це передати непрямою мовою?',
+        options: ["Max said that he had left his keys there.", "Max said that he left his keys here.", "Max said that he had left my keys there.", "Max said that he had left his keys here."],
+        correct: 0,
+        optionExplanations: ["left → had left, here → there, my → his", "нічого не змінили — так не можна", "my лишилось — має бути his", "here забули змінити на there"]
+      },
+      {
+        question: 'Марійка сказала мамі: "I have finished my homework." Мама переказує татові.',
+        options: ["She said that she had finished her homework.", "She said that she has finished her homework.", "She said that she finished her homework.", "She said that she had finished my homework."],
+        correct: 0,
+        optionExplanations: ["have finished → had finished, my → her", "has — забули зсунути час", "загубили відтінок «вже», потрібне had", "my лишилось — має бути her"]
+      },
+      {
+        question: 'Він сказав: "I will visit them next week." Як це передати непрямою мовою?',
+        options: ["He said that he would visit them the following week.", "He said that he would visit them next week.", "He said that he will visit them the following week.", "He said that he would visit us the following week."],
+        correct: 0,
+        optionExplanations: ["will → would, next week → the following week", "next week забули змінити", "will лишили — має бути would", "them не можна міняти на us без причини"]
+      },
+      {
+        question: 'Вона сказала подрузі: "I can\'t come to the party." Подруга переказує це іншій подрузі.',
+        options: ["She said that she couldn't come to the party.", "She said that she can't come to the party.", "She said that she couldn't came to the party.", "She said that she didn't come to the party."],
+        correct: 0,
+        optionExplanations: ["can't → couldn't, стандартний зсув", "can't лишили без змін", "came після couldn't зайве — треба просто come", "це вже інша думка — «не прийшла», а не «не може прийти»"]
+      },
+      {
+        question: 'Він сказав другу по телефону: "I bought this book two days ago." Друг переказує це через кілька днів.',
+        options: ["He said that he had bought that book two days before.", "He said that he had bought this book two days ago.", "He said that he bought that book two days before.", "He said that he had bought that book two days ago."],
+        correct: 0,
+        optionExplanations: ["bought → had bought, this → that, ago → before", "this і ago лишили без змін", "bought — забули зсунути в had bought", "ago забули змінити на before"]
+      }
+    ];
+
+    function pickRandomQuestions(bank, n) {
+      const copy = bank.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp;
+      }
+      return copy.slice(0, Math.min(n, copy.length));
+    }
+
+    // Банк вище завжди пише правильну відповідь першою (так легше вручну
+    // перевіряти) — без цього кроку вона щоразу опинялася б в одній і тій
+    // самій позиції, і тест вгадувався б без жодного знання граматики.
+    function shuffleQuestionOptions(q) {
+      const order = q.options.map((_, i) => i);
+      for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+      }
+      return {
+        question: q.question,
+        options: order.map(i => q.options[i]),
+        correct: order.indexOf(q.correct),
+        optionExplanations: q.optionExplanations ? order.map(i => q.optionExplanations[i]) : undefined,
+      };
+    }
+
     async function startGrammarQuiz() {
       document.getElementById('grammar-lesson').classList.add('hidden');
       document.getElementById('grammar-quiz').classList.remove('hidden');
@@ -14544,6 +14756,16 @@ Answer in Ukrainian, simply and friendly (like explaining to a friend). Keep it 
       if (currentGrammarTopic && currentGrammarTopic.custom
           && Array.isArray(currentGrammarTopic.quiz) && currentGrammarTopic.quiz.length) {
         grammarQuizQuestions = currentGrammarTopic.quiz;
+        currentGrammarQuizQ = 0;
+        grammarQuizCorrect = 0;
+        showGrammarQuizQuestion();
+        return;
+      }
+
+      // Reported Speech: банк питань вище замість живої генерації — див.
+      // коментар над REPORTED_SPEECH_QUIZ_BANK.
+      if (currentGrammarTopic && currentGrammarTopic.id === 'reported_speech') {
+        grammarQuizQuestions = pickRandomQuestions(REPORTED_SPEECH_QUIZ_BANK, 5).map(shuffleQuestionOptions);
         currentGrammarQuizQ = 0;
         grammarQuizCorrect = 0;
         showGrammarQuizQuestion();
@@ -17441,11 +17663,18 @@ function copyStory() {
             correctAnswers: doc.data().correctAnswers || 0
           }));
           quizWords = wordsArray.slice(0, 30);
-          quizOptionsPool = wordsArray; // Весь пул для варіантів
+          // Варіанти відповіді — не тільки ці 50 слів, а весь словник (wordPool
+          // уже завантажений для інших вправ). Інакше до кінця тесту майже всі
+          // переклади з вибірки вже «засвітилися» як чиясь правильна відповідь,
+          // і питання вгадується виключенням, а не знанням перекладу.
+          const restOfDictionary = (typeof wordPool !== 'undefined' ? wordPool : [])
+            .filter(w => !wordsArray.some(w2 => w2.english === w.english));
+          quizOptionsPool = wordsArray.concat(restOfDictionary);
           currentQuestion = 0;
           correctAnswers = 0;
           quizMistakes = [];
-          showQuestion();
+          quizUsedTranslations = new Set();
+          renderQuizPreview();
           hideLoading();
         });
     }
@@ -17457,6 +17686,38 @@ function copyStory() {
     let correctAnswers = 0;
     // Рахунок «7/10» не каже, що саме вчити далі — тримаємо самі слова
     let quizMistakes = [];
+    // Переклади, які вже були правильною відповіддю в цьому проході — щоб те
+    // саме слово не спливало пусткою в наступному питанні й не видавало себе
+    let quizUsedTranslations = new Set();
+
+    /**
+     * Екран «спершу подивись слова» перед тестом на нові слова. Раніше тест
+     * стартував одразу після підбору слів — без жодного шансу побачити
+     * переклад чи почути вимову заздалегідь.
+     */
+    function renderQuizPreview() {
+      document.getElementById('quiz-container').classList.add('hidden');
+      document.getElementById('quiz-progress').classList.add('hidden');
+      const list = document.getElementById('quiz-preview-list');
+      list.innerHTML = quizWords.map(w => `
+        <div class="quiz-preview-item">
+          <div class="quiz-preview-word">
+            <b>${escapeHtml(w.english)}</b>
+            <span>${escapeHtml(w.translation)}</span>
+          </div>
+          <button type="button" class="quiz-preview-audio" onclick="speakWord(${jsArg(w.english)}, this)">
+            <i class="fas fa-volume-up"></i>
+          </button>
+        </div>`).join('');
+      document.getElementById('quiz-preview').classList.remove('hidden');
+    }
+
+    function startQuizFromPreview() {
+      document.getElementById('quiz-preview').classList.add('hidden');
+      document.getElementById('quiz-container').classList.remove('hidden');
+      document.getElementById('quiz-progress').classList.remove('hidden');
+      showQuestion();
+    }
 
     function showQuestion() {
       if (currentQuestion >= quizWords.length) {
@@ -17468,12 +17729,18 @@ function copyStory() {
       const options = [questionWord.translation];
       // Додаємо випадкові переклади з пулу завантажених слів
       const pool = quizOptionsPool.length > 0 ? quizOptionsPool : wordPool;
-      while (options.length < 4 && pool.length > options.length) {
-        const randomWord = pool[Math.floor(Math.random() * pool.length)];
-        if (!options.includes(randomWord.translation)) {
-          options.push(randomWord.translation);
+      // Спершу — переклади, які ще не траплялися як правильна відповідь у
+      // цьому тесті; тільки якщо їх не вистачає (малий словник) — решта пулу.
+      const fillOptionsFrom = (source) => {
+        const shuffled = source.slice().sort(() => 0.5 - Math.random());
+        for (const w of shuffled) {
+          if (options.length >= 4) break;
+          if (!options.includes(w.translation)) options.push(w.translation);
         }
-      }
+      };
+      fillOptionsFrom(pool.filter(w => !quizUsedTranslations.has(w.translation)));
+      if (options.length < 4) fillOptionsFrom(pool);
+      quizUsedTranslations.add(questionWord.translation);
       // Перемішуємо варіанти
       options.sort(() => 0.5 - Math.random());
       // Оновлюємо прогрес бар
@@ -18714,6 +18981,10 @@ async function translateStory() {
 
         // Генеруємо кросворд
         generateCrosswordGrid();
+        // Якщо людина вже дивиться визначення — підтягуємо їх і для нового
+        // набору слів, інакше перемикач лишився б активним, а підказки
+        // тихо відкотилися б на переклад.
+        if (crosswordHintMode === 'definition') await ensureCrosswordDefinitions();
         renderCrossword();
         hideLoading();
       } catch (error) {
@@ -18886,6 +19157,87 @@ async function translateStory() {
       });
     }
 
+    // Формат підказки в кроссворді: переклад (завжди був) або визначення
+    // англійською — той самий вибір, що вже є у вправі «Вгадай слово».
+    let crosswordHintMode = 'translation';
+    let crosswordDefinitionsLoading = false;
+
+    async function setCrosswordHintMode(mode) {
+      if (crosswordHintMode === mode) return;
+      crosswordHintMode = mode;
+      document.querySelectorAll('#crossword-hint-toggle .cw-hint-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+      if (mode === 'definition') await ensureCrosswordDefinitions();
+      renderCrosswordClues();
+    }
+
+    /**
+     * Визначення підтягуються лише коли людина й справді перемкнулась на цей
+     * режим — щоб не платити за AI-запит тим, кого влаштовує звичайний переклад.
+     */
+    async function ensureCrosswordDefinitions() {
+      const missing = placedWords.filter(w => !w.definition);
+      if (!missing.length || crosswordDefinitionsLoading) return;
+      crosswordDefinitionsLoading = true;
+      const toggle = document.getElementById('crossword-hint-toggle');
+      if (toggle) toggle.classList.add('cw-hint-loading');
+      try {
+        const wordList = missing.map(w => w.english).join(', ');
+        const promptText = `Generate short definitions in English for these words: ${wordList}.
+Each definition should explain the word WITHOUT using the word itself or its direct translation.
+Keep definitions short (1 sentence, max 12 words).
+Return ONLY a valid JSON array, no other text:
+[
+  {"word": "english_word", "definition": "short definition in English"}
+]`;
+        const response = await aiChat({
+          messages: [
+            { role: 'system', content: 'You are a helpful assistant that generates word definitions. Return only valid JSON.' },
+            { role: 'user', content: promptText }
+          ],
+          model: 'gpt-4o-mini',
+          temperature: 0.5,
+          max_tokens: 500,
+        });
+        const result = await response.json();
+        const content = result.choices[0].message.content.trim();
+        const jsonStr = content.replace(/```json\n?/g, '').replace(/```/g, '').trim();
+        const defs = JSON.parse(jsonStr);
+        defs.forEach(d => {
+          const match = placedWords.find(w => w.english.toUpperCase() === String(d.word || '').toUpperCase());
+          if (match) match.definition = d.definition;
+        });
+      } catch (e) {
+        console.log('Crossword definitions error:', e);
+      } finally {
+        crosswordDefinitionsLoading = false;
+        if (toggle) toggle.classList.remove('cw-hint-loading');
+      }
+    }
+
+    function renderCrosswordClues() {
+      const acrossClues = document.getElementById('across-clues');
+      const downClues = document.getElementById('down-clues');
+
+      let acrossHtml = '';
+      let downHtml = '';
+
+      placedWords.forEach((word, index) => {
+        const useDefinition = crosswordHintMode === 'definition' && word.definition;
+        const text = useDefinition ? word.definition : word.translation;
+        const clue = `<li onclick="focusCrosswordWordByIndex(${index})"><strong>${index + 1}.</strong> ${escapeHtml(text)}</li>`;
+        if (word.direction === 'across') {
+          acrossHtml += clue;
+        } else {
+          downHtml += clue;
+        }
+      });
+
+      acrossClues.innerHTML = acrossHtml || '<li>Немає слів</li>';
+      downClues.innerHTML = downHtml || '<li>Немає слів</li>';
+    }
+
     function renderCrossword() {
       // Знаходимо межі кросворда
       let minRow = crosswordSize, maxRow = 0, minCol = crosswordSize, maxCol = 0;
@@ -18970,23 +19322,7 @@ async function translateStory() {
       gridContainer.innerHTML = html;
 
       // Рендеримо підказки
-      const acrossClues = document.getElementById('across-clues');
-      const downClues = document.getElementById('down-clues');
-
-      let acrossHtml = '';
-      let downHtml = '';
-
-      placedWords.forEach((word, index) => {
-        const clue = `<li onclick="focusCrosswordWordByIndex(${index})"><strong>${index + 1}.</strong> ${escapeHtml(word.translation)}</li>`;
-        if (word.direction === 'across') {
-          acrossHtml += clue;
-        } else {
-          downHtml += clue;
-        }
-      });
-
-      acrossClues.innerHTML = acrossHtml || '<li>Немає слів</li>';
-      downClues.innerHTML = downHtml || '<li>Немає слів</li>';
+      renderCrosswordClues();
 
       cwDirection = 'across';
       cwActiveCell = null;

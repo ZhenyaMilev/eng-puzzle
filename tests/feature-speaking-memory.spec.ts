@@ -25,7 +25,7 @@ function seedMemory(page: Page, profile: string, conversations: number) {
 }
 
 async function openSpeakingClub(page: Page) {
-  await page.click('.acc-tile:has-text("Speaking Club")');
+  await page.click('.acc-tile:has-text("Writing Club")');
   await expect(page.locator('#speaking-club-section')).toBeVisible();
 }
 

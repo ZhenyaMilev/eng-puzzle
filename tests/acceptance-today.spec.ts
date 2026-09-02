@@ -1191,7 +1191,7 @@ test.describe('10. Phrase practice modes', () => {
 // ─────────────────────────────  speaking club  ─────────────────────────────
 
 test.describe('11. Speaking Club memory', () => {
-  const openSC = (page: Page) => page.click('.acc-tile:has-text("Speaking Club")');
+  const openSC = (page: Page) => page.click('.acc-tile:has-text("Writing Club")');
 
   test('11.1 a newcomer sees no memory badge', async ({ page }) => {
     await loadApp(page);
