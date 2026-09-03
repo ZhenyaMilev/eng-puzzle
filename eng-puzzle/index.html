@@ -9699,7 +9699,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-09-02.1';
+    const APP_VERSION = '2026-09-03.1';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -20485,6 +20485,30 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
       renderFillBlanksTraining();
     }
 
+    // AI іноді повертає речення без "___" (просто вставляє слово звичайним текстом) —
+    // тоді пропуску немає і вставити вибране слово нікуди. Гарантуємо, що пропуск буде завжди.
+    function buildFillBlankSentenceHtml(item, index) {
+      const rawSentence = typeof item.sentence === 'string' ? item.sentence : '';
+      const blankSpan = `<span class="fill-blank" data-answer="${item.word}" data-index="${index}" onclick="clickFillBlank(this)"></span>`;
+
+      if (rawSentence.includes('___')) {
+        return rawSentence.replace('___', blankSpan);
+      }
+
+      // Пропуску немає — шукаємо саме слово в реченні і підміняємо його на пропуск
+      if (item.word && rawSentence) {
+        const escaped = item.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const wordRe = new RegExp(`\\b${escaped}\\b`, 'i');
+        if (wordRe.test(rawSentence)) {
+          return rawSentence.replace(wordRe, blankSpan);
+        }
+      }
+
+      // Ні пропуску, ні слова в тексті немає — додаємо пропуск в кінець, щоб було куди вставити слово
+      const base = rawSentence ? rawSentence.trim().replace(/[.!?]+$/, '') : `Приклад використання слова «${item.word || ''}»`;
+      return `${base} ${blankSpan}.`;
+    }
+
     function renderFillBlanksTraining() {
       // Рендеримо банк слів
       const wordBank = document.getElementById('fill-blanks-word-bank');
@@ -20497,9 +20521,7 @@ Make sentences diverse and interesting. Return ONLY the JSON array, no other tex
       // Рендеримо речення
       const sentencesContainer = document.getElementById('fill-blanks-sentences');
       sentencesContainer.innerHTML = fillBlanksData.map((item, index) => {
-        const sentenceHtml = item.sentence.replace('___',
-          `<span class="fill-blank" data-answer="${item.word}" data-index="${index}" onclick="clickFillBlank(this)"></span>`
-        );
+        const sentenceHtml = buildFillBlankSentenceHtml(item, index);
         return `
           <div class="fill-blanks-sentence">
             <span class="sentence-number">${index + 1}</span>
