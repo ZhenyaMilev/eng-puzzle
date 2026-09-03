@@ -1020,8 +1020,8 @@ test.describe('9. Word constructor', () => {
 
     // All 26 letters, but crucially in rows of 10 / 9 / 7 — a single wrapping
     // container put "p" on the second row and "a" not first on the left.
-    // Under them the apostrophe and the space, which no letter row can hold.
-    expect(rows).toEqual(['qwertyuiop', 'asdfghjkl', 'zxcvbnm', "' "]);
+    // Under them the apostrophe, the comma and the space, which no letter row can hold.
+    expect(rows).toEqual(['qwertyuiop', 'asdfghjkl', 'zxcvbnm', "', "]);
   });
 
   test('9.3b every key sits on the row a thumb expects', async ({ page }) => {

@@ -9699,7 +9699,7 @@
     // згортають і розгортають, тож користувач місяцями сидів на старій версії.
     // Тримаємо версію тут і в version.json (тест стежить, щоб вони збігалися)
     // і перевіряємо її при кожному поверненні у застосунок.
-    const APP_VERSION = '2026-09-03.1';
+    const APP_VERSION = '2026-09-03.2';
     let appUpdateNoticed = false;
 
     async function checkForAppUpdate() {
@@ -18605,11 +18605,13 @@ async function translateStory() {
         return `<div class="cw-keyboard-row${indent}${dense}">${keys}${backspace}</div>`;
       });
 
-      // У словнику є і «don't», і «ice cream» — без цих двох клавіш таке слово
-      // просто не набрати. Кросворду вони ні до чого: там сітка лише з A–Z.
+      // У словнику є і «don't», і «ice cream», і переклади з кількома варіантами
+      // через кому («штори, занавіски») — без цих клавіш таке слово просто не
+      // набрати. Кросворду вони ні до чого: там сітка лише з A–Z.
       if (opts.punctuation) {
         rows.push(`<div class="cw-keyboard-row">
           <button class="cw-key" data-letter="'" data-count="-1" onclick="${onLetter}(&quot;'&quot;)">'</button>
+          <button class="cw-key" data-letter="," data-count="-1" onclick="${onLetter}(',')">,</button>
           <button class="cw-key cw-key-space" data-letter=" " data-count="-1" onclick="${onLetter}(' ')">пробіл</button>
         </div>`);
       }
